@@ -1,0 +1,28 @@
+{
+    "login": {
+        "title": "כניסה",
+        "username": "שם משתמש",
+        "password": "סיסמה",
+        "submit": "הירשם"
+    },
+    "common": {
+        "pageNotFound": "עמוד לא נמצא",
+        "dashboard": "לוח בקרה",
+        "session": "סשן",
+        "reports": "דוחות",
+        "settings": "הגדרות",
+        "user": {
+            "name": "שם משתמש",
+            "role": "תפקיד"
+        },
+        "logout": "התנתק"
+    },
+    "dashboard": {
+        "header": "לוח בקרה",
+        "body": "לוח בקרה"
+    },
+    "settings": {
+        "header": "הגדרות",
+        "body": "הגדרות"
+    }
+}

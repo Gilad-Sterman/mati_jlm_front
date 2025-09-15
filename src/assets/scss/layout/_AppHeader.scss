@@ -1,0 +1,21 @@
+.app-header {
+    background: $primary-color;
+    padding: $spacing-md;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    h1,h3 {
+        margin: 0;
+    }
+
+    h1 {
+        font-size: $font-size-lg;
+        color: $white-color;
+    }
+
+    h3 {
+        font-size: $font-size-md;
+        color: $secondary-color;
+    }
+}

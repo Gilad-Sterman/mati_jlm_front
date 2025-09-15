@@ -1,0 +1,28 @@
+{
+    "login": {
+        "title": "Login",
+        "username": "Username",
+        "password": "Password",
+        "submit": "Submit"
+    },
+    "common": {
+        "pageNotFound": "Page Not Found",
+        "dashboard": "Dashboard",
+        "session": "Session",
+        "reports": "Reports",
+        "settings": "Settings",
+        "user": {
+            "name": "User Name",
+            "role": "Role"
+        },
+        "logout": "Logout"
+    },
+    "dashboard": {
+        "header": "Dashboard Header",
+        "body": "Dashboard Body"
+    },
+    "settings": {
+        "header": "Settings Header",
+        "body": "Settings Body"
+    }
+}
