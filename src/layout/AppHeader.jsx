@@ -1,4 +1,4 @@
-import { LangSelect } from "../cmps/LangSelect";
+import { LangSelect } from "../cmps/common/LangSelect";
     
 export function AppHeader() {
     return (
