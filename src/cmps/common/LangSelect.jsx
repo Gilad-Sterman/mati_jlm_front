@@ -1,5 +1,4 @@
 import { useTranslation } from "react-i18next";
-import { useSelector } from "react-redux";
 import { Globe } from "lucide-react";
 
 export function LangSelect() {

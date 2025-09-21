@@ -1,9 +1,20 @@
 {
     "login": {
-        "title": "כניסה",
-        "username": "שם משתמש",
+        "title": "כניסה למערכת",
+        "subtitle": "גישה לפלטפורמת האבחון שלך",
+        "email": "אימייל",
+        "emailPlaceholder": "הזן את האימייל שלך",
         "password": "סיסמה",
-        "submit": "הירשם"
+        "passwordPlaceholder": "הזן את הסיסמה שלך",
+        "submit": "כניסה",
+        "loggingIn": "מתחבר...",
+        "forgotPassword": "שכחת את הסיסמה?",
+        "errors": {
+            "emailRequired": "אימייל נדרש",
+            "emailInvalid": "אנא הזן אימייל תקין",
+            "passwordRequired": "סיסמה נדרשת",
+            "passwordMinLength": "הסיסמה חייבת להכיל לפחות 6 תווים"
+        }
     },
     "common": {
         "pageNotFound": "עמוד לא נמצא",
@@ -15,14 +26,58 @@
             "name": "שם משתמש",
             "role": "תפקיד"
         },
-        "logout": "התנתק"
+        "logout": "התנתק",
+        "cancel": "ביטול"
+    },
+    "upload": {
+        "title": "העלאת הקלטה",
+        "subtitle": "העלה ועבד הקלטות ייעוץ",
+        "fileUpload": "העלאת קובץ",
+        "sessionDetails": "פרטי הפגישה",
+        "sessionTitle": "כותרת הפגישה (אופציונלי)",
+        "sessionTitlePlaceholder": "הזן כותרת לפגישה זו",
+        "selectClient": "בחר לקוח",
+        "chooseClient": "בחר לקוח...",
+        "newClient": "לקוח חדש",
+        "createNewClient": "צור לקוח חדש",
+        "clientName": "שם הלקוח",
+        "clientNamePlaceholder": "הזן שם לקוח",
+        "clientEmail": "אימייל",
+        "clientEmailPlaceholder": "הזן אימייל לקוח",
+        "businessDomain": "תחום עסקי",
+        "businessDomainPlaceholder": "לדוגמה: טכנולוגיה, בריאות",
+        "businessNumber": "מספר עסק",
+        "businessNumberPlaceholder": "הזן מספר רישום עסק",
+        "creating": "יוצר...",
+        "createClient": "צור לקוח",
+        "startProcessing": "התחל עיבוד",
+        "processing": "מעבד...",
+        "uploading": "מעלה",
+        "success": "הפגישה הועלתה בהצלחה!",
+        "dropzone": {
+            "title": "גרור את קובץ השמע לכאן",
+            "description": "פורמטים נתמכים: MP3, WAV, M4A, AAC (מקסימום 100MB)",
+            "button": "בחר קובץ"
+        },
+        "errors": {
+            "invalidFileType": "אנא בחר קובץ שמע תקין (MP3, WAV, M4A, AAC)",
+            "fileTooLarge": "גודל הקובץ חייב להיות פחות מ-100MB",
+            "noFileSelected": "אנא בחר קובץ להעלאה",
+            "noClientSelected": "אנא בחר לקוח",
+            "clientNameRequired": "שם הלקוח נדרש"
+        }
     },
     "dashboard": {
-        "header": "לוח בקרה",
-        "body": "לוח בקרה"
+        "header": "כותרת לוח הבקרה",
+        "body": "גוף לוח הבקרה"
     },
     "settings": {
         "header": "הגדרות",
         "body": "הגדרות"
+    },
+    "sidebar": {
+        "upload": "העלאת סשן",
+        "sessions": "הסשנים שלי",
+        "reports": "דוחות"
     }
 }

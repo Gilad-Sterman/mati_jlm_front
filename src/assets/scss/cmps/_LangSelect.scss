@@ -1,28 +1,66 @@
 .lang-select {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: .5rem;
+    gap: $spacing-sm;
+    background: #f8f9fa;
+    border-radius: $border-radius-lg;
+    padding: $spacing-xs;
+    border: 1px solid #e9ecef;
+
+    svg {
+        width: 18px;
+        height: 18px;
+        color: #6c757d;
+        margin-right: $spacing-xs;
+    }
 
     button {
         border: none;
-        color: $white-color;
+        color: #6c757d;
         cursor: pointer;
         background-color: transparent;
-        width: 80px;
+        padding: $spacing-xs $spacing-sm;
+        border-radius: $border-radius-sm;
+        font-size: $font-size-xs;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        min-width: 40px;
+        text-align: center;
 
         &:hover {
-            background-color: $secondary-color;
+            background-color: rgba($secondary-color, 0.1);
+            color: $secondary-color;
         }
 
         &.active {
-            border: 1px solid $secondary-color;
+            background-color: $secondary-color;
+            color: $white-color;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba($secondary-color, 0.2);
+        }
+
+        &:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba($secondary-color, 0.2);
         }
     }
+}
 
-    svg {
-        width: 20px;
-        height: 20px;
-        stroke: $white-color;
+// Responsive design
+@media (max-width: 480px) {
+    .lang-select {
+        gap: $spacing-xs;
+        padding: $spacing-xs;
+
+        svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        button {
+            padding: $spacing-xs;
+            font-size: $font-size-xs;
+            min-width: 35px;
+        }
     }
 }

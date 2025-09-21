@@ -1,21 +1,75 @@
 .app-header {
-    background: $primary-color;
-    padding: $spacing-md;
+    background: $white-color;
+    padding: $spacing-lg $spacing-xl;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border-bottom: 1px solid #e9ecef;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    position: relative;
+    z-index: 10;
 
-    h1,h3 {
-        margin: 0;
+    .header-left {
+        display: flex;
+        flex-direction: column;
+        gap: $spacing-xs;
+
+        h1, h3 {
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        h1 {
+            font-size: $font-size-xl;
+            color: $primary-color;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        h3 {
+            font-size: $font-size-sm;
+            color: #6c757d;
+            font-weight: 400;
+            opacity: 0.8;
+        }
     }
 
-    h1 {
-        font-size: $font-size-lg;
-        color: $white-color;
+    .header-right {
+        display: flex;
+        align-items: center;
+        gap: $spacing-lg;
     }
+}
 
-    h3 {
-        font-size: $font-size-md;
-        color: $secondary-color;
+// Responsive design
+@media (max-width: 768px) {
+    .app-header {
+        padding: $spacing-md $spacing-lg;
+
+        .header-left {
+            h1 {
+                font-size: $font-size-lg;
+            }
+
+            h3 {
+                font-size: $font-size-xs;
+            }
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .app-header {
+        padding: $spacing-md;
+
+        .header-left {
+            h1 {
+                font-size: $font-size-md;
+            }
+
+            h3 {
+                display: none; // Hide subtitle on very small screens
+            }
+        }
     }
 }

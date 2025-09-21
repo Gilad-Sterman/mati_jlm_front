@@ -1,9 +1,20 @@
 {
     "login": {
-        "title": "Login",
-        "username": "Username",
+        "title": "Login to MATI -",
+        "subtitle": "Access your diagnostic platform",
+        "email": "Email",
+        "emailPlaceholder": "Enter your email",
         "password": "Password",
-        "submit": "Submit"
+        "passwordPlaceholder": "Enter your password",
+        "submit": "Login",
+        "loggingIn": "Logging in...",
+        "forgotPassword": "Forgot your password?",
+        "errors": {
+            "emailRequired": "Email is required",
+            "emailInvalid": "Please enter a valid email",
+            "passwordRequired": "Password is required",
+            "passwordMinLength": "Password must be at least 6 characters"
+        }
     },
     "common": {
         "pageNotFound": "Page Not Found",
@@ -15,7 +26,46 @@
             "name": "User Name",
             "role": "Role"
         },
-        "logout": "Logout"
+        "logout": "Logout",
+        "cancel": "Cancel"
+    },
+    "upload": {
+        "title": "Upload Recording",
+        "subtitle": "Upload and process your consultation recordings",
+        "fileUpload": "File Upload",
+        "sessionDetails": "Session Details",
+        "sessionTitle": "Session Title (Optional)",
+        "sessionTitlePlaceholder": "Enter a title for this session",
+        "selectClient": "Select Client",
+        "chooseClient": "Choose a client...",
+        "newClient": "New Client",
+        "createNewClient": "Create New Client",
+        "clientName": "Client Name",
+        "clientNamePlaceholder": "Enter client name",
+        "clientEmail": "Email",
+        "clientEmailPlaceholder": "Enter client email",
+        "businessDomain": "Business Domain",
+        "businessDomainPlaceholder": "e.g., Technology, Healthcare",
+        "businessNumber": "Business Number",
+        "businessNumberPlaceholder": "Enter business registration number",
+        "creating": "Creating...",
+        "createClient": "Create Client",
+        "startProcessing": "Start Processing",
+        "processing": "Processing...",
+        "uploading": "Uploading",
+        "success": "Session uploaded successfully!",
+        "dropzone": {
+            "title": "Drop your audio file here",
+            "description": "Supported formats: MP3, WAV, M4A, AAC (Max 100MB)",
+            "button": "Choose File"
+        },
+        "errors": {
+            "invalidFileType": "Please select a valid audio file (MP3, WAV, M4A, AAC)",
+            "fileTooLarge": "File size must be less than 100MB",
+            "noFileSelected": "Please select a file to upload",
+            "noClientSelected": "Please select a client",
+            "clientNameRequired": "Client name is required"
+        }
     },
     "dashboard": {
         "header": "Dashboard Header",
@@ -24,5 +74,10 @@
     "settings": {
         "header": "Settings Header",
         "body": "Settings Body"
+    },
+    "sidebar": {
+        "upload": "Upload Session",
+        "sessions": "My Sessions",
+        "reports": "Reports"
     }
 }

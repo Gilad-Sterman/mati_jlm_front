@@ -31,7 +31,18 @@ i18n
   });
 
 // Set document direction based on language
-document.documentElement.dir = i18n.language === 'he' ? 'rtl' : 'ltr';
-document.documentElement.lang = i18n.language;
+const setDocumentDirection = (language) => {
+  document.documentElement.dir = language === 'he' ? 'rtl' : 'ltr';
+  document.documentElement.lang = language;
+};
+
+// Set initial direction
+setDocumentDirection(i18n.language);
+
+// Listen for language changes
+i18n.on('languageChanged', (lng) => {
+  setDocumentDirection(lng);
+  localStorage.setItem('language', lng);
+});
 
 export default i18n;

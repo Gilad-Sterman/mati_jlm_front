@@ -1,29 +1,66 @@
 import React, { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import { Login } from './pages/auth/Login'
 import { Sidebar } from './layout/Sidebar'
 import { AppHeader } from './layout/AppHeader'
 import { PageContent } from './layout/main/PageContent'
 import { AdminDashboard } from './pages/dashboard/AdminDashboard'
 import { AdminSettings } from './pages/settings/AdminSettings'
+import { UploadPage } from './pages/upload/UploadPage'
+import { ProtectedRoute } from './components/auth/ProtectedRoute'
+import { AdminRoute } from './components/auth/AdminRoute'
+import { selectIsAuthenticated } from './store/authSlice'
 import { useTranslation } from 'react-i18next';
 
 function App() {
   const { t, i18n } = useTranslation();
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+
   return (
     <Router>
       <div className={`app-layout ${i18n.dir() === 'rtl' ? 'rtl' : ''}`}>
-        <Sidebar />
-        <div className="main-wrapper">
-          <AppHeader />
+        {/* Only show sidebar when user is authenticated */}
+        {isAuthenticated && <Sidebar />}
+        
+        <div className={`main-wrapper ${!isAuthenticated ? 'full-width' : ''}`}>
+          {/* Only show header when user is authenticated */}
+          {<AppHeader />}
+          
           <PageContent>
             <Routes>
+              {/* Public route - Login */}
               <Route path="/" element={<Login />} />
-              <Route path="/dashboard" element={<AdminDashboard />} />
-              <Route path="/settings" element={<AdminSettings />} />
-              {/* <Route path="/sessions/:id" element={<SessionView />} /> */}
-              {/* <Route path="/reports" element={<Reports />} /> */}
-              {/* <Route path="/profile/:id" element={<Profile />} /> */}
+              
+              {/* Admin-only routes */}
+              <Route 
+                path="/dashboard" 
+                element={
+                  <AdminRoute>
+                    <AdminDashboard />
+                  </AdminRoute>
+                } 
+              />
+              <Route 
+                path="/settings" 
+                element={
+                  <AdminRoute>
+                    <AdminSettings />
+                  </AdminRoute>
+                } 
+              />
+              
+              {/* Protected routes (any authenticated user) */}
+              <Route 
+                path="/upload" 
+                element={
+                  <ProtectedRoute>
+                    <UploadPage />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Catch all - redirect to appropriate page */}
               <Route path="*" element={<h2>{t('common.pageNotFound')}</h2>} />
             </Routes>
           </PageContent>
