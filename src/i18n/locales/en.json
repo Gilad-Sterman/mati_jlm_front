@@ -32,13 +32,17 @@
     "upload": {
         "title": "Upload Recording",
         "subtitle": "Upload and process your consultation recordings",
+        "welcome": "Welcome, {{name}}!",
         "fileUpload": "File Upload",
         "sessionDetails": "Session Details",
         "sessionTitle": "Session Title (Optional)",
         "sessionTitlePlaceholder": "Enter a title for this session",
+        "clientSelection": "Client Selection",
+        "existingClient": "Existing Client",
         "selectClient": "Select Client",
         "chooseClient": "Choose a client...",
         "newClient": "New Client",
+        "newClientDetails": "New Client Details",
         "createNewClient": "Create New Client",
         "clientName": "Client Name",
         "clientNamePlaceholder": "Enter client name",
@@ -48,12 +52,29 @@
         "businessDomainPlaceholder": "e.g., Technology, Healthcare",
         "businessNumber": "Business Number",
         "businessNumberPlaceholder": "Enter business registration number",
-        "creating": "Creating...",
+        "creating": "Creating session...",
         "createClient": "Create Client",
         "startProcessing": "Start Processing",
         "processing": "Processing...",
         "uploading": "Uploading",
+        "inProgress": "In Progress",
+        "complete": "Complete",
+        "failed": "Failed",
+        "uploadComplete": "Upload Complete!",
+        "retry": "Try Again",
         "success": "Session uploaded successfully!",
+        "uploadingFile": "Uploading File",
+        "fileUploadedSuccessfully": "File Uploaded Successfully!",
+        "aiProcessingInProgress": "AI Processing in Progress",
+        "aiTranscription": "AI Transcription",
+        "transcriptionDescription": "Converting audio to text using advanced AI",
+        "reportGeneration": "Report Generation",
+        "reportDescription": "Generating comprehensive analysis reports",
+        "duration": "Duration",
+        "uploadAnother": "Upload Another File",
+        "uploadFailed": "Upload Failed",
+        "tryAgain": "Try Again",
+        "preparingUpload": "Preparing upload...",
         "dropzone": {
             "title": "Drop your audio file here",
             "description": "Supported formats: MP3, WAV, M4A, AAC (Max 100MB)",
@@ -64,7 +85,8 @@
             "fileTooLarge": "File size must be less than 100MB",
             "noFileSelected": "Please select a file to upload",
             "noClientSelected": "Please select a client",
-            "clientNameRequired": "Client name is required"
+            "clientNameRequired": "Client name is required",
+            "clientEmailRequired": "Client email is required"
         }
     },
     "dashboard": {
@@ -79,5 +101,17 @@
         "upload": "Upload Session",
         "sessions": "My Sessions",
         "reports": "Reports"
+    },
+    "sessions": {
+        "title": "My Sessions",
+        "sessionsCount": "{{count}} Sessions",
+        "noSessions": "No sessions found. Upload a recording to get started.",
+        "unknownClient": "Unknown Client",
+        "status": {
+            "uploaded": "Uploaded",
+            "processing": "Processing",
+            "completed": "Completed",
+            "failed": "Failed"
+        }
     }
 }

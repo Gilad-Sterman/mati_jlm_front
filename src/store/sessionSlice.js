@@ -51,6 +51,10 @@ const initialState = {
   isLoading: false,
   isUploading: false,
   uploadProgress: 0,
+  uploadStatus: null, // 'started', 'uploading', 'complete', 'error'
+  uploadMessage: '',
+  currentUploadSession: null, // Session being uploaded
+  uiState: 'upload', // 'upload', 'uploading', 'processing', 'error'
   error: null,
   pagination: {
     page: 1,
@@ -77,7 +81,62 @@ const sessionSlice = createSlice({
     resetUploadState: (state) => {
       state.isUploading = false;
       state.uploadProgress = 0;
+      state.uploadStatus = null;
+      state.uploadMessage = '';
+      state.currentUploadSession = null;
+      state.uiState = 'upload';
       state.error = null;
+    },
+    // New action to return to upload form
+    returnToUpload: (state) => {
+      state.uiState = 'upload';
+      state.uploadStatus = null;
+      state.uploadMessage = '';
+      state.currentUploadSession = null;
+      state.error = null;
+    },
+    // Socket event handlers
+    handleUploadStarted: (state, action) => {
+      const { sessionId, fileName, message } = action.payload;
+      state.uploadStatus = 'started';
+      state.uploadMessage = message;
+      state.currentUploadSession = { id: sessionId, fileName };
+      state.uploadProgress = 5;
+      state.uiState = 'uploading'; // Switch to uploading UI
+    },
+    handleUploadProgress: (state, action) => {
+      const { progress, message } = action.payload;
+      state.uploadStatus = 'uploading';
+      state.uploadProgress = progress;
+      state.uploadMessage = message;
+    },
+    handleUploadComplete: (state, action) => {
+      const { sessionId, message, fileUrl, duration } = action.payload;
+      state.uploadStatus = 'complete';
+      state.uploadProgress = 100;
+      state.uploadMessage = message;
+      state.isUploading = false;
+      state.uiState = 'processing'; // Switch to AI processing UI
+      
+      // Update the session in the list if it exists
+      const sessionIndex = state.sessions.findIndex(s => s.id === sessionId);
+      if (sessionIndex !== -1) {
+        state.sessions[sessionIndex] = {
+          ...state.sessions[sessionIndex],
+          file_url: fileUrl,
+          duration: duration,
+          status: 'uploaded'
+        };
+      }
+    },
+    handleUploadError: (state, action) => {
+      const { message, error } = action.payload;
+      state.uploadStatus = 'error';
+      state.uploadMessage = message;
+      state.error = error || message;
+      state.isUploading = false;
+      state.uploadProgress = 0;
+      state.uiState = 'error'; // Switch to error UI
     }
   },
   extraReducers: (builder) => {
@@ -86,21 +145,29 @@ const sessionSlice = createSlice({
       .addCase(createSession.pending, (state) => {
         state.isUploading = true;
         state.uploadProgress = 0;
+        state.uiState = 'uploading'; // Immediately switch to uploading UI
+        state.uploadMessage = 'Preparing upload...';
         state.error = null;
       })
       .addCase(createSession.fulfilled, (state, action) => {
-        state.isUploading = false;
-        state.uploadProgress = 100;
-        state.sessions.unshift(action.payload);
-        state.currentSession = action.payload;
+        // Don't set isUploading to false yet - socket events will handle that
+        state.uploadProgress = 5; // Initial progress after API success
+        state.sessions.unshift(action.payload.session);
+        state.currentSession = action.payload.session;
+        state.currentUploadSession = action.payload.session;
+        state.uploadStatus = 'started';
+        state.uploadMessage = 'Session created, starting file upload...';
         state.error = null;
       })
       .addCase(createSession.rejected, (state, action) => {
         state.isUploading = false;
         state.uploadProgress = 0;
-        state.error = action.payload;
+        state.uiState = 'upload'; // Reset to upload form
+        state.uploadStatus = null;
+        state.uploadMessage = '';
+        state.currentUploadSession = null;
+        state.error = action.payload?.message || action.error?.message || 'Upload failed';
       })
-      // Fetch sessions cases
       .addCase(fetchSessions.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -133,7 +200,17 @@ const sessionSlice = createSlice({
 });
 
 // Actions
-export const { clearError, clearCurrentSession, setUploadProgress, resetUploadState } = sessionSlice.actions;
+export const { 
+  clearError, 
+  clearCurrentSession, 
+  setUploadProgress, 
+  resetUploadState,
+  returnToUpload,
+  handleUploadStarted,
+  handleUploadProgress,
+  handleUploadComplete,
+  handleUploadError
+} = sessionSlice.actions;
 
 // Selectors
 export const selectSessions = (state) => state.sessions.sessions;
@@ -141,6 +218,10 @@ export const selectCurrentSession = (state) => state.sessions.currentSession;
 export const selectIsLoading = (state) => state.sessions.isLoading;
 export const selectIsUploading = (state) => state.sessions.isUploading;
 export const selectUploadProgress = (state) => state.sessions.uploadProgress;
+export const selectUploadStatus = (state) => state.sessions.uploadStatus;
+export const selectUploadMessage = (state) => state.sessions.uploadMessage;
+export const selectCurrentUploadSession = (state) => state.sessions.currentUploadSession;
+export const selectUiState = (state) => state.sessions.uiState;
 export const selectError = (state) => state.sessions.error;
 export const selectPagination = (state) => state.sessions.pagination;
 

@@ -12,11 +12,6 @@ export function Login() {
     const location = useLocation();
     const { isAuthenticated, isLoading, error, user } = useSelector(selectAuth);
     
-    // Debug logging for auth state changes
-    useEffect(() => {
-        console.log('Auth state changed:', { isAuthenticated, isLoading, error: error || 'none', user: user?.email || 'none' });
-    }, [isAuthenticated, isLoading, error, user]);
-    
     // Get the page user was trying to access before being redirected to login
     const from = location.state?.from?.pathname || null;
 
@@ -31,36 +26,27 @@ export function Login() {
     
     // Redirect if already authenticated (but not on initial mount unless truly authenticated)
     useEffect(() => {
-        console.log('Navigation useEffect triggered:', { isAuthenticated, user, from, hasAttemptedLogin });
-        
         // Only navigate if user is truly authenticated AND we've attempted login OR this is a genuine auth state
         if (isAuthenticated && user && (hasAttemptedLogin || authService.getToken())) {
-            console.log('User is authenticated, navigating...');
             // If user was trying to access a specific page, redirect there (if authorized)
             if (from) {
-                console.log('Redirecting to requested page:', from);
                 // Check if user has access to the requested page
                 const isAdminRoute = from.startsWith('/dashboard') || from.startsWith('/settings');
                 if (isAdminRoute && user.role !== 'admin') {
                     // Non-admin trying to access admin route, redirect to their default page
-                    console.log('Non-admin trying to access admin route, redirecting to default');
                     navigate(user.role === 'adviser' ? '/upload' : '/');
                 } else {
                     // User has access, redirect to requested page
-                    console.log('User has access, redirecting to:', from);
                     navigate(from);
                 }
             } else {
                 // Default role-based navigation
-                console.log('Default navigation for role:', user.role);
                 if (user.role === 'admin') {
                     navigate('/dashboard');
                 } else if (user.role === 'adviser') {
                     navigate('/upload');
                 }
             }
-        } else {
-            console.log('User not authenticated or no user data, or initial mount');
         }
     }, [isAuthenticated, user, navigate, from, hasAttemptedLogin]);
 
@@ -122,7 +108,6 @@ export function Login() {
         e.preventDefault();
         e.stopPropagation();
 
-        console.log('Form submitted, preventing refresh');
         setHasAttemptedLogin(true);
 
         if (!validateForm()) {
@@ -130,11 +115,8 @@ export function Login() {
             return;
         }
 
-        console.log('Form validation passed, attempting login');
-
         try {
             const result = await dispatch(loginUser(formData)).unwrap();
-            console.log('Login successful:', result);
             // Navigation will be handled by useEffect
         } catch (err) {
             // Error is handled by Redux, don't clear it

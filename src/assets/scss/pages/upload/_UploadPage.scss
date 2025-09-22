@@ -167,6 +167,90 @@
             .new-client-btn {
                 margin-block: $spacing-sm;
             }
+
+            // Client mode selection styles
+            .client-mode-selection {
+                .radio-group {
+                    display: flex;
+                    gap: $spacing-lg;
+                    margin-top: $spacing-sm;
+
+                    .radio-option {
+                        display: flex;
+                        align-items: center;
+                        gap: $spacing-sm;
+                        cursor: pointer;
+                        padding: $spacing-sm $spacing-md;
+                        border: 2px solid #e1e8ed;
+                        border-radius: $border-radius-sm;
+                        background: #f8f9fa;
+                        transition: all 0.3s ease;
+                        font-weight: 500;
+
+                        &:hover {
+                            border-color: #667eea;
+                            background: rgba(102, 126, 234, 0.05);
+                        }
+
+                        input[type="radio"] {
+                            width: auto;
+                            margin: 0;
+                            accent-color: #667eea;
+                        }
+
+                        span {
+                            font-size: $font-size-sm;
+                            color: $text-color;
+                            text-transform: none;
+                            letter-spacing: normal;
+                        }
+
+                        // When radio is checked
+                        input[type="radio"]:checked + span {
+                            color: #667eea;
+                            font-weight: 600;
+                        }
+                    }
+
+                    // Selected state
+                    .radio-option:has(input:checked) {
+                        border-color: #667eea;
+                        background: rgba(102, 126, 234, 0.1);
+                    }
+                }
+            }
+
+            // New client form styles
+            .new-client-form {
+                margin-top: $spacing-lg;
+                padding: $spacing-lg;
+                background: #f8f9fa;
+                border-radius: $border-radius-sm;
+                border: 1px solid #e1e8ed;
+
+                h3 {
+                    margin: 0 0 $spacing-lg;
+                    color: $primary-color;
+                    font-size: $font-size-lg;
+                    font-weight: 600;
+                }
+
+                .form-row {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: $spacing-lg;
+                    margin-bottom: $spacing-lg;
+
+                    @media (max-width: 768px) {
+                        grid-template-columns: 1fr;
+                        gap: $spacing-md;
+                    }
+
+                    &:last-child {
+                        margin-bottom: 0;
+                    }
+                }
+            }
         }
 
         .form-actions {

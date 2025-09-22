@@ -1,0 +1,121 @@
+.ai-processing {
+    background: $white-color;
+    border-radius: $border-radius-lg;
+    padding: $spacing-xxl;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+    .processing-content {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        gap: $spacing-xxl;
+
+        .actions {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            align-self: start;
+        }
+
+        .back-button {
+            display: flex;
+            align-items: center;
+            gap: $spacing-sm;
+            padding: $spacing-md $spacing-lg;
+            background: transparent;
+            color: $text-muted;
+            border: 2px solid #e1e8ed;
+            border-radius: $border-radius-sm;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+
+            &.he {
+                svg {
+                    transform: rotate(180deg);
+                }
+            }
+        }
+
+        .success-header {
+            text-align: center;
+            margin-bottom: $spacing-lg;
+            
+            .success-icon {
+                width: 60px;
+                height: 60px;
+                background: $success-color;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto $spacing-lg;
+                
+                .check-icon {
+                    color: $white-color;
+                    width: 30px;
+                    height: 30px;
+                }
+            }
+        }
+
+        .file-details {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: $spacing-xl;
+        }
+
+        .processing-steps {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: $spacing-xl;
+
+            .steps-list {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                justify-content: center;
+                align-items: center;
+                gap: $spacing-xl;
+
+                .step {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    gap: $spacing-xl;
+                    border: 2px solid #e1e8ed;
+                    border-radius: $border-radius-lg;
+                    padding: $spacing-xl;
+                    transition: all 0.3s ease;
+                    
+                    &.active {
+                        border-color: $secondary-color;
+                        box-shadow: 0 4px 12px rgba(52, 152, 219, 0.15);
+                    }
+                    
+                    &.pending {
+                        opacity: 0.7;
+                    }
+
+                    .step-icon {
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                    }
+
+                    .step-content {
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        flex-direction: column;
+                        gap: $spacing-xl;
+                    }
+                }
+            }
+        }
+    }
+}

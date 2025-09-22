@@ -10,6 +10,9 @@
 //pages
 @import 'pages/auth/Login';
 @import 'pages/upload/UploadPage';
+@import 'pages/upload/UploadingLoader';
+@import 'pages/upload/AIProcessing';
+@import 'pages/sessions/SessionsPage';
 
 //cmps
 @import 'cmps/LangSelect';

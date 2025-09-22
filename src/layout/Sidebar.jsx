@@ -40,6 +40,10 @@ export function Sidebar () {
                     <Upload />
                     {t('sidebar.upload')}
                   </NavLink>
+                  <NavLink to="/sessions">
+                    <Users />
+                    {t('sidebar.sessions')}
+                  </NavLink>
                 </>
               ) : (
                 // Adviser navigation
@@ -47,6 +51,10 @@ export function Sidebar () {
                   <NavLink to="/upload">
                     <Upload />
                     {t('sidebar.upload')}
+                  </NavLink>
+                  <NavLink to="/sessions">
+                    <Users />
+                    {t('sidebar.sessions')}
                   </NavLink>
                 </>
               )}

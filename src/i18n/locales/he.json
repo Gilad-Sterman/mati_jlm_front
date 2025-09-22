@@ -32,13 +32,17 @@
     "upload": {
         "title": "העלאת הקלטה",
         "subtitle": "העלה ועבד הקלטות ייעוץ",
+        "welcome": "ברוך הבא, {{name}}!",
         "fileUpload": "העלאת קובץ",
         "sessionDetails": "פרטי הפגישה",
         "sessionTitle": "כותרת הפגישה (אופציונלי)",
         "sessionTitlePlaceholder": "הזן כותרת לפגישה זו",
+        "clientSelection": "בחירת לקוח",
+        "existingClient": "לקוח קיים",
         "selectClient": "בחר לקוח",
         "chooseClient": "בחר לקוח...",
         "newClient": "לקוח חדש",
+        "newClientDetails": "פרטי לקוח חדש",
         "createNewClient": "צור לקוח חדש",
         "clientName": "שם הלקוח",
         "clientNamePlaceholder": "הזן שם לקוח",
@@ -48,12 +52,29 @@
         "businessDomainPlaceholder": "לדוגמה: טכנולוגיה, בריאות",
         "businessNumber": "מספר עסק",
         "businessNumberPlaceholder": "הזן מספר רישום עסק",
-        "creating": "יוצר...",
+        "creating": "יוצר סשן...",
         "createClient": "צור לקוח",
         "startProcessing": "התחל עיבוד",
         "processing": "מעבד...",
         "uploading": "מעלה",
+        "inProgress": "בתהליך",
+        "complete": "הושלם",
+        "failed": "נכשל",
+        "uploadComplete": "ההעלאה הושלמה!",
+        "retry": "נסה שוב",
         "success": "הפגישה הועלתה בהצלחה!",
+        "uploadingFile": "מעלה קובץ",
+        "fileUploadedSuccessfully": "הקובץ הועלה בהצלחה!",
+        "aiProcessingInProgress": "עיבוד בינה מלאכותית בתהליך",
+        "aiTranscription": "תמלול בינה מלאכותית",
+        "transcriptionDescription": "המרת אודיו לטקסט באמצעות בינה מלאכותית מתקדמת",
+        "reportGeneration": "יצירת דוחות",
+        "reportDescription": "יצירת דוחות ניתוח מקיפים",
+        "duration": "משך זמן",
+        "uploadAnother": "העלה קובץ נוסף",
+        "uploadFailed": "ההעלאה נכשלה",
+        "tryAgain": "נסה שוב",
+        "preparingUpload": "מכין העלאה...",
         "dropzone": {
             "title": "גרור את קובץ השמע לכאן",
             "description": "פורמטים נתמכים: MP3, WAV, M4A, AAC (מקסימום 100MB)",
@@ -64,7 +85,8 @@
             "fileTooLarge": "גודל הקובץ חייב להיות פחות מ-100MB",
             "noFileSelected": "אנא בחר קובץ להעלאה",
             "noClientSelected": "אנא בחר לקוח",
-            "clientNameRequired": "שם הלקוח נדרש"
+            "clientNameRequired": "שם הלקוח נדרש",
+            "clientEmailRequired": "אימייל הלקוח נדרש"
         }
     },
     "dashboard": {
@@ -79,5 +101,17 @@
         "upload": "העלאת סשן",
         "sessions": "הסשנים שלי",
         "reports": "דוחות"
+    },
+    "sessions": {
+        "title": "הסשנים שלי",
+        "sessionsCount": "{{count}} סשנים",
+        "noSessions": "לא נמצאו סשנים. העלה הקלטה כדי להתחיל.",
+        "unknownClient": "לקוח לא ידוע",
+        "status": {
+            "uploaded": "הועלה",
+            "processing": "בעיבוד",
+            "completed": "הושלם",
+            "failed": "נכשל"
+        }
     }
 }

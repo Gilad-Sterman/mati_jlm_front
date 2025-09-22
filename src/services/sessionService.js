@@ -51,10 +51,17 @@ export const sessionService = {
     // Add file
     formData.append('file', sessionData.file);
     
-    // Add other fields
-    formData.append('client_id', sessionData.client_id);
+    // Add session fields
     if (sessionData.title) {
       formData.append('title', sessionData.title);
+    }
+    
+    // Handle client data - either existing client ID or new client data
+    if (sessionData.client_id) {
+      formData.append('client_id', sessionData.client_id);
+    } else if (sessionData.newClient) {
+      // Add new client data as JSON string
+      formData.append('newClient', JSON.stringify(sessionData.newClient));
     }
     
     const response = await api.post('/sessions', formData, {

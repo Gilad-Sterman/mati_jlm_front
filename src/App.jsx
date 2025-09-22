@@ -11,55 +11,69 @@ import { UploadPage } from './pages/upload/UploadPage'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { AdminRoute } from './components/auth/AdminRoute'
 import { selectIsAuthenticated } from './store/authSlice'
+import { useAppSocket } from './hooks/useAppSocket'
 import { useTranslation } from 'react-i18next';
+import { SessionsPage } from './pages/sessions/SessionsPage'
 
 function App() {
   const { t, i18n } = useTranslation();
   const isAuthenticated = useSelector(selectIsAuthenticated);
+
+  // Initialize app-level socket connection
+  const { socketConnected } = useAppSocket();
 
   return (
     <Router>
       <div className={`app-layout ${i18n.dir() === 'rtl' ? 'rtl' : ''}`}>
         {/* Only show sidebar when user is authenticated */}
         {isAuthenticated && <Sidebar />}
-        
+
         <div className={`main-wrapper ${!isAuthenticated ? 'full-width' : ''}`}>
           {/* Only show header when user is authenticated */}
           {<AppHeader />}
-          
+
           <PageContent>
             <Routes>
               {/* Public route - Login */}
               <Route path="/" element={<Login />} />
-              
+
               {/* Admin-only routes */}
-              <Route 
-                path="/dashboard" 
+              <Route
+                path="/dashboard"
                 element={
                   <AdminRoute>
                     <AdminDashboard />
                   </AdminRoute>
-                } 
+                }
               />
-              <Route 
-                path="/settings" 
+              <Route
+                path="/settings"
                 element={
                   <AdminRoute>
                     <AdminSettings />
                   </AdminRoute>
-                } 
+                }
               />
-              
+
               {/* Protected routes (any authenticated user) */}
-              <Route 
-                path="/upload" 
+              <Route
+                path="/upload"
                 element={
                   <ProtectedRoute>
                     <UploadPage />
                   </ProtectedRoute>
-                } 
+                }
               />
-              
+
+              <Route
+                path="/sessions"
+                element={
+                  <ProtectedRoute>
+                    <SessionsPage />
+                  </ProtectedRoute>
+                }
+              />
+
               {/* Catch all - redirect to appropriate page */}
               <Route path="*" element={<h2>{t('common.pageNotFound')}</h2>} />
             </Routes>
