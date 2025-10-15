@@ -34,6 +34,9 @@
     "upload": {
         "title": "העלאת הקלטה",
         "subtitle": "העלה ועבד הקלטות ייעוץ",
+        "advisorReportReady": "דוח היועץ מוכן!",
+        "reportPreview": "תצוגה מקדימה של הדוח",
+        "ViewEditReport": "צפה/ערוך דוח",
         "welcome": "ברוך הבא, {{name}}!",
         "fileUpload": "העלאת קובץ",
         "sessionDetails": "פרטי הפגישה",
@@ -71,7 +74,19 @@
         "aiTranscription": "תמלול בינה מלאכותית",
         "transcriptionDescription": "המרת אודיו לטקסט באמצעות בינה מלאכותית מתקדמת",
         "reportGeneration": "יצירת דוחות",
-        "reportDescription": "יצירת דוחות ניתוח מקיפים",
+        "reportDescription": "יצירת דוחות מותאמים אישית עבור היועץ והלקוח",
+        "transcriptionComplete": "התמלול הושלם בהצלחה",
+        "advisorReportGeneration": "יצירת דוח יועץ",
+        "advisorReportDescription": "יצירת דוח מותאם אישית עבור היועץ",
+        "advisorReportComplete": "דוח היועץ נוצר בהצלחה",
+        "transcriptionInProgress": "מתמלל כעת...",
+        "transcriptionPending": "ממתין לתמלול",
+        "reportGenerationInProgress": "יוצר דוח כעת...",
+        "reportGenerationPending": "ממתין ליצירת דוח",
+        "readyForReview": "מוכן לבדיקה",
+        "reviewReady": "הדוח מוכן לבדיקה ועריכה",
+        "reviewPending": "ממתין להשלמת העיבוד",
+        "reviewDescription": "בדוק וערוך את הדוח לפני שליחה ללקוח",
         "duration": "משך זמן",
         "uploadAnother": "העלה קובץ נוסף",
         "uploadFailed": "ההעלאה נכשלה",
@@ -119,9 +134,15 @@
         "status": {
             "uploaded": "הועלה",
             "processing": "בעיבוד",
+            "advisor_report_generated": "נוצר דוח יועץ",
             "completed": "הושלם",
             "failed": "נכשל"
-        }
+        },
+        "advisorReportReady": "דוח היועץ מוכן!",
+        "reportPreview": "תצוגה מקדימה של הדוח",
+        "viewEditReport": "צפה/ערוך דוח",
+        "uploadAnother": "העלה קובץ נוסף",
+        "processingFailed": "העיבוד נכשל"
     },
     "reports": {
         "loading": "טוען דוח...",

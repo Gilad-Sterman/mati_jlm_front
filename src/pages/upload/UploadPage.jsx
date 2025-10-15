@@ -15,11 +15,17 @@ import {
   selectError as selectSessionError, 
   clearError as clearSessionError,
   resetUploadState,
-  handleUploadStarted
+  handleUploadStarted,
+  selectProcessingStage,
+  selectProcessingMessage,
+  selectTranscriptionComplete,
+  selectAdvisorReportGenerated,
+  selectCurrentReport,
+  resetProcessingState
 } from '../../store/sessionSlice';
 import { fetchClientsForSelection, quickCreateClient, selectSelectionClients, selectIsCreating, selectError as selectClientError, clearError as clearClientError } from '../../store/clientSlice';
 import { selectUser } from '../../store/authSlice';
-
+import { useNavigate } from 'react-router-dom';
 // Custom hooks
 import { useUploadSocket } from '../../hooks/useUploadSocket';
 
@@ -31,6 +37,7 @@ import { AIProcessing } from './components/AIProcessing';
 export function UploadPage() {
     const { t } = useTranslation();
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const fileInputRef = useRef(null);
 
     // Redux state
@@ -45,6 +52,13 @@ export function UploadPage() {
     const sessionError = useSelector(selectSessionError);
     const isCreatingClient = useSelector(selectIsCreating);
     const clientError = useSelector(selectClientError);
+    
+    // AI Processing state
+    const processingStage = useSelector(selectProcessingStage);
+    const processingMessage = useSelector(selectProcessingMessage);
+    const transcriptionComplete = useSelector(selectTranscriptionComplete);
+    const advisorReportGenerated = useSelector(selectAdvisorReportGenerated);
+    const currentReport = useSelector(selectCurrentReport);
 
     // Initialize upload socket
     useUploadSocket();
@@ -233,12 +247,82 @@ export function UploadPage() {
                     />
                 );
             
-            case 'processing':
+            case 'transcribing':
                 return (
                     <AIProcessing 
                         fileName={currentUploadSession?.fileName}
                         fileUrl={currentUploadSession?.fileUrl}
                         duration={currentUploadSession?.duration}
+                        stage="transcribing"
+                        message={processingMessage}
+                        transcriptionComplete={transcriptionComplete}
+                    />
+                );
+            
+            case 'generating_report':
+                return (
+                    <AIProcessing 
+                        fileName={currentUploadSession?.fileName}
+                        fileUrl={currentUploadSession?.fileUrl}
+                        duration={currentUploadSession?.duration}
+                        stage="generating_report"
+                        message={processingMessage}
+                        transcriptionComplete={transcriptionComplete}
+                        advisorReportGenerated={advisorReportGenerated}
+                    />
+                );
+            
+            case 'report_ready':
+                return (
+                    <div className="report-ready">
+                        <div className="success-content">
+                            <Check className="success-icon" />
+                            <h3>{t('upload.advisorReportReady')}</h3>
+                            
+                            {currentReport && (
+                                <div className="report-preview">
+                                    <h4>{t('upload.reportPreview')}</h4>
+                                    <div className="report-content">
+                                        {currentReport.content.substring(0, 200)}...
+                                    </div>
+                                </div>
+                            )}
+                            
+                            <div className="action-buttons">
+                                <button 
+                                    className="primary-button"
+                                    onClick={() => {
+                                        // TODO: Navigate to report view/edit page
+                                        navigate(`/reports/adviser/${currentUploadSession.id}`);
+                                    }}
+                                >
+                                    {t('upload.ViewEditReport')}
+                                </button>
+                                
+                                <button 
+                                    className="secondary-button"
+                                    onClick={() => {
+                                        dispatch(resetProcessingState());
+                                        dispatch(resetUploadState());
+                                    }}
+                                >
+                                    {t('upload.uploadAnother')}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            
+            case 'processing': // Legacy fallback
+                return (
+                    <AIProcessing 
+                        fileName={currentUploadSession?.fileName}
+                        fileUrl={currentUploadSession?.fileUrl}
+                        duration={currentUploadSession?.duration}
+                        stage={processingStage}
+                        message={processingMessage}
+                        transcriptionComplete={transcriptionComplete}
+                        advisorReportGenerated={advisorReportGenerated}
                     />
                 );
             
@@ -247,11 +331,14 @@ export function UploadPage() {
                     <div className="upload-error">
                         <div className="error-content">
                             <AlertCircle className="error-icon" />
-                            <h3>{t('upload.uploadFailed')}</h3>
-                            <p>{uploadMessage || sessionError}</p>
+                            <h3>{t('upload.processingFailed')}</h3>
+                            <p>{processingMessage || uploadMessage || sessionError}</p>
                             <button 
                                 className="retry-button"
-                                onClick={() => dispatch(resetUploadState())}
+                                onClick={() => {
+                                    dispatch(resetProcessingState());
+                                    dispatch(resetUploadState());
+                                }}
                             >
                                 {t('upload.tryAgain')}
                             </button>
@@ -528,8 +615,7 @@ export function UploadPage() {
     return (
         <div className="upload-page">
             <div className="page-header">
-                <h1>{t('upload.title')}</h1>
-                <p>{t('upload.welcome', { name: user?.firstName || user?.email })}</p>
+                <h1>{t('upload.title')}</h1>                
             </div>
             
             <div className="upload-content">

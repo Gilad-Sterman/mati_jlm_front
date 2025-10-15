@@ -110,7 +110,15 @@ const initialState = {
   uploadStatus: null, // 'started', 'uploading', 'complete', 'error'
   uploadMessage: '',
   currentUploadSession: null, // Session being uploaded
-  uiState: 'upload', // 'upload', 'uploading', 'processing', 'error'
+  uiState: 'upload', // 'upload', 'uploading', 'transcribing', 'generating_report', 'report_ready', 'processing', 'error'
+  
+  // AI Processing state
+  processingStage: null, // 'transcribing', 'generating_report', 'completed'
+  processingMessage: '',
+  transcriptionComplete: false,
+  advisorReportGenerated: false,
+  currentReport: null, // Generated advisor report data
+  
   error: null,
   pagination: {
     page: 1,
@@ -142,6 +150,13 @@ const sessionSlice = createSlice({
       state.currentUploadSession = null;
       state.uiState = 'upload';
       state.error = null;
+      
+      // Also reset AI processing state
+      state.processingStage = null;
+      state.processingMessage = '';
+      state.transcriptionComplete = false;
+      state.advisorReportGenerated = false;
+      state.currentReport = null;
     },
     // New action to return to upload form
     returnToUpload: (state) => {
@@ -170,11 +185,20 @@ const sessionSlice = createSlice({
       const { sessionId, message, fileUrl, duration } = action.payload;
       state.uploadStatus = 'complete';
       state.uploadProgress = 100;
-      state.uploadMessage = message;
+      state.uploadMessage = message || 'Upload completed successfully!';
       state.isUploading = false;
-      state.uiState = 'processing'; // Switch to AI processing UI
+      state.currentUploadSession = {
+        ...state.currentUploadSession,
+        sessionId,
+        fileUrl,
+        duration
+      };
       
-      // Update the session in the list if it exists
+      // Transition to processing state - wait for transcription_started event
+      state.uiState = 'processing';
+      state.processingMessage = 'Upload complete, preparing transcription...';
+      
+      // Update session in sessions array if it exists
       const sessionIndex = state.sessions.findIndex(s => s.id === sessionId);
       if (sessionIndex !== -1) {
         state.sessions[sessionIndex] = {
@@ -193,6 +217,85 @@ const sessionSlice = createSlice({
       state.isUploading = false;
       state.uploadProgress = 0;
       state.uiState = 'error'; // Switch to error UI
+    },
+
+    // AI Processing event handlers
+    handleTranscriptionStarted: (state, action) => {
+      const { sessionId, message } = action.payload;
+      state.processingStage = 'transcribing';
+      state.processingMessage = message || 'Starting transcription...';
+      state.uiState = 'transcribing';
+      state.transcriptionComplete = false;
+    },
+
+    handleTranscriptionComplete: (state, action) => {
+      const { sessionId, transcript, message } = action.payload;
+      state.processingStage = 'transcribed';
+      state.processingMessage = message || 'Transcription completed';
+      state.transcriptionComplete = true;
+      
+      // Update session in sessions array
+      const sessionIndex = state.sessions.findIndex(s => s.id === sessionId);
+      if (sessionIndex !== -1) {
+        state.sessions[sessionIndex] = {
+          ...state.sessions[sessionIndex],
+          status: 'transcribed',
+          transcription_text: transcript
+        };
+      }
+    },
+
+    handleReportGenerationStarted: (state, action) => {
+      const { sessionId, message } = action.payload;
+      state.processingStage = 'generating_report';
+      state.processingMessage = message || 'Generating advisor report...';
+      state.uiState = 'generating_report';
+      state.advisorReportGenerated = false;
+    },
+
+    handleAdvisorReportGenerated: (state, action) => {
+      const { sessionId, report, message } = action.payload;
+      state.processingStage = 'completed';
+      state.processingMessage = message || 'Advisor report generated successfully!';
+      state.uiState = 'report_ready';
+      state.advisorReportGenerated = true;
+      state.currentReport = report;
+      
+      // Update session in sessions array
+      const sessionIndex = state.sessions.findIndex(s => s.id === sessionId);
+      if (sessionIndex !== -1) {
+        state.sessions[sessionIndex] = {
+          ...state.sessions[sessionIndex],
+          status: 'advisor_report_generated'
+        };
+      }
+    },
+
+    handleProcessingError: (state, action) => {
+      const { sessionId, message, error, stage } = action.payload;
+      state.processingStage = 'error';
+      state.processingMessage = message || 'Processing failed';
+      state.error = error || message;
+      state.uiState = 'error';
+      
+      // Update session status to failed
+      const sessionIndex = state.sessions.findIndex(s => s.id === sessionId);
+      if (sessionIndex !== -1) {
+        state.sessions[sessionIndex] = {
+          ...state.sessions[sessionIndex],
+          status: 'failed'
+        };
+      }
+    },
+
+    // Reset processing state
+    resetProcessingState: (state) => {
+      state.processingStage = null;
+      state.processingMessage = '';
+      state.transcriptionComplete = false;
+      state.advisorReportGenerated = false;
+      state.currentReport = null;
+      state.uiState = 'upload';
     }
   },
   extraReducers: (builder) => {
@@ -251,6 +354,14 @@ const sessionSlice = createSlice({
       .addCase(fetchSessionById.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
+      })
+      // Reset session state on logout
+      .addCase('auth/logout', (state) => {
+        return {
+          ...initialState,
+          sessions: [], // Keep empty sessions array
+          pagination: initialState.pagination
+        };
       });
   }
 });
@@ -265,7 +376,13 @@ export const {
   handleUploadStarted,
   handleUploadProgress,
   handleUploadComplete,
-  handleUploadError
+  handleUploadError,
+  handleTranscriptionStarted,
+  handleTranscriptionComplete,
+  handleReportGenerationStarted,
+  handleAdvisorReportGenerated,
+  handleProcessingError,
+  resetProcessingState
 } = sessionSlice.actions;
 
 // Selectors
@@ -279,6 +396,13 @@ export const selectUploadMessage = (state) => state.sessions.uploadMessage;
 export const selectCurrentUploadSession = (state) => state.sessions.currentUploadSession;
 export const selectUiState = (state) => state.sessions.uiState;
 export const selectError = (state) => state.sessions.error;
+
+// AI Processing selectors
+export const selectProcessingStage = (state) => state.sessions.processingStage;
+export const selectProcessingMessage = (state) => state.sessions.processingMessage;
+export const selectTranscriptionComplete = (state) => state.sessions.transcriptionComplete;
+export const selectAdvisorReportGenerated = (state) => state.sessions.advisorReportGenerated;
+export const selectCurrentReport = (state) => state.sessions.currentReport;
 export const selectPagination = (state) => state.sessions.pagination;
 
 export default sessionSlice.reducer;
