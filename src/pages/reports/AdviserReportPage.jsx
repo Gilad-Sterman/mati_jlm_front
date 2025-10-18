@@ -1,64 +1,111 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { 
-  User, 
-  Calendar, 
-  RotateCcw, 
-  CheckCircle, 
-  ArrowRight, 
-  Lightbulb, 
-  Download 
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  User,
+  Calendar,
+  RotateCcw,
+  CheckCircle,
+  ArrowRight,
+  Lightbulb,
+  Download
 } from 'lucide-react';
+import { 
+  fetchReportsForSession, 
+  selectAvailableReportsForSession,
+  selectIsLoadingSessionReports 
+} from '../../store/reportSlice';
+import { fetchSessions } from '../../store/sessionSlice';
 
 export const AdviserReportPage = () => {
   const { sessionId } = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  
+  const dispatch = useDispatch();
+
+  // Redux selectors
+  const availableReports = useSelector(selectAvailableReportsForSession(sessionId));
+  const isLoadingReports = useSelector(selectIsLoadingSessionReports(sessionId));
+  const sessions = useSelector(state => state.sessions.sessions);
+  const currentSession = sessions.find(session => session.id === sessionId);
+console.log(currentSession);
   const [report, setReport] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [collapsedSections, setCollapsedSections] = useState({
     quotes: true,
     insights: true,
     recommendations: true,
-    followup: true
+    followup: true,
+    transcript: true,
+    rawContent: true
   });
 
   useEffect(() => {
-    // TODO: Fetch adviser report for session
-    console.log('Loading adviser report for session:', sessionId);
-    
-    // Mock data for now - structured analysis format
-    setTimeout(() => {
-      setReport({
-        id: 'report-123',
-        sessionId,
-        type: 'adviser',
-        title: 'ניתוח השיחה',
-        content: 'Structured content will be rendered from key_points',
-        status: 'draft',
-        version: 1,
-        createdAt: new Date().toISOString(),
-        keyPoints: {
+    // Fetch reports for this session if not already loaded
+    if (!availableReports.adviser && !isLoadingReports) {
+      console.log('Fetching reports for session:', sessionId);
+      dispatch(fetchReportsForSession(sessionId));
+    }
+  }, [dispatch, sessionId, availableReports.adviser, isLoadingReports]);
+
+  useEffect(() => {
+    // Fetch sessions if current session is not loaded
+    if (!currentSession) {
+      console.log('Fetching sessions to get transcription data');
+      dispatch(fetchSessions());
+    }
+  }, [dispatch, currentSession]);
+
+  // Update local report state when Redux data changes
+  useEffect(() => {
+    if (availableReports.adviser) {
+      console.log('Setting adviser report from Redux:', availableReports.adviser);
+      
+      // Parse content if it's a JSON string, otherwise use as-is
+      let parsedContent = null;
+      try {
+        if (typeof availableReports.adviser.content === 'string') {
+          parsedContent = JSON.parse(availableReports.adviser.content);
+        } else {
+          parsedContent = availableReports.adviser.content;
+        }
+      } catch (error) {
+        console.warn('Could not parse report content as JSON, using as text:', error);
+        parsedContent = { rawContent: availableReports.adviser.content };
+      }
+
+      // Create enhanced report object with actual data and fallbacks
+      const enhancedReport = {
+        // Use actual report data
+        id: availableReports.adviser.id,
+        sessionId: availableReports.adviser.session_id,
+        type: availableReports.adviser.type,
+        title: availableReports.adviser.title || 'ניתוח השיחה',
+        content: availableReports.adviser.content,
+        status: availableReports.adviser.status,
+        version: availableReports.adviser.version_number || 1,
+        createdAt: availableReports.adviser.created_at,
+        
+        // Use parsed content if available, otherwise use fallback mock data
+        keyPoints: parsedContent?.keyPoints || {
           energyAnalysis: {
             overallEnergy: { value: 87, label: 'רמת אנרגיה כללית', description: 'גבוהה - יזם מעורב ומתלהב' },
             readinessLevel: { value: 73, label: 'מוכנות להמשך', description: 'טובה - כדאי לשמור על קשר' },
             projectPotential: { value: 92, label: 'פוטנציאל לפרויקט', description: 'גבוה מאוד - המשך מיידי' }
           },
-          systemRecommendation: 'היזם מציג רמת עניין גבוהה ופוטנציאל חזק. מומלץ לקדם לשלב הבא - שיחה ראשונה עם מלווה תוך 24-48 שעות.',
-          speakingTime: {
+          systemRecommendation: parsedContent?.systemRecommendation || 'היזם מציג רמת עניין גבוהה ופוטנציאל חזק. מומלץ לקדם לשלב הבא - שיחה ראשונה עם מלווה תוך 24-48 שעות.',
+          speakingTime: parsedContent?.speakingTime || {
             entrepreneur: { percentage: 72, minutes: 17.6 },
             advisor: { percentage: 28, minutes: 6.4 }
           },
-          conversationQuality: {
+          conversationQuality: parsedContent?.conversationQuality || {
             clarity: 'מעולה',
             depth: 'טוב',
             engagement: 'גבוהה'
           },
-          keyQuotes: [
+          keyQuotes: parsedContent?.keyQuotes || [
             {
               text: 'אני מאמין שאם הייתי משווק את עצמי נכון, הייתי עמוס בעבודה',
               timestamp: '18:34',
@@ -70,32 +117,33 @@ export const AdviserReportPage = () => {
               insight: 'מודעות לאתגרים'
             }
           ],
-          energyDetails: {
+          energyDetails: parsedContent?.energyDetails || {
             score: 8.5,
             maxScore: 10,
             speechPace: 'מהיר ונמרץ',
             tone: 'נלהב ומעורב',
             positiveWords: 47
           },
-          professionalInsights: {
+          professionalInsights: parsedContent?.professionalInsights || {
             strengths: ['ניסיון עשיר', 'קשרים איכותיים', 'תשוקה למקצוע'],
             improvements: ['שיווק דיגיטלי', 'מיתוג אישי', 'מדידת ביצועים']
           },
-          consultingRecommendations: [
+          consultingRecommendations: parsedContent?.consultingRecommendations || [
             'הוספת שאלות פתוחות להעמקת השיחה - היזם דיבר 72% מהזמן, אפשר להגיע ליחס מאוזן יותר של 60:40',
             'מיקוד יותר בתכנון מעשי ופחות בסיפור האישי',
             'הוספת שאלות על מדדי הצלחה ומטרות כמותיות'
           ],
-          followUpPlan: {
+          followUpPlan: parsedContent?.followUpPlan || {
             assignedAdvisor: 'רונית כהן - מלווה מט"י תיירות',
             handoverMeeting: '02/08/2025',
             continuousSupport: 'רונית תמשיך את כל התהליך'
           }
         }
-      });
-      setIsLoading(false);
-    }, 1000);
-  }, [sessionId]);
+      };
+
+      setReport(enhancedReport);
+    }
+  }, [availableReports.adviser]);
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -130,8 +178,8 @@ export const AdviserReportPage = () => {
         <span className="percentage-label">{label}</span>
       </div>
       <div className="percentage-bar">
-        <div 
-          className="percentage-fill" 
+        <div
+          className="percentage-fill"
           style={{ width: `${value}%`, backgroundColor: color }}
         ></div>
       </div>
@@ -158,7 +206,7 @@ export const AdviserReportPage = () => {
   // Helper component for collapsible sections
   const CollapsibleSection = ({ id, title, children, defaultCollapsed = false }) => {
     const isCollapsed = collapsedSections[id];
-    
+
     const toggleSection = () => {
       setCollapsedSections(prev => ({
         ...prev,
@@ -181,7 +229,7 @@ export const AdviserReportPage = () => {
     );
   };
 
-  if (isLoading) {
+  if (isLoadingReports) {
     return (
       <div className="adviser-report-page">
         <div className="loading-container">
@@ -192,11 +240,39 @@ export const AdviserReportPage = () => {
     );
   }
 
+  if (!availableReports.adviser && !isLoadingReports) {
+    return (
+      <div className="adviser-report-page">
+        <div className="error-container">
+          <h2>{t('reports.noReportFound')}</h2>
+          <p>{t('reports.noAdviserReportMessage')}</p>
+          <button 
+            className="btn-primary"
+            onClick={() => navigate('/sessions')}
+          >
+            {t('common.backToSessions')}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!report) {
+    return (
+      <div className="adviser-report-page">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>{t('reports.processingReport')}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="adviser-report-page">
       <div className="report-header">
         <div className="header-left">
-          <button 
+          <button
             className="back-button"
             onClick={() => navigate('/sessions')}
           >
@@ -205,23 +281,23 @@ export const AdviserReportPage = () => {
           <h1>{t('reports.adviserReport')}</h1>
           <span className="report-status">{report?.status}</span>
         </div>
-        
+
         <div className="header-actions">
           {!isEditing ? (
             <>
-              <button 
+              <button
                 className="btn-secondary"
                 onClick={handleRegenerate}
               >
                 {t('reports.regenerate')}
               </button>
-              <button 
+              <button
                 className="btn-secondary"
                 onClick={handleEdit}
               >
                 {t('reports.edit')}
               </button>
-              <button 
+              <button
                 className="btn-primary"
                 onClick={handleApprove}
               >
@@ -230,13 +306,13 @@ export const AdviserReportPage = () => {
             </>
           ) : (
             <>
-              <button 
+              <button
                 className="btn-secondary"
                 onClick={() => setIsEditing(false)}
               >
                 {t('common.cancel')}
               </button>
-              <button 
+              <button
                 className="btn-primary"
                 onClick={handleSave}
                 disabled={isSaving}
@@ -250,8 +326,9 @@ export const AdviserReportPage = () => {
 
       <div className="report-content">
         <div className="report-meta compact">
-          <span><strong>{t('reports.session')}:</strong> {sessionId}</span>
+          <span><strong>{t('reports.session')}:</strong> {currentSession?.title}</span>
           <span><strong>{t('reports.version')}:</strong> {report?.version}</span>
+          <span><strong>{t('reports.client')}:</strong> {currentSession?.client?.name}</span>
           <span><strong>{t('reports.created')}:</strong> {new Date(report?.createdAt).toLocaleDateString()}</span>
         </div>
 
@@ -278,7 +355,7 @@ export const AdviserReportPage = () => {
           ) : (
             <div className="report-display structured-report compact-layout">
               <h1 className="report-title">⚡ {report?.title}</h1>
-              
+
               {/* Main Grid Layout */}
               <div className="report-grid">
                 {/* Left Column - Key Metrics */}
@@ -287,19 +364,19 @@ export const AdviserReportPage = () => {
                   <section className="analysis-section compact">
                     <h2>⚡ {t('reports.energyInConversation')}</h2>
                     <div className="energy-metrics horizontal">
-                      <PercentageBar 
+                      <PercentageBar
                         value={report?.keyPoints?.energyAnalysis?.overallEnergy?.value}
                         label={report?.keyPoints?.energyAnalysis?.overallEnergy?.label}
                         description={report?.keyPoints?.energyAnalysis?.overallEnergy?.description}
                         color="#28a745"
                       />
-                      <PercentageBar 
+                      <PercentageBar
                         value={report?.keyPoints?.energyAnalysis?.readinessLevel?.value}
                         label={report?.keyPoints?.energyAnalysis?.readinessLevel?.label}
                         description={report?.keyPoints?.energyAnalysis?.readinessLevel?.description}
                         color="#ffc107"
                       />
-                      <PercentageBar 
+                      <PercentageBar
                         value={report?.keyPoints?.energyAnalysis?.projectPotential?.value}
                         label={report?.keyPoints?.energyAnalysis?.projectPotential?.label}
                         description={report?.keyPoints?.energyAnalysis?.projectPotential?.description}
@@ -310,7 +387,7 @@ export const AdviserReportPage = () => {
 
                   {/* Energy Score */}
                   <section className="energy-details-section compact">
-                    <EnergyScore 
+                    <EnergyScore
                       score={report?.keyPoints?.energyDetails?.score}
                       maxScore={report?.keyPoints?.energyDetails?.maxScore}
                       details={report?.keyPoints?.energyDetails}
@@ -443,6 +520,40 @@ export const AdviserReportPage = () => {
                   </div>
                 </div>
               </CollapsibleSection>
+
+              {/* Original Transcript Section */}
+              {currentSession?.transcription_text && (
+                <CollapsibleSection id="transcript" title={t('reports.originalTranscript')}>
+                  <div className="transcript-content">
+                    <div className="transcript-meta">
+                      <span><strong>{t('reports.transcriptionLength')}:</strong> {currentSession.transcription_text.length.toLocaleString()} {t('reports.characters')}</span>
+                      <span><strong>{t('reports.sessionDuration')}:</strong> {currentSession.duration ? `${Math.floor(currentSession.duration / 60)}:${(currentSession.duration % 60).toString().padStart(2, '0')}` : t('reports.unknown')}</span>
+                    </div>
+                    <div className="transcript-text">
+                      <pre>{currentSession.transcription_text}</pre>
+                    </div>
+                  </div>
+                </CollapsibleSection>
+              )}
+
+              {/* Raw Report Content Section */}
+              {report?.content && (
+                <CollapsibleSection id="rawContent" title={t('reports.rawReportContent')}>
+                  <div className="raw-content">
+                    <div className="content-meta">
+                      <span><strong>{t('reports.contentType')}:</strong> {typeof report.content === 'string' ? 'Text' : 'JSON'}</span>
+                      <span><strong>{t('reports.contentLength')}:</strong> {typeof report.content === 'string' ? report.content.length.toLocaleString() : JSON.stringify(report.content).length.toLocaleString()} {t('reports.characters')}</span>
+                    </div>
+                    <div className="content-display">
+                      {typeof report.content === 'string' ? (
+                        <pre className="content-text">{report.content}</pre>
+                      ) : (
+                        <pre className="content-json">{JSON.stringify(report.content, null, 2)}</pre>
+                      )}
+                    </div>
+                  </div>
+                </CollapsibleSection>
+              )}
 
               {/* Download Section - Always Visible */}
               <section className="download-section">

@@ -30,7 +30,6 @@ import { useNavigate } from 'react-router-dom';
 import { useUploadSocket } from '../../hooks/useUploadSocket';
 
 // Components
-import { UploadingLoader } from './components/UploadingLoader';
 import { AIProcessing } from './components/AIProcessing';
 
 
@@ -49,6 +48,7 @@ export function UploadPage() {
     const uploadMessage = useSelector(selectUploadMessage);
     const currentUploadSession = useSelector(selectCurrentUploadSession);
     const uiState = useSelector(selectUiState);
+    // const uiState = 'transcribing'
     const sessionError = useSelector(selectSessionError);
     const isCreatingClient = useSelector(selectIsCreating);
     const clientError = useSelector(selectClientError);
@@ -240,10 +240,16 @@ export function UploadPage() {
         switch (uiState) {
             case 'uploading':
                 return (
-                    <UploadingLoader 
+                    <AIProcessing 
                         fileName={currentUploadSession?.fileName}
-                        progress={uploadProgress}
+                        fileUrl={currentUploadSession?.fileUrl}
+                        duration={currentUploadSession?.duration}
+                        stage="uploading"
                         message={uploadMessage}
+                        uploadProgress={uploadProgress}
+                        uploadComplete={uploadStatus === 'complete'}
+                        transcriptionComplete={transcriptionComplete}
+                        advisorReportGenerated={advisorReportGenerated}
                     />
                 );
             
@@ -255,7 +261,10 @@ export function UploadPage() {
                         duration={currentUploadSession?.duration}
                         stage="transcribing"
                         message={processingMessage}
+                        uploadProgress={uploadProgress}
+                        uploadComplete={true}
                         transcriptionComplete={transcriptionComplete}
+                        advisorReportGenerated={advisorReportGenerated}
                     />
                 );
             
@@ -267,6 +276,8 @@ export function UploadPage() {
                         duration={currentUploadSession?.duration}
                         stage="generating_report"
                         message={processingMessage}
+                        uploadProgress={uploadProgress}
+                        uploadComplete={true}
                         transcriptionComplete={transcriptionComplete}
                         advisorReportGenerated={advisorReportGenerated}
                     />
@@ -321,6 +332,8 @@ export function UploadPage() {
                         duration={currentUploadSession?.duration}
                         stage={processingStage}
                         message={processingMessage}
+                        uploadProgress={uploadProgress}
+                        uploadComplete={true}
                         transcriptionComplete={transcriptionComplete}
                         advisorReportGenerated={advisorReportGenerated}
                     />

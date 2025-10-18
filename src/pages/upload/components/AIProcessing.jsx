@@ -1,15 +1,17 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
-import { Check, Brain, FileText, ArrowLeft } from 'lucide-react';
+import { Check, Brain, FileText, ArrowLeft, Upload } from 'lucide-react';
 import { returnToUpload } from '../../../store/sessionSlice';
 
 export function AIProcessing({ 
   fileName, 
   fileUrl, 
   duration, 
-  stage = 'transcribing', 
+  stage = 'uploading', 
   message = '', 
+  uploadProgress = 0,
+  uploadComplete = false,
   transcriptionComplete = false, 
   advisorReportGenerated = false 
 }) {
@@ -64,11 +66,58 @@ export function AIProcessing({
         <div className="processing-steps">
           <h3>{t('upload.aiProcessingInProgress')}</h3>
           {message && (
-            <p className="current-message">{message}</p>
+            <p className="current-message">{t(`upload.${message.split(' ').join('_').split('...')[0]}`)}</p>
           )}
 
           <div className="steps-timeline">
-            {/* Step 1: Transcription */}
+            {/* Step 1: File Upload */}
+            <div className={`timeline-step ${
+              stage === 'uploading' ? 'active' : 
+              uploadComplete ? 'completed' : 'pending'
+            }`}>
+              <div className="step-indicator">
+                <div className="step-number">
+                  {uploadComplete ? (
+                    <Check className="check-icon" />
+                  ) : (
+                    <span>1</span>
+                  )}
+                </div>
+                <div className={`step-connector ${i18n.language === 'he' ? 'rtl' : 'ltr'}`}></div>
+              </div>
+              
+              <div className="step-card">
+                <div className="step-header">
+                  <div className="step-icon-wrapper">
+                    <Upload className="step-icon" />
+                    {stage === 'uploading' && <div className="pulse-ring"></div>}
+                  </div>
+                  <div className="step-info">
+                    <h4>{t('upload.fileUpload')}</h4>
+                    <p className="step-status">
+                      {uploadComplete ? 
+                        t('upload.uploadComplete') : 
+                        stage === 'uploading' ? 
+                        t('upload.uploading') :
+                        t('upload.uploadPending')
+                      }
+                    </p>
+                    {stage === 'uploading' && (
+                      <div className="upload-progress-bar">
+                        <div 
+                          className="upload-progress-fill" 
+                          style={{ width: `${uploadProgress}%` }}
+                        ></div>
+                        <span className="upload-progress-text">{uploadProgress}%</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <p className="step-description">{t('upload.uploadDescription')}</p>
+              </div>
+            </div>
+
+            {/* Step 2: Transcription */}
             <div className={`timeline-step ${
               stage === 'transcribing' ? 'active' : 
               transcriptionComplete ? 'completed' : 'pending'
@@ -78,7 +127,7 @@ export function AIProcessing({
                   {transcriptionComplete ? (
                     <Check className="check-icon" />
                   ) : (
-                    <span>1</span>
+                    <span>2</span>
                   )}
                 </div>
                 <div className={`step-connector ${i18n.language === 'he' ? 'rtl' : 'ltr'}`}></div>
@@ -106,7 +155,7 @@ export function AIProcessing({
               </div>
             </div>
 
-            {/* Step 2: Report Generation */}
+            {/* Step 3: Report Generation */}
             <div className={`timeline-step ${
               stage === 'generating_report' ? 'active' : 
               advisorReportGenerated ? 'completed' : 'pending'
@@ -116,7 +165,7 @@ export function AIProcessing({
                   {advisorReportGenerated ? (
                     <Check className="check-icon" />
                   ) : (
-                    <span>2</span>
+                    <span>3</span>
                   )}
                 </div>
                 <div className={`step-connector ${i18n.language === 'he' ? 'rtl' : 'ltr'}`}></div>
@@ -144,7 +193,7 @@ export function AIProcessing({
               </div>
             </div>
 
-            {/* Step 3: Ready for Review */}
+            {/* Step 4: Ready for Review */}
             <div className={`timeline-step ${
               advisorReportGenerated ? 'completed' : 'pending'
             }`}>
@@ -153,7 +202,7 @@ export function AIProcessing({
                   {advisorReportGenerated ? (
                     <Check className="check-icon" />
                   ) : (
-                    <span>3</span>
+                    <span>4</span>
                   )}
                 </div>
               </div>

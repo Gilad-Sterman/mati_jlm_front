@@ -113,6 +113,16 @@
                     color: $warning-color;
                 }
 
+                &.status-adviser-report-generated {
+                    border: 1px solid $warning-color;
+                    color: $warning-color;
+                }
+
+                &.status-client-report-generated {
+                    background-color: rgba($success-color, 0.1);
+                    color: $success-color;
+                }   
+
                 &.status-completed {
                     background-color: rgba($success-color, 0.1);
                     color: $success-color;
