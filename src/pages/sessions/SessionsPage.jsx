@@ -45,7 +45,6 @@ export function SessionsPage() {
 
     // Helper function to get status class
     const getStatusClass = (status) => {
-        console.log(status);
         switch (status) {
             case 'uploaded': return 'status-uploaded';
             case 'processing': return 'status-processing';

@@ -29,7 +29,6 @@ export const AdviserReportPage = () => {
   const isLoadingReports = useSelector(selectIsLoadingSessionReports(sessionId));
   const sessions = useSelector(state => state.sessions.sessions);
   const currentSession = sessions.find(session => session.id === sessionId);
-console.log(currentSession);
   const [report, setReport] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -45,7 +44,6 @@ console.log(currentSession);
   useEffect(() => {
     // Fetch reports for this session if not already loaded
     if (!availableReports.adviser && !isLoadingReports) {
-      console.log('Fetching reports for session:', sessionId);
       dispatch(fetchReportsForSession(sessionId));
     }
   }, [dispatch, sessionId, availableReports.adviser, isLoadingReports]);
@@ -53,7 +51,6 @@ console.log(currentSession);
   useEffect(() => {
     // Fetch sessions if current session is not loaded
     if (!currentSession) {
-      console.log('Fetching sessions to get transcription data');
       dispatch(fetchSessions());
     }
   }, [dispatch, currentSession]);
@@ -61,7 +58,6 @@ console.log(currentSession);
   // Update local report state when Redux data changes
   useEffect(() => {
     if (availableReports.adviser) {
-      console.log('Setting adviser report from Redux:', availableReports.adviser);
       
       // Parse content if it's a JSON string, otherwise use as-is
       let parsedContent = null;
