@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   build: {
-    outDir: '../back/public',
+    outDir: '../mati_jlm_back/public',
     emptyOutDir: true
   }
 })

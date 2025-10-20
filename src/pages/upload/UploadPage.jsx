@@ -62,7 +62,6 @@ export function UploadPage() {
 
     // Initialize upload socket
     useUploadSocket();
-
     // Local state
     const [selectedFile, setSelectedFile] = useState(null);
     const [dragActive, setDragActive] = useState(false);

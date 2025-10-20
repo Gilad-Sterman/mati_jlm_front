@@ -24,6 +24,8 @@
         "session": "סשן",
         "reports": "דוחות",
         "settings": "הגדרות",
+        "new_session": "סשן חדש",
+        "view_all": "הצג הכל",
         "user": {
             "name": "שם משתמש",
             "role": "תפקיד"
@@ -118,11 +120,28 @@
     },
     "dashboard": {
         "header": "כותרת לוח הבקרה",
-        "body": "גוף לוח הבקרה"
+        "body": "גוף לוח הבקרה",
+        "recent_sessions": "סשנים אחרונים"
     },
     "settings": {
         "header": "הגדרות",
-        "body": "הגדרות"
+        "body": "הגדרות",
+        "general": "הגדרות כלליות",
+        "general_description": "הגדרות כלליות",
+        "application_settings": "הגדרות מערכת",
+        "application_name": "שם מערכת",
+        "default_language": "שפה ברירת מחדל",
+        "english": "אנגלית",
+        "hebrew": "עברית",
+        "arabic": "ערבית",
+        "timezone": "אזור זמן",
+        "save": "שמור",
+        "General": "הגדרות כלליות",
+        "Users": "משתמשים",
+        "Database": "בסיס נתונים",
+        "Security": "אבטחה",
+        "Notifications": "התראות",
+        "Integrations": "אינטגרציות"
     },
     "sidebar": {
         "upload": "העלאת סשן",
