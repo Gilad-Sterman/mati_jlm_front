@@ -1,3 +1,12 @@
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 .sessions-page {
     padding: $spacing-xl;
     max-width: 1200px;
@@ -35,6 +44,39 @@
             .count-label {
                 color: $text-muted;
                 font-size: $font-size-sm;
+            }
+        }
+    }
+
+    .loading-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 400px;
+        
+        .loading-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: $spacing-lg;
+            text-align: center;
+            
+            .loading-spinner {
+                color: $primary-color;
+                animation: spin 1s linear infinite;
+            }
+            
+            h3 {
+                color: $primary-color;
+                font-size: $font-size-lg;
+                font-weight: 600;
+                margin: 0;
+            }
+            
+            p {
+                color: $text-muted;
+                font-size: $font-size-sm;
+                margin: 0;
             }
         }
     }

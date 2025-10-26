@@ -117,6 +117,9 @@
         "viewClientReport": "View Client Report",
         "viewSummaryReport": "View Summary Report",
         "noReportsAvailable": "No reports available yet",
+        "loadingSessions": "Loading sessions...",
+        "loadingSessionsAndReports": "Loading sessions and reports...",
+        "loadingReports": "Loading reports...",
         "status": {
             "uploaded": "Uploaded",
             "processing": "Processing",
@@ -207,6 +210,27 @@
         "dueBy": "Due by:",
         "statusCompleted": "Completed",
         "statusInProgress": "In Progress",
-        "statusPending": "Pending"
+        "statusPending": "Pending",
+        "meetingSummary": "Meeting Summary",
+        "keyDiscussionPoints": "Key Discussion Points",
+        "actionItems": "Action Items",
+        "nextSteps": "Next Steps",
+        "importantDecisions": "Important Decisions Made",
+        "analyticalInsights": "Analytical Insights",
+        "followUpRecommendations": "Recommendations for Follow-Up",
+        "areasRequiringAttention": "Areas Requiring Attention",
+        "client": "Client",
+        "email": "Email",
+        "businessDomain": "Business Domain",
+        "adviser": "Adviser",
+        "sessionTitle": "Session Title",
+        "audioFile": "Audio File",
+        "noReportFound": "No Report Found",
+        "noAdviserReportMessage": "No adviser report available for this session.",
+        "processingReport": "Processing report...",
+        "meetingTone": "Meeting Tone & Engagement Analysis",
+        "speakingTimeAnalysis": "Speaking Time Analysis",
+        "keyQuotesFromConversation": "Key Quotes from Conversation",
+        "professionalAssessment": "Professional Assessment"
     }
 }

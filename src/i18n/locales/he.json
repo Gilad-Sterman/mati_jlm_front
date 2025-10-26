@@ -161,6 +161,8 @@
         "viewSummaryReport": "צפה בדוח סיכום",
         "noReportsAvailable": "אין דוחות זמינים עדיין",
         "loadingReports": "טוען דוחות...",
+        "loadingSessions": "טוען סשנים...",
+        "loadingSessionsAndReports": "טוען סשנים ודוחות...",
         "status": {
             "uploaded": "הועלה",
             "processing": "בעיבוד",
@@ -178,7 +180,7 @@
         "loading": "טוען דוח...",
         "processingReport": "מעבד דוח...",
         "noReportFound": "דוח לא נמצא",
-        "noAdviserReportMessage": "דוח יועץ עדיין לא נוצר עבור פגישה זו",
+        "noAdviserReportMessage": "אין דוח יועץ זמין עבור פגישה זו.",
         "title": "כותרת",
         "status": "סטטוס",
         "adviserReport": "דוח יועץ",
@@ -271,6 +273,23 @@
         "dueBy": "ביצוע עד:",
         "statusCompleted": "הושלם",
         "statusInProgress": "בתהליך",
-        "statusPending": "ממתין"
+        "statusPending": "ממתין",
+        "meetingSummary": "סיכום הפגישה",
+        "keyDiscussionPoints": "נקודות דיון מרכזיות",
+        "actionItems": "פעולות לביצוע",
+        "nextSteps": "צעדים הבאים",
+        "importantDecisions": "החלטות חשובות שהתקבלו",
+        "analyticalInsights": "תובנות אנליטיות",
+        "followUpRecommendations": "המלצות למעקב",
+        "areasRequiringAttention": "תחומים הדורשים תשומת לב",
+        "email": "אימייל",
+        "businessDomain": "תחום עסקי",
+        "adviser": "יועץ",
+        "sessionTitle": "כותרת הפגישה",
+        "audioFile": "קובץ אודיו",
+        "meetingTone": "טון הפגישה וניתוח מעורבות",
+        "speakingTimeAnalysis": "ניתוח זמן דיבור",
+        "keyQuotesFromConversation": "ציטוטים מרכזיים מהשיחה",
+        "professionalAssessment": "הערכה מקצועית"
     }
 }

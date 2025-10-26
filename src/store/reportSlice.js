@@ -2,6 +2,21 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import reportService from '../services/reportService';
 
 // Async thunks
+// Simple function to fetch ALL reports at once
+export const fetchAllReports = createAsyncThunk(
+  'reports/fetchAll',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await reportService.getAllReports();
+      return response.data.reports || [];
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to fetch reports'
+      );
+    }
+  }
+);
+
 export const fetchReportsForSession = createAsyncThunk(
   'reports/fetchForSession',
   async (sessionId, { rejectWithValue }) => {
@@ -18,10 +33,25 @@ export const fetchReportsForSession = createAsyncThunk(
 
 export const fetchReportsForMultipleSessions = createAsyncThunk(
   'reports/fetchForMultipleSessions',
-  async (sessionIds, { rejectWithValue }) => {
+  async (sessionIds, { rejectWithValue, getState }) => {
     try {
+      const state = getState();
+      
+      // Filter out sessions that are already loading or have reports
+      const sessionsToFetch = sessionIds.filter(sessionId => {
+        const isLoading = state.reports.isLoadingSession[sessionId];
+        const hasReports = state.reports.reportsBySession[sessionId]?.length > 0;
+        return !isLoading && !hasReports;
+      });
+      
+      if (sessionsToFetch.length === 0) {
+        return []; // No sessions to fetch
+      }
+      
+      console.log(`Actually fetching reports for ${sessionsToFetch.length} sessions:`, sessionsToFetch);
+      
       // Fetch reports for multiple sessions in parallel
-      const promises = sessionIds.map(sessionId => 
+      const promises = sessionsToFetch.map(sessionId => 
         reportService.getReportsForSession(sessionId)
           .then(response => ({ sessionId, reports: response.data.reports }))
           .catch(error => ({ sessionId, reports: [], error: error.message }))
@@ -135,6 +165,39 @@ const reportSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // Fetch ALL reports at once - simple and clean!
+      .addCase(fetchAllReports.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchAllReports.fulfilled, (state, action) => {
+        state.isLoading = false;
+        const reports = action.payload;
+        
+        // Clear existing data
+        state.reportsBySession = {};
+        state.reportsById = {};
+        
+        // Group reports by session and store by ID
+        reports.forEach(report => {
+          // Store by ID for easy access
+          state.reportsById[report.id] = report;
+          
+          // Group by session ID
+          const sessionId = report.session_id;
+          if (!state.reportsBySession[sessionId]) {
+            state.reportsBySession[sessionId] = [];
+          }
+          state.reportsBySession[sessionId].push(report);
+        });
+        
+        console.log(`Loaded ${reports.length} reports total`);
+      })
+      .addCase(fetchAllReports.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+
       // Fetch reports for single session
       .addCase(fetchReportsForSession.pending, (state, action) => {
         const sessionId = action.meta.arg;
@@ -158,9 +221,15 @@ const reportSlice = createSlice({
       })
 
       // Fetch reports for multiple sessions
-      .addCase(fetchReportsForMultipleSessions.pending, (state) => {
+      .addCase(fetchReportsForMultipleSessions.pending, (state, action) => {
+        const sessionIds = action.meta.arg;
         state.isLoading = true;
         state.error = null;
+        
+        // Mark all sessions as loading
+        sessionIds.forEach(sessionId => {
+          state.isLoadingSession[sessionId] = true;
+        });
       })
       .addCase(fetchReportsForMultipleSessions.fulfilled, (state, action) => {
         state.isLoading = false;
@@ -184,6 +253,12 @@ const reportSlice = createSlice({
       .addCase(fetchReportsForMultipleSessions.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
+        
+        // Clear loading states for all sessions
+        const sessionIds = action.meta.arg;
+        sessionIds.forEach(sessionId => {
+          state.isLoadingSession[sessionId] = false;
+        });
       })
 
       // Fetch single report by ID
@@ -259,14 +334,19 @@ export const selectReportsError = (state) => state.reports.error;
 export const selectSessionReportsError = (sessionId) => (state) => 
   state.reports.sessionErrors[sessionId];
 
-// Helper selectors for session page
+// Simple helper selector for session page
 export const selectAvailableReportsForSession = (sessionId) => (state) => {
   const reports = state.reports.reportsBySession[sessionId] || [];
   return {
     adviser: reports.find(r => r.type === 'adviser'),
     client: reports.find(r => r.type === 'client'),
-    summary: reports.find(r => r.type === 'summary') // Future feature
+    summary: reports.find(r => r.type === 'summary')
   };
+};
+
+// Simple selector to check if reports are loaded
+export const selectAreReportsLoaded = (state) => {
+  return Object.keys(state.reports.reportsBySession).length > 0 || !state.reports.isLoading;
 };
 
 export const selectHasReportsForSession = (sessionId) => (state) => {

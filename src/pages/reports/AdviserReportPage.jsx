@@ -1,32 +1,57 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import {
+import { 
   User,
   Calendar,
   RotateCcw,
   CheckCircle,
   ArrowRight,
   Lightbulb,
-  Download
+  Download,
+  ArrowLeft,
+  Edit3,
+  Save,
+  X,
+  ChevronDown,
+  ChevronUp,
+  Mail,
+  Building,
+  FileText,
+  Smile,
+  Target,
+  Zap,
+  AlertTriangle,
+  MessageCircle
 } from 'lucide-react';
 import { 
-  fetchReportsForSession, 
-  selectAvailableReportsForSession,
-  selectIsLoadingSessionReports 
+  fetchReportsForSession
 } from '../../store/reportSlice';
 import { fetchSessions } from '../../store/sessionSlice';
 
 export const AdviserReportPage = () => {
   const { sessionId } = useParams();
   const navigate = useNavigate();
+  const reportsFetched = useRef(false); // Track if reports already fetched
+
+  const handleBackClick = () => {
+    // Use browser history to go back, fallback to sessions if no history
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/sessions');
+    }
+  };
   const { t } = useTranslation();
   const dispatch = useDispatch();
 
-  // Redux selectors
-  const availableReports = useSelector(selectAvailableReportsForSession(sessionId));
-  const isLoadingReports = useSelector(selectIsLoadingSessionReports(sessionId));
+  // Redux state - direct access like rest of app
+  const reportsBySession = useSelector(state => state.reports.reportsBySession);
+  
+  // Get reports for this session
+  const sessionReports = reportsBySession[sessionId] || [];
+  const adviserReport = sessionReports.find(r => r.type === 'adviser');
   const sessions = useSelector(state => state.sessions.sessions);
   const currentSession = sessions.find(session => session.id === sessionId);
   const [report, setReport] = useState(null);
@@ -38,15 +63,24 @@ export const AdviserReportPage = () => {
     recommendations: true,
     followup: true,
     transcript: true,
-    rawContent: true
+    rawContent: true,
+    tone: true,
+    speaking: true,
+    assessment: true
   });
 
   useEffect(() => {
-    // Fetch reports for this session if not already loaded
-    if (!availableReports.adviser && !isLoadingReports) {
-      dispatch(fetchReportsForSession(sessionId));
+    // Fetch reports for this session if not already loaded (ONE TIME ONLY)
+    if (!adviserReport && !reportsFetched.current) {
+      reportsFetched.current = true;
+      dispatch(fetchReportsForSession(sessionId))
+        .unwrap()
+        .catch((error) => {
+          console.error('Error fetching reports:', error);
+          reportsFetched.current = false; // Allow retry on error
+        });
     }
-  }, [dispatch, sessionId, availableReports.adviser, isLoadingReports]);
+  }, [dispatch, sessionId, adviserReport]);
 
   useEffect(() => {
     // Fetch sessions if current session is not loaded
@@ -55,91 +89,154 @@ export const AdviserReportPage = () => {
     }
   }, [dispatch, currentSession]);
 
+  // Helper function to parse markdown report content
+  const parseMarkdownReport = (content) => {
+    if (!content || typeof content !== 'string') {
+      return null;
+    }
+
+    const sections = {};
+    
+    // Extract header information (client details, etc.)
+    const headerMatch = content.match(/^([\s\S]*?)(?=---)/m);
+    if (headerMatch) {
+      const headerText = headerMatch[1];
+      sections.header = headerText;
+      
+      // Extract specific header fields
+      const clientNameMatch = headerText.match(/\*\*Client Name:\*\*\s*(.+)/i);
+      const clientEmailMatch = headerText.match(/\*\*Client Email:\*\*\s*(.+)/i);
+      const businessDomainMatch = headerText.match(/\*\*Business Domain:\*\*\s*(.+)/i);
+      const adviserNameMatch = headerText.match(/\*\*Adviser Name:\*\*\s*(.+)/i);
+      const adviserEmailMatch = headerText.match(/\*\*Adviser Email:\*\*\s*(.+)/i);
+      const sessionTitleMatch = headerText.match(/\*\*Session Title:\*\*\s*(.+)/i);
+      const audioFileMatch = headerText.match(/\*\*Audio File:\*\*\s*(.+)/i);
+      
+      sections.clientName = clientNameMatch ? clientNameMatch[1].trim() : null;
+      sections.clientEmail = clientEmailMatch ? clientEmailMatch[1].trim() : null;
+      sections.businessDomain = businessDomainMatch ? businessDomainMatch[1].trim() : null;
+      sections.adviserName = adviserNameMatch ? adviserNameMatch[1].trim() : null;
+      sections.adviserEmail = adviserEmailMatch ? adviserEmailMatch[1].trim() : null;
+      sections.sessionTitle = sessionTitleMatch ? sessionTitleMatch[1].trim() : null;
+      sections.audioFile = audioFileMatch ? audioFileMatch[1].trim() : null;
+    }
+
+    // Extract main sections using regex
+    const sectionRegex = /##\s*(\d+\.\s*)?([^\n]+)\n([\s\S]*?)(?=##\s*\d+\.|##\s*[A-Z]|$)/g;
+    let match;
+    
+    while ((match = sectionRegex.exec(content)) !== null) {
+      const sectionTitle = match[2].trim();
+      const sectionContent = match[3].trim();
+      
+      // Map section titles to keys
+      if (sectionTitle.toLowerCase().includes('meeting summary') || sectionTitle.toLowerCase().includes('סיכום')) {
+        sections.meetingSummary = sectionContent;
+      } else if (sectionTitle.toLowerCase().includes('key discussion') || sectionTitle.toLowerCase().includes('נקודות מפתח')) {
+        sections.keyDiscussionPoints = sectionContent;
+      } else if (sectionTitle.toLowerCase().includes('action items') || sectionTitle.toLowerCase().includes('פעולות')) {
+        sections.actionItems = sectionContent;
+      } else if (sectionTitle.toLowerCase().includes('next steps') || sectionTitle.toLowerCase().includes('צעדים הבאים')) {
+        sections.nextSteps = sectionContent;
+      } else if (sectionTitle.toLowerCase().includes('important decisions') || sectionTitle.toLowerCase().includes('החלטות')) {
+        sections.importantDecisions = sectionContent;
+      } else if (sectionTitle.toLowerCase().includes('analytical insights') || sectionTitle.toLowerCase().includes('תובנות')) {
+        sections.analyticalInsights = sectionContent;
+      } else if (sectionTitle.toLowerCase().includes('recommendations for follow') || sectionTitle.toLowerCase().includes('המלצות')) {
+        sections.followUpRecommendations = sectionContent;
+      } else if (sectionTitle.toLowerCase().includes('areas requiring attention') || sectionTitle.toLowerCase().includes('תחומים הדורשים')) {
+        sections.areasRequiringAttention = sectionContent;
+      } else if (sectionTitle.toLowerCase().includes('meeting tone') || sectionTitle.toLowerCase().includes('engagement analysis') || sectionTitle.toLowerCase().includes('טון הפגישה')) {
+        sections.meetingTone = sectionContent;
+      } else if (sectionTitle.toLowerCase().includes('speaking time') || sectionTitle.toLowerCase().includes('זמן דיבור')) {
+        sections.speakingTimeAnalysis = sectionContent;
+      } else if (sectionTitle.toLowerCase().includes('key quotes') || sectionTitle.toLowerCase().includes('ציטוטים')) {
+        sections.keyQuotes = sectionContent;
+      } else if (sectionTitle.toLowerCase().includes('professional assessment') || sectionTitle.toLowerCase().includes('הערכה מקצועית')) {
+        sections.professionalAssessment = sectionContent;
+      }
+    }
+
+    return sections;
+  };
+
+  // Helper function to extract bullet points from text
+  const extractBulletPoints = (text) => {
+    if (!text) return [];
+    
+    const lines = text.split('\n').filter(line => line.trim());
+    const bulletPoints = [];
+    
+    for (const line of lines) {
+      const trimmed = line.trim();
+      // Check if line starts with bullet point indicators
+      if (trimmed.match(/^[-•*]\s/) || trimmed.match(/^\d+\.\s/)) {
+        bulletPoints.push(trimmed.replace(/^[-•*]\s/, '').replace(/^\d+\.\s/, ''));
+      } else if (trimmed && !trimmed.match(/^#{1,6}\s/)) {
+        // If it's not a header and not empty, treat as bullet point
+        bulletPoints.push(trimmed);
+      }
+    }
+    
+    return bulletPoints.length > 0 ? bulletPoints : [text];
+  };
+
+  // Helper function to get speaker colors
+  const getSpeakerColor = (index) => {
+    const colors = [
+      '#007bff', // Blue
+      '#28a745', // Green
+      '#ffc107', // Yellow
+      '#dc3545', // Red
+      '#6f42c1', // Purple
+      '#fd7e14', // Orange
+      '#20c997', // Teal
+      '#e83e8c'  // Pink
+    ];
+    return colors[index % colors.length];
+  };
+
   // Update local report state when Redux data changes
   useEffect(() => {
-    if (availableReports.adviser) {
+    if (adviserReport) {
+      const reportContent = adviserReport.content;
       
-      // Parse content if it's a JSON string, otherwise use as-is
-      let parsedContent = null;
-      try {
-        if (typeof availableReports.adviser.content === 'string') {
-          parsedContent = JSON.parse(availableReports.adviser.content);
-        } else {
-          parsedContent = availableReports.adviser.content;
-        }
-      } catch (error) {
-        console.warn('Could not parse report content as JSON, using as text:', error);
-        parsedContent = { rawContent: availableReports.adviser.content };
-      }
-
-      // Create enhanced report object with actual data and fallbacks
+      // Parse the markdown content
+      const parsedSections = parseMarkdownReport(reportContent);
+      
+      // Create enhanced report object with actual parsed data
       const enhancedReport = {
         // Use actual report data
-        id: availableReports.adviser.id,
-        sessionId: availableReports.adviser.session_id,
-        type: availableReports.adviser.type,
-        title: availableReports.adviser.title || 'ניתוח השיחה',
-        content: availableReports.adviser.content,
-        status: availableReports.adviser.status,
-        version: availableReports.adviser.version_number || 1,
-        createdAt: availableReports.adviser.created_at,
+        id: adviserReport.id,
+        sessionId: adviserReport.session_id,
+        type: adviserReport.type,
+        title: adviserReport.title || 'ניתוח השיחה',
+        content: adviserReport.content,
+        status: adviserReport.status,
+        version: adviserReport.version_number || 1,
+        createdAt: adviserReport.created_at,
         
-        // Use parsed content if available, otherwise use fallback mock data
-        keyPoints: parsedContent?.keyPoints || {
-          energyAnalysis: {
-            overallEnergy: { value: 87, label: 'רמת אנרגיה כללית', description: 'גבוהה - יזם מעורב ומתלהב' },
-            readinessLevel: { value: 73, label: 'מוכנות להמשך', description: 'טובה - כדאי לשמור על קשר' },
-            projectPotential: { value: 92, label: 'פוטנציאל לפרויקט', description: 'גבוה מאוד - המשך מיידי' }
-          },
-          systemRecommendation: parsedContent?.systemRecommendation || 'היזם מציג רמת עניין גבוהה ופוטנציאל חזק. מומלץ לקדם לשלב הבא - שיחה ראשונה עם מלווה תוך 24-48 שעות.',
-          speakingTime: parsedContent?.speakingTime || {
-            entrepreneur: { percentage: 72, minutes: 17.6 },
-            advisor: { percentage: 28, minutes: 6.4 }
-          },
-          conversationQuality: parsedContent?.conversationQuality || {
-            clarity: 'מעולה',
-            depth: 'טוב',
-            engagement: 'גבוהה'
-          },
-          keyQuotes: parsedContent?.keyQuotes || [
-            {
-              text: 'אני מאמין שאם הייתי משווק את עצמי נכון, הייתי עמוס בעבודה',
-              timestamp: '18:34',
-              insight: 'אמונה עצמית גבוהה'
-            },
-            {
-              text: 'הקורונה פגעה בי קשה, אבל אני יודע שיש לי מה להציע',
-              timestamp: '12:15',
-              insight: 'מודעות לאתגרים'
-            }
-          ],
-          energyDetails: parsedContent?.energyDetails || {
-            score: 8.5,
-            maxScore: 10,
-            speechPace: 'מהיר ונמרץ',
-            tone: 'נלהב ומעורב',
-            positiveWords: 47
-          },
-          professionalInsights: parsedContent?.professionalInsights || {
-            strengths: ['ניסיון עשיר', 'קשרים איכותיים', 'תשוקה למקצוע'],
-            improvements: ['שיווק דיגיטלי', 'מיתוג אישי', 'מדידת ביצועים']
-          },
-          consultingRecommendations: parsedContent?.consultingRecommendations || [
-            'הוספת שאלות פתוחות להעמקת השיחה - היזם דיבר 72% מהזמן, אפשר להגיע ליחס מאוזן יותר של 60:40',
-            'מיקוד יותר בתכנון מעשי ופחות בסיפור האישי',
-            'הוספת שאלות על מדדי הצלחה ומטרות כמותיות'
-          ],
-          followUpPlan: parsedContent?.followUpPlan || {
-            assignedAdvisor: 'רונית כהן - מלווה מט"י תיירות',
-            handoverMeeting: '02/08/2025',
-            continuousSupport: 'רונית תמשיך את כל התהליך'
-          }
-        }
+        // Use parsed sections from actual report content
+        parsedSections: parsedSections || {},
+        
+        // Extract specific data for display
+        clientInfo: parsedSections ? {
+          name: parsedSections.clientName,
+          email: parsedSections.clientEmail,
+          businessDomain: parsedSections.businessDomain,
+          sessionTitle: parsedSections.sessionTitle,
+          audioFile: parsedSections.audioFile
+        } : {},
+        
+        adviserInfo: parsedSections ? {
+          name: parsedSections.adviserName,
+          email: parsedSections.adviserEmail
+        } : {}
       };
 
       setReport(enhancedReport);
     }
-  }, [availableReports.adviser]);
+  }, [adviserReport]);
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -214,7 +311,7 @@ export const AdviserReportPage = () => {
       <section className={`collapsible-section ${isCollapsed ? 'collapsed' : ''}`}>
         <div className="section-header" onClick={toggleSection}>
           <h3>{title}</h3>
-          <span className="collapse-icon">{isCollapsed ? '▼' : '▲'}</span>
+          <span className="collapse-icon">{isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}</span>
         </div>
         {!isCollapsed && (
           <div className="section-content">
@@ -225,7 +322,8 @@ export const AdviserReportPage = () => {
     );
   };
 
-  if (isLoadingReports) {
+  // Show loading if we're fetching reports for the first time
+  if (!adviserReport && reportsFetched.current) {
     return (
       <div className="adviser-report-page">
         <div className="loading-container">
@@ -236,7 +334,7 @@ export const AdviserReportPage = () => {
     );
   }
 
-  if (!availableReports.adviser && !isLoadingReports) {
+  if (!adviserReport && !reportsFetched.current) {
     return (
       <div className="adviser-report-page">
         <div className="error-container">
@@ -268,11 +366,12 @@ export const AdviserReportPage = () => {
     <div className="adviser-report-page">
       <div className="report-header">
         <div className="header-left">
-          <button
-            className="back-button"
-            onClick={() => navigate('/sessions')}
+          <button 
+            className="back-button" 
+            onClick={handleBackClick}
           >
-            ← {t('common.back')}
+            <ArrowLeft size={16} />
+            {t('common.back')}
           </button>
           <h1>{t('reports.adviserReport')}</h1>
           <span className="report-status">{report?.status}</span>
@@ -291,6 +390,7 @@ export const AdviserReportPage = () => {
                 className="btn-secondary"
                 onClick={handleEdit}
               >
+                <Edit3 size={16} />
                 {t('reports.edit')}
               </button>
               <button
@@ -306,6 +406,7 @@ export const AdviserReportPage = () => {
                 className="btn-secondary"
                 onClick={() => setIsEditing(false)}
               >
+                <X size={16} />
                 {t('common.cancel')}
               </button>
               <button
@@ -313,6 +414,7 @@ export const AdviserReportPage = () => {
                 onClick={handleSave}
                 disabled={isSaving}
               >
+                {isSaving ? <Save size={16} /> : <Save size={16} />}
                 {isSaving ? t('common.saving') : t('common.save')}
               </button>
             </>
@@ -350,172 +452,379 @@ export const AdviserReportPage = () => {
             </div>
           ) : (
             <div className="report-display structured-report compact-layout">
-              <h1 className="report-title">⚡ {report?.title}</h1>
+              <h1 className="report-title">{currentSession?.title}</h1>
 
-              {/* Main Grid Layout */}
-              <div className="report-grid">
-                {/* Left Column - Key Metrics */}
-                <div className="metrics-column">
-                  {/* Energy Analysis */}
-                  <section className="analysis-section compact">
-                    <h2>⚡ {t('reports.energyInConversation')}</h2>
-                    <div className="energy-metrics horizontal">
-                      <PercentageBar
-                        value={report?.keyPoints?.energyAnalysis?.overallEnergy?.value}
-                        label={report?.keyPoints?.energyAnalysis?.overallEnergy?.label}
-                        description={report?.keyPoints?.energyAnalysis?.overallEnergy?.description}
-                        color="#28a745"
-                      />
-                      <PercentageBar
-                        value={report?.keyPoints?.energyAnalysis?.readinessLevel?.value}
-                        label={report?.keyPoints?.energyAnalysis?.readinessLevel?.label}
-                        description={report?.keyPoints?.energyAnalysis?.readinessLevel?.description}
-                        color="#ffc107"
-                      />
-                      <PercentageBar
-                        value={report?.keyPoints?.energyAnalysis?.projectPotential?.value}
-                        label={report?.keyPoints?.energyAnalysis?.projectPotential?.label}
-                        description={report?.keyPoints?.energyAnalysis?.projectPotential?.description}
-                        color="#dc3545"
-                      />
-                    </div>
-                  </section>
-
-                  {/* Energy Score */}
-                  <section className="energy-details-section compact">
-                    <EnergyScore
-                      score={report?.keyPoints?.energyDetails?.score}
-                      maxScore={report?.keyPoints?.energyDetails?.maxScore}
-                      details={report?.keyPoints?.energyDetails}
-                    />
-                  </section>
-                </div>
-
-                {/* Right Column - Analysis & Stats */}
-                <div className="analysis-column">
-                  {/* System Recommendation */}
-                  <section className="recommendation-section compact">
-                    <h3>{t('reports.systemRecommendation')}</h3>
-                    <p className="system-recommendation">{report?.keyPoints?.systemRecommendation}</p>
-                  </section>
-
-                  {/* Speaking Time & Quality - Side by side */}
-                  <div className="stats-row">
-                    <section className="speaking-time-section compact">
-                      <h3>{t('reports.speakingTime')}</h3>
-                      <div className="speaking-stats vertical">
-                        <div className="speaker-stat">
-                          <span className="speaker-label">{t('reports.entrepreneur')}</span>
-                          <span className="speaker-percentage">{report?.keyPoints?.speakingTime?.entrepreneur?.percentage}%</span>
-                          <span className="speaker-time">({report?.keyPoints?.speakingTime?.entrepreneur?.minutes} {t('common.minutes')})</span>
-                        </div>
-                        <div className="speaker-stat">
-                          <span className="speaker-label">{t('reports.advisor')}</span>
-                          <span className="speaker-percentage">{report?.keyPoints?.speakingTime?.advisor?.percentage}%</span>
-                          <span className="speaker-time">({report?.keyPoints?.speakingTime?.advisor?.minutes} {t('common.minutes')})</span>
-                        </div>
+              {/* Client Information Header */}
+              {(report?.clientInfo?.name || report?.adviserInfo?.name) && (
+                <div className="client-info-section">
+                  <div className="info-grid">
+                    {report?.clientInfo?.name && (
+                      <div className="info-item">
+                        <User className="info-icon" size={16} />
+                        <span><strong>{t('reports.client')}:</strong> {report.clientInfo.name}</span>
                       </div>
-                    </section>
-
-                    <section className="quality-section compact">
-                      <h3>{t('reports.conversationQuality')}</h3>
-                      <div className="quality-metrics compact">
-                        <div className="quality-item">
-                          <span>{t('reports.clarity')}</span>
-                          <span className="quality-value">{report?.keyPoints?.conversationQuality?.clarity}</span>
-                        </div>
-                        <div className="quality-item">
-                          <span>{t('reports.depth')}</span>
-                          <span className="quality-value">{report?.keyPoints?.conversationQuality?.depth}</span>
-                        </div>
-                        <div className="quality-item">
-                          <span>{t('reports.engagement')}</span>
-                          <span className="quality-value">{report?.keyPoints?.conversationQuality?.engagement}</span>
-                        </div>
+                    )}
+                    {report?.clientInfo?.email && (
+                      <div className="info-item">
+                        <Mail className="info-icon" size={16} />
+                        <span><strong>{t('reports.email')}:</strong> {report.clientInfo.email}</span>
                       </div>
-                    </section>
-                  </div>
-                </div>
-              </div>
-
-              {/* Collapsible Sections */}
-              <CollapsibleSection id="quotes" title={t('reports.keyQuotes')}>
-                <div className="quotes-list">
-                  {report?.keyPoints?.keyQuotes?.map((quote, index) => (
-                    <div key={index} className="quote-item">
-                      <blockquote>"{quote.text}"</blockquote>
-                      <div className="quote-meta">
-                        <span className="quote-time">{t('reports.minute')} {quote.timestamp}</span>
-                        <span className="quote-insight"> - {quote.insight}</span>
+                    )}
+                    {report?.clientInfo?.businessDomain && report.clientInfo.businessDomain !== '[Not specified]' && (
+                      <div className="info-item">
+                        <Building className="info-icon" size={16} />
+                        <span><strong>{t('reports.businessDomain')}:</strong> {report.clientInfo.businessDomain}</span>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </CollapsibleSection>
-
-              <CollapsibleSection id="insights" title={t('reports.professionalInsights')}>
-                <div className="insights-grid">
-                  <div className="insight-column">
-                    <h4>{t('reports.strengths')}</h4>
-                    <ul className="styled-list strengths-list">
-                      {report?.keyPoints?.professionalInsights?.strengths?.map((strength, index) => (
-                        <li key={index}>
-                          <CheckCircle className="list-icon" size={16} />
-                          <span className="list-text">{strength}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="insight-column">
-                    <h4>{t('reports.improvements')}</h4>
-                    <ul className="styled-list improvements-list">
-                      {report?.keyPoints?.professionalInsights?.improvements?.map((improvement, index) => (
-                        <li key={index}>
-                          <ArrowRight className="list-icon" size={16} />
-                          <span className="list-text">{improvement}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    )}
+                    {report?.adviserInfo?.name && (
+                      <div className="info-item">
+                        <User className="info-icon" size={16} />
+                        <span><strong>{t('reports.adviser')}:</strong> {report.adviserInfo.name}</span>
+                      </div>
+                    )}
+                    {report?.clientInfo?.sessionTitle && (
+                      <div className="info-item">
+                        <FileText className="info-icon" size={16} />
+                        <span><strong>{t('reports.sessionTitle')}:</strong> {report.clientInfo.sessionTitle}</span>
+                      </div>
+                    )}
+                    {report?.clientInfo?.audioFile && (
+                      <div className="info-item">
+                        <RotateCcw className="info-icon" size={16} />
+                        <span><strong>{t('reports.audioFile')}:</strong> {report.clientInfo.audioFile}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
-              </CollapsibleSection>
+              )}
 
-              <CollapsibleSection id="recommendations" title={t('reports.consultingRecommendations')}>
-                <ul className="styled-list recommendations-list">
-                  {report?.keyPoints?.consultingRecommendations?.map((recommendation, index) => (
-                    <li key={index}>
-                      <Lightbulb className="list-icon" size={16} />
-                      <span className="list-text">{recommendation}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CollapsibleSection>
+              {/* Report Sections */}
+              {report?.parsedSections?.meetingSummary && (
+                <section className="report-section">
+                  <h2><Smile size={16} /> {t('reports.meetingSummary')}</h2>
+                  <div className="section-content">
+                    <p>{report.parsedSections.meetingSummary}</p>
+                  </div>
+                </section>
+              )}
 
-              <CollapsibleSection id="followup" title={t('reports.followUpPlan')}>
-                <div className="followup-details styled-followup">
-                  <div className="followup-item">
-                    <User className="followup-icon" size={20} />
-                    <div className="followup-content">
-                      <strong>{t('reports.handoverTo')}</strong>
-                      <span>{report?.keyPoints?.followUpPlan?.assignedAdvisor}</span>
-                    </div>
+              {report?.parsedSections?.keyDiscussionPoints && (
+                <CollapsibleSection id="discussion" title={t('reports.keyDiscussionPoints')}>
+                  <div className="discussion-points">
+                    {extractBulletPoints(report.parsedSections.keyDiscussionPoints).map((point, index) => (
+                      <div key={index} className="discussion-point">
+                        <ArrowRight className="point-icon" size={16} />
+                        <span>{point}</span>
+                      </div>
+                    ))}
                   </div>
-                  <div className="followup-item">
-                    <Calendar className="followup-icon" size={20} />
-                    <div className="followup-content">
-                      <strong>{t('reports.handoverMeeting')}</strong>
-                      <span>{report?.keyPoints?.followUpPlan?.handoverMeeting}</span>
-                    </div>
+                </CollapsibleSection>
+              )}
+
+              {report?.parsedSections?.actionItems && (
+                <CollapsibleSection id="actions" title={t('reports.actionItems')}>
+                  <div className="action-items">
+                    {extractBulletPoints(report.parsedSections.actionItems).map((item, index) => (
+                      <div key={index} className="action-item">
+                        <CheckCircle className="action-icon" size={16} />
+                        <span>{item}</span>
+                      </div>
+                    ))}
                   </div>
-                  <div className="followup-item">
-                    <RotateCcw className="followup-icon" size={20} />
-                    <div className="followup-content">
-                      <strong>{t('reports.continuousSupport')}</strong>
-                      <span>{report?.keyPoints?.followUpPlan?.continuousSupport}</span>
-                    </div>
+                </CollapsibleSection>
+              )}
+
+              {report?.parsedSections?.nextSteps && (
+                <CollapsibleSection id="nextsteps" title={t('reports.nextSteps')}>
+                  <div className="next-steps">
+                    {extractBulletPoints(report.parsedSections.nextSteps).map((step, index) => (
+                      <div key={index} className="next-step">
+                        <Calendar className="step-icon" size={16} />
+                        <span>{step}</span>
+                      </div>
+                    ))}
                   </div>
-                </div>
-              </CollapsibleSection>
+                </CollapsibleSection>
+              )}
+
+              {report?.parsedSections?.importantDecisions && (
+                <CollapsibleSection id="decisions" title={t('reports.importantDecisions')}>
+                  <div className="important-decisions">
+                    <p>{report.parsedSections.importantDecisions}</p>
+                  </div>
+                </CollapsibleSection>
+              )}
+
+              {report?.parsedSections?.analyticalInsights && (
+                <CollapsibleSection id="insights" title={t('reports.analyticalInsights')}>
+                  <div className="analytical-insights">
+                    <p>{report.parsedSections.analyticalInsights}</p>
+                  </div>
+                </CollapsibleSection>
+              )}
+
+              {report?.parsedSections?.followUpRecommendations && (
+                <CollapsibleSection id="recommendations" title={t('reports.followUpRecommendations')}>
+                  <div className="followup-recommendations">
+                    {extractBulletPoints(report.parsedSections.followUpRecommendations).map((recommendation, index) => (
+                      <div key={index} className="recommendation-item">
+                        <Lightbulb className="recommendation-icon" size={16} />
+                        <span>{recommendation}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CollapsibleSection>
+              )}
+
+              {report?.parsedSections?.areasRequiringAttention && (
+                <CollapsibleSection id="attention" title={t('reports.areasRequiringAttention')}>
+                  <div className="attention-areas">
+                    {extractBulletPoints(report.parsedSections.areasRequiringAttention).map((area, index) => (
+                      <div key={index} className="attention-item">
+                        <RotateCcw className="attention-icon" size={16} />
+                        <span>{area}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CollapsibleSection>
+              )}
+
+              {report?.parsedSections?.meetingTone && (
+                <CollapsibleSection id="tone" title={t('reports.meetingTone')}>
+                  <div className="meeting-tone">
+                    {(() => {
+                      const tonePoints = extractBulletPoints(report.parsedSections.meetingTone);
+                      const toneData = {
+                        overall: '',
+                        engagement: '',
+                        energy: '',
+                        concerns: ''
+                      };
+                      
+                      // Parse tone information
+                      tonePoints.forEach(point => {
+                        const lowerPoint = point.toLowerCase();
+                        if (lowerPoint.includes('overall tone')) {
+                          toneData.overall = point.split(':')[1]?.trim() || point;
+                        } else if (lowerPoint.includes('engagement')) {
+                          toneData.engagement = point.split(':')[1]?.trim() || point;
+                        } else if (lowerPoint.includes('energy')) {
+                          toneData.energy = point.split(':')[1]?.trim() || point;
+                        } else if (lowerPoint.includes('concern') || lowerPoint.includes('resistance')) {
+                          toneData.concerns = point.split(':')[1]?.trim() || point;
+                        }
+                      });
+                      
+                      return (
+                        <div className="tone-analysis-grid">
+                          {toneData.overall && (
+                            <div className="tone-card overall-tone">
+                              <div className="tone-icon">
+                                <Smile size={32} />
+                              </div>
+                              <div className="tone-content">
+                                <h4>Overall Tone</h4>
+                                <p>{toneData.overall}</p>
+                              </div>
+                            </div>
+                          )}
+                          {toneData.engagement && (
+                            <div className="tone-card engagement-tone">
+                              <div className="tone-icon">
+                                <Target size={32} />
+                              </div>
+                              <div className="tone-content">
+                                <h4>Engagement Level</h4>
+                                <p>{toneData.engagement}</p>
+                              </div>
+                            </div>
+                          )}
+                          {toneData.energy && (
+                            <div className="tone-card energy-tone">
+                              <div className="tone-icon">
+                                <Zap size={32} />
+                              </div>
+                              <div className="tone-content">
+                                <h4>Energy Level</h4>
+                                <p>{toneData.energy}</p>
+                              </div>
+                            </div>
+                          )}
+                          {toneData.concerns && (
+                            <div className="tone-card concerns-tone">
+                              <div className="tone-icon">
+                                <AlertTriangle size={32} />
+                              </div>
+                              <div className="tone-content">
+                                <h4>Concerns/Resistance</h4>
+                                <p>{toneData.concerns}</p>
+                              </div>
+                            </div>
+                          )}
+                          {/* Fallback for unstructured tone data */}
+                          {!toneData.overall && !toneData.engagement && !toneData.energy && !toneData.concerns && (
+                            tonePoints.map((tone, index) => (
+                              <div key={index} className="tone-card general-tone">
+                                <div className="tone-icon">
+                                  <MessageCircle size={32} />
+                                </div>
+                                <div className="tone-content">
+                                  <p>{tone}</p>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      );
+                    })()} 
+                  </div>
+                </CollapsibleSection>
+              )}
+
+              {report?.parsedSections?.speakingTimeAnalysis && (
+                <CollapsibleSection id="speaking" title={t('reports.speakingTimeAnalysis')}>
+                  <div className="speaking-analysis">
+                    {(() => {
+                      const analysisPoints = extractBulletPoints(report.parsedSections.speakingTimeAnalysis);
+                      const speakerData = [];
+                      
+                      // Parse speaker data and percentages with improved logic
+                      analysisPoints.forEach(point => {
+                        // Look for patterns like "Tony: 40%", "Tony (Role): ~35-45%", "- Tony: Dominant speaker - 40%"
+                        // More comprehensive regex to capture various formats
+                        const patterns = [
+                          // Pattern 1: "Tony (Meeting Facilitator): ~40%" or "Tony: 40%"
+                          /([A-Za-z]+)(?:\s*\([^)]+\))?:\s*[~]?(?:estimated\s+)?(\d+)(?:[-]\d+)?%/i,
+                          // Pattern 2: "- Tony: Dominant speaker - 40%" or similar
+                          /[-•*]?\s*([A-Za-z]+)(?:\s*\([^)]+\))?:?\s*[^\d]*[~]?(\d+)(?:[-]\d+)?%/i,
+                          // Pattern 3: "Tony - 40%" or "Tony (~40%)"
+                          /([A-Za-z]+)\s*[-:]?\s*[^\d]*[~(]?(\d+)(?:[-]\d+)?%/i
+                        ];
+                        
+                        let match = null;
+                        for (const pattern of patterns) {
+                          match = point.match(pattern);
+                          if (match && match[1] && match[2]) {
+                            const name = match[1].trim();
+                            const percentage = parseInt(match[2]);
+                            
+                            // Skip if name is just a number or too short
+                            if (name.length >= 2 && !(/^\d+$/.test(name))) {
+                              // Extract description (everything after the percentage or role)
+                              let description = '';
+                              const colonIndex = point.indexOf(':');
+                              if (colonIndex !== -1) {
+                                const afterColon = point.substring(colonIndex + 1);
+                                // Remove the percentage part and get the description
+                                description = afterColon.replace(/[~]?\d+(?:[-]\d+)?%/, '').replace(/^\s*[-]?\s*/, '').trim();
+                              }
+                              
+                              speakerData.push({
+                                name,
+                                percentage,
+                                description,
+                                color: getSpeakerColor(speakerData.length)
+                              });
+                              break; // Found a match, stop trying other patterns
+                            }
+                          }
+                        }
+                      });
+                      
+                      // If no structured data found, show original format
+                      if (speakerData.length === 0) {
+                        return (
+                          <div className="speaking-fallback">
+                            {analysisPoints.map((analysis, index) => (
+                              <div key={index} className="speaking-item">
+                                <span>{analysis}</span>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      }
+                      
+                      return (
+                        <div className="speaking-breakdown">
+                          <div className="speakers-list">
+                            {speakerData.map((speaker, index) => (
+                              <div key={index} className="speaker-card">
+                                <div className="speaker-header">
+                                  <div className="speaker-info">
+                                    <div 
+                                      className="speaker-avatar" 
+                                      style={{ backgroundColor: speaker.color }}
+                                    >
+                                      {speaker.name.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div className="speaker-details">
+                                      <h4>{speaker.name}</h4>
+                                      <span className="speaker-percentage">{speaker.percentage}%</span>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="speaker-bar-container">
+                                  <div 
+                                    className="speaker-bar" 
+                                    style={{ 
+                                      width: `${speaker.percentage}%`,
+                                      backgroundColor: speaker.color 
+                                    }}
+                                  ></div>
+                                </div>
+                                {speaker.description && (
+                                  <p className="speaker-description">{speaker.description}</p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          
+                          {/* Visual pie chart representation */}
+                          <div className="speaking-summary">
+                            <div className="summary-chart">
+                              <div className="chart-legend">
+                                {speakerData.map((speaker, index) => (
+                                  <div key={index} className="legend-item">
+                                    <div 
+                                      className="legend-color" 
+                                      style={{ backgroundColor: speaker.color }}
+                                    ></div>
+                                    <span>{speaker.name}: {speaker.percentage}%</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()} 
+                  </div>
+                </CollapsibleSection>
+              )}
+
+              {report?.parsedSections?.keyQuotes && (
+                <CollapsibleSection id="quotes" title={t('reports.keyQuotesFromConversation')}>
+                  <div className="key-quotes">
+                    {extractBulletPoints(report.parsedSections.keyQuotes).map((quote, index) => (
+                      <div key={index} className="quote-item">
+                        <blockquote>{quote}</blockquote>
+                      </div>
+                    ))}
+                  </div>
+                </CollapsibleSection>
+              )}
+
+              {report?.parsedSections?.professionalAssessment && (
+                <CollapsibleSection id="assessment" title={t('reports.professionalAssessment')}>
+                  <div className="professional-assessment">
+                    {extractBulletPoints(report.parsedSections.professionalAssessment).map((assessment, index) => (
+                      <div key={index} className="assessment-item">
+                        <span>{assessment}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CollapsibleSection>
+              )}
 
               {/* Original Transcript Section */}
               {currentSession?.transcription_text && (
@@ -532,24 +841,6 @@ export const AdviserReportPage = () => {
                 </CollapsibleSection>
               )}
 
-              {/* Raw Report Content Section */}
-              {report?.content && (
-                <CollapsibleSection id="rawContent" title={t('reports.rawReportContent')}>
-                  <div className="raw-content">
-                    <div className="content-meta">
-                      <span><strong>{t('reports.contentType')}:</strong> {typeof report.content === 'string' ? 'Text' : 'JSON'}</span>
-                      <span><strong>{t('reports.contentLength')}:</strong> {typeof report.content === 'string' ? report.content.length.toLocaleString() : JSON.stringify(report.content).length.toLocaleString()} {t('reports.characters')}</span>
-                    </div>
-                    <div className="content-display">
-                      {typeof report.content === 'string' ? (
-                        <pre className="content-text">{report.content}</pre>
-                      ) : (
-                        <pre className="content-json">{JSON.stringify(report.content, null, 2)}</pre>
-                      )}
-                    </div>
-                  </div>
-                </CollapsibleSection>
-              )}
 
               {/* Download Section - Always Visible */}
               <section className="download-section">

@@ -1,34 +1,48 @@
+import React from "react";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchSessions } from "../../store/sessionSlice";
-import { 
-  fetchReportsForMultipleSessions, 
-  selectAvailableReportsForSession,
-  selectIsLoadingSessionReports 
-} from "../../store/reportSlice";
-import { FileAudio, Calendar, User, Building, Clock, FileText, ChevronRight, Eye, ChevronLeft } from "lucide-react";
+import { fetchAllReports } from "../../store/reportSlice";
+import { FileAudio, Calendar, User, Building, Clock, FileText, ChevronRight, Eye, ChevronLeft, Loader2 } from "lucide-react";
 
 export function SessionsPage() {
     const { t, i18n } = useTranslation();
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const reportsFetched = useRef(false); // Track if reports already fetched
 
     // Redux state
     const sessions = useSelector(state => state.sessions.sessions);
+    const isLoadingSessions = useSelector(state => state.sessions.isLoading);
+    const isLoadingReports = useSelector(state => state.reports.isLoading);
+    const reportsBySession = useSelector(state => state.reports.reportsBySession);
 
+    // Load sessions and reports SIMULTANEOUSLY on mount - they're independent!
     useEffect(() => {
+        // Fetch sessions
         dispatch(fetchSessions());
-    }, [dispatch]);
-
-    // Fetch reports for all sessions after sessions are loaded
-    useEffect(() => {
-        if (sessions.length > 0) {
-            const sessionIds = sessions.map(session => session.id);
-            dispatch(fetchReportsForMultipleSessions(sessionIds));
+        
+        // Fetch reports at the same time - no need to wait!
+        if (!reportsFetched.current && !isLoadingReports) {
+            reportsFetched.current = true;
+            dispatch(fetchAllReports())
+                .unwrap()
+                .then(() => {
+                    // Reports loaded successfully
+                })
+                .catch((error) => {
+                    console.error('Error fetching reports:', error);
+                    reportsFetched.current = false; // Allow retry on error
+                });
         }
-    }, [dispatch, sessions]);
+    }, [dispatch, isLoadingReports]); // Only run once on mount
+
+    // Calculate if both data sets are loaded
+    const bothDataLoaded = !isLoadingSessions && !isLoadingReports && sessions.length > 0;
+
+    // Data is connected and ready when bothDataLoaded is true
 
     // Helper function to format date
     const formatDate = (dateString) => {
@@ -67,6 +81,7 @@ export function SessionsPage() {
     };
 
     // Navigation functions
+    // Navigation functions for reports
     const navigateToAdviserReport = (sessionId) => {
         navigate(`/reports/adviser/${sessionId}`);
     };
@@ -78,6 +93,24 @@ export function SessionsPage() {
     const navigateToSummaryReport = (sessionId) => {
         navigate(`/reports/summary/${sessionId}`);
     };
+
+    // Show loading until BOTH sessions and reports are loaded
+    if (!bothDataLoaded) {
+        return (
+            <section className="sessions-page">
+                <div className="sessions-header">
+                    <h1>{t('sessions.title')}</h1>
+                </div>
+                <div className="loading-container">
+                    <div className="loading-content">
+                        <Loader2 size={48} className="loading-spinner animate-spin" />
+                        <h3>{t('sessions.loadingSessions')}</h3>
+                        <p>{isLoadingSessions && isLoadingReports ? t('sessions.loadingSessionsAndReports') : isLoadingSessions ? t('sessions.loadingSessions') : t('sessions.loadingReports')}</p>
+                    </div>
+                </div>
+            </section>
+        );
+    }
 
     return (
         <section className="sessions-page">
@@ -96,45 +129,48 @@ export function SessionsPage() {
                 </div>
             ) : (
                 <div className="sessions-list">
-                    {sessions.map(session => {
-                        return (
-                            <SessionCard 
-                                key={session.id} 
-                                session={session} 
-                                formatDate={formatDate}
-                                getStatusClass={getStatusClass}
-                                getStatusTranslation={getStatusTranslation}
-                                isReportAvailable={isReportAvailable}
-                                navigateToAdviserReport={navigateToAdviserReport}
-                                navigateToClientReport={navigateToClientReport}
-                                navigateToSummaryReport={navigateToSummaryReport}
-                                t={t}
-                                i18n={i18n}
-                            />
-                        );
-                    })}
+                    {sessions.map(session => (
+                        <SessionCard 
+                            key={session.id} 
+                            session={session} 
+                            formatDate={formatDate}
+                            getStatusClass={getStatusClass}
+                            getStatusTranslation={getStatusTranslation}
+                            isReportAvailable={isReportAvailable}
+                            navigateToAdviserReport={navigateToAdviserReport}
+                            navigateToClientReport={navigateToClientReport}
+                            navigateToSummaryReport={navigateToSummaryReport}
+                            availableReports={reportsBySession[session.id] || []}
+                            t={t}
+                            i18n={i18n}
+                        />
+                    ))}
                 </div>
             )}
         </section>
     )
 }
 
-// Separate component for session card to use hooks properly
-function SessionCard({ 
+// Session card with report buttons
+const SessionCard = React.memo(function SessionCard({ 
     session, 
     formatDate, 
     getStatusClass, 
     getStatusTranslation, 
     isReportAvailable,
     navigateToAdviserReport,
-    navigateToClientReport, 
+    navigateToClientReport,
     navigateToSummaryReport,
+    availableReports,
     t,
     i18n
 }) {
-    // Use selector inside the component
-    const availableReports = useSelector(selectAvailableReportsForSession(session.id));
-    const isLoadingReports = useSelector(selectIsLoadingSessionReports(session.id));
+    // Organize reports by type
+    const reportsByType = {
+        adviser: availableReports.find(r => r.type === 'adviser'),
+        client: availableReports.find(r => r.type === 'client'),
+        summary: availableReports.find(r => r.type === 'summary')
+    };
 
     return (
         <div className="session-card">
@@ -185,58 +221,50 @@ function SessionCard({
 
             {/* Report Actions */}
             <div className="session-actions">
-                {isLoadingReports ? (
-                    <div className="loading-reports">
-                        <span>{t('sessions.loadingReports')}</span>
+                {isReportAvailable(reportsByType.adviser) && (
+                    <button 
+                        className="report-btn adviser-btn"
+                        onClick={() => navigateToAdviserReport(session.id)}
+                        title={t('sessions.viewAdviserReport')}
+                    >
+                        <Eye size={16} />
+                        <span>{t('sessions.adviserReport')}</span>
+                        {i18n.language === 'he' ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+                    </button>
+                )}
+                
+                {isReportAvailable(reportsByType.client) && (
+                    <button 
+                        className="report-btn client-btn"
+                        onClick={() => navigateToClientReport(session.id)}
+                        title={t('sessions.viewClientReport')}
+                    >
+                        <Eye size={16} />
+                        <span>{t('sessions.clientReport')}</span>
+                        {i18n.language === 'he' ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+                    </button>
+                )}
+                
+                {isReportAvailable(reportsByType.summary) && (
+                    <button 
+                        className="report-btn summary-btn"
+                        onClick={() => navigateToSummaryReport(session.id)}
+                        title={t('sessions.viewSummaryReport')}
+                    >
+                        <Eye size={16} />
+                        <span>{t('sessions.summaryReport')}</span>
+                        {i18n.language === 'he' ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+                    </button>
+                )}
+                
+                {!isReportAvailable(reportsByType.adviser) && 
+                 !isReportAvailable(reportsByType.client) && 
+                 !isReportAvailable(reportsByType.summary) && (
+                    <div className="no-reports">
+                        <span>{t('sessions.noReportsAvailable')}</span>
                     </div>
-                ) : (
-                    <>
-                        {isReportAvailable(availableReports.adviser) && (
-                            <button 
-                                className="report-btn adviser-btn"
-                                onClick={() => navigateToAdviserReport(session.id)}
-                                title={t('sessions.viewAdviserReport')}
-                            >
-                                <Eye size={16} />
-                                <span>{t('sessions.adviserReport')}</span>
-                                {document.dir === 'rtl' ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
-                            </button>
-                        )}
-                        
-                        {isReportAvailable(availableReports.client) && (
-                            <button 
-                                className="report-btn client-btn"
-                                onClick={() => navigateToClientReport(session.id)}
-                                title={t('sessions.viewClientReport')}
-                            >
-                                <Eye size={16} />
-                                <span>{t('sessions.clientReport')}</span>
-                                {document.dir === 'rtl' ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
-                            </button>
-                        )}
-                        
-                        {isReportAvailable(availableReports.summary) && (
-                            <button 
-                                className="report-btn summary-btn"
-                                onClick={() => navigateToSummaryReport(session.id)}
-                                title={t('sessions.viewSummaryReport')}
-                            >
-                                <Eye size={16} />
-                                <span>{t('sessions.summaryReport')}</span>
-                                {document.dir === 'rtl' ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
-                            </button>
-                        )}
-                        
-                        {!isReportAvailable(availableReports.adviser) && 
-                         !isReportAvailable(availableReports.client) && 
-                         !isReportAvailable(availableReports.summary) && (
-                            <div className="no-reports">
-                                <span>{t('sessions.noReportsAvailable')}</span>
-                            </div>
-                        )}
-                    </>
                 )}
             </div>
         </div>
     );
-}
+});

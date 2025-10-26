@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -38,6 +38,19 @@ api.interceptors.response.use(
 );
 
 class ReportService {
+  /**
+   * Get ALL reports at once - much simpler!
+   */
+  async getAllReports() {
+    try {
+      const response = await api.get('/reports');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching all reports:', error);
+      throw error;
+    }
+  }
+
   /**
    * Get all reports for a specific session
    */

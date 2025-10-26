@@ -30,8 +30,9 @@ class SocketService {
       return null;
     }
 
-    // Get server URL
-    const serverUrl = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5000';
+    // Get server URL - use current domain in production, localhost in development
+    const serverUrl = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 
+                     (import.meta.env.PROD ? window.location.origin : 'http://localhost:5000');
 
     try {
       // Create socket connection
