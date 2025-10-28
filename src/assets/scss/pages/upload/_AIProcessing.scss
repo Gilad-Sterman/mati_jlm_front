@@ -145,7 +145,7 @@
                             .step-indicator .step-connector {
                                 position: absolute;
                                 top: 20px;
-                                left: calc(100% + #{$spacing-lg / 2});
+                                left: calc(100% + #{$spacing-md});
                                 width: $spacing-lg;
                                 height: 2px;
                                 background: #e1e8ed;
@@ -154,7 +154,7 @@
                                 
                                 &.rtl {
                                     left: auto;
-                                    right: calc(100% + #{$spacing-lg / 2});
+                                    right: calc(100% + #{$spacing-md});
                                 }
                                 
                             }
@@ -459,7 +459,7 @@
                 font-size: 1rem;
 
                 &:hover {
-                    background: darken($primary-color, 10%);
+                    background: $primary-color1;
                     transform: translateY(-2px);
                     box-shadow: 0 4px 12px rgba($primary-color, 0.3);
                 }

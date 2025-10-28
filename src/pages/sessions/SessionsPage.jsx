@@ -23,7 +23,6 @@ export function SessionsPage() {
     useEffect(() => {
         // Fetch sessions
         dispatch(fetchSessions());
-        
         // Fetch reports at the same time - no need to wait!
         if (!reportsFetched.current && !isLoadingReports) {
             reportsFetched.current = true;
@@ -37,7 +36,7 @@ export function SessionsPage() {
                     reportsFetched.current = false; // Allow retry on error
                 });
         }
-    }, [dispatch, isLoadingReports]); // Only run once on mount
+    }, [dispatch]); // Only run once on mount
 
     // Calculate if both data sets are loaded
     const bothDataLoaded = !isLoadingSessions && !isLoadingReports && sessions.length > 0;

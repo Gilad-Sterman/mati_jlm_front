@@ -29,17 +29,13 @@ export const useUploadSocket = () => {
       return;
     }
 
-    console.log('🔌 Setting up upload socket listeners');
-
     // Handle upload started event
     const onUploadStarted = (data) => {
-      console.log('🚀 Frontend received upload_started:', data);
       dispatch(handleUploadStarted(data));
     };
 
     // Handle upload progress event
     const onUploadProgress = (data) => {
-      console.log('📈 Frontend received upload_progress:', data);
       dispatch(handleUploadProgress(data));
     };
 
@@ -56,22 +52,18 @@ export const useUploadSocket = () => {
 
     // Handle AI processing events
     const onTranscriptionStarted = (data) => {
-      console.log('🎵 Frontend received transcription_started:', data);
       dispatch(handleTranscriptionStarted(data));
     };
 
     const onTranscriptionComplete = (data) => {
-      console.log('✅ Frontend received transcription_complete:', data);
       dispatch(handleTranscriptionComplete(data));
     };
 
     const onReportGenerationStarted = (data) => {
-      console.log('📝 Frontend received report_generation_started:', data);
       dispatch(handleReportGenerationStarted(data));
     };
 
     const onAdvisorReportGenerated = (data) => {
-      console.log('✅ Frontend received advisor_report_generated:', data);
       dispatch(handleAdvisorReportGenerated(data));
     };
 
@@ -86,7 +78,6 @@ export const useUploadSocket = () => {
     };
 
     // Register socket event listeners
-    console.log('📡 Registering upload and AI processing socket event listeners');
     
     // Upload events
     socket.on('upload_started', onUploadStarted);
@@ -104,7 +95,6 @@ export const useUploadSocket = () => {
 
     // Cleanup function to remove listeners
     return () => {
-      console.log('🧹 Cleaning up upload and AI processing socket event listeners');
       
       // Upload events
       socket.off('upload_started', onUploadStarted);

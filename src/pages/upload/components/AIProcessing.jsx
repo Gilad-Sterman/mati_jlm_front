@@ -21,6 +21,7 @@ export function AIProcessing({
   const handleBackToUpload = () => {
     dispatch(returnToUpload());
   };
+  
 
   const formatDuration = (seconds) => {
     if (!seconds) return '';
@@ -32,17 +33,6 @@ export function AIProcessing({
   return (
     <div className="ai-processing">
       <div className="processing-content">
-        {/* Back Button */}
-        {/* <div className="actions">
-          <button
-            type="button"
-            className={`back-button ${i18n.language === 'he' ? 'he' : 'en'}`}
-            onClick={handleBackToUpload}
-          >
-            <ArrowLeft />
-            {t('upload.uploadAnother')}
-          </button>
-        </div> */}
 
         {/* Success Header */}
         <div className="success-header">
@@ -190,39 +180,6 @@ export function AIProcessing({
                   </div>
                 </div>
                 <p className="step-description">{t('upload.advisorReportDescription')}</p>
-              </div>
-            </div>
-
-            {/* Step 4: Ready for Review */}
-            <div className={`timeline-step ${
-              advisorReportGenerated ? 'completed' : 'pending'
-            }`}>
-              <div className="step-indicator">
-                <div className="step-number">
-                  {advisorReportGenerated ? (
-                    <Check className="check-icon" />
-                  ) : (
-                    <span>4</span>
-                  )}
-                </div>
-              </div>
-              
-              <div className="step-card">
-                <div className="step-header">
-                  <div className="step-icon-wrapper">
-                    <Check className="step-icon" />
-                  </div>
-                  <div className="step-info">
-                    <h4>{t('upload.readyForReview')}</h4>
-                    <p className="step-status">
-                      {advisorReportGenerated ? 
-                        t('upload.reviewReady') : 
-                        t('upload.reviewPending')
-                      }
-                    </p>
-                  </div>
-                </div>
-                <p className="step-description">{t('upload.reviewDescription')}</p>
               </div>
             </div>
           </div>

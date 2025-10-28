@@ -6,7 +6,6 @@ import {
   CheckCircle, 
   Clock, 
   Target, 
-  TrendingUp, 
   Users, 
   Lightbulb,
   Search,
@@ -15,11 +14,8 @@ import {
   MapPin,
   ArrowRight,
   Rocket,
-  Monitor,
-  BarChart3,
   Map,
   Zap,
-  Flag
 } from 'lucide-react';
 
 export const ClientReportPage = () => {

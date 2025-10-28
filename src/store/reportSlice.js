@@ -191,7 +191,6 @@ const reportSlice = createSlice({
           state.reportsBySession[sessionId].push(report);
         });
         
-        console.log(`Loaded ${reports.length} reports total`);
       })
       .addCase(fetchAllReports.rejected, (state, action) => {
         state.isLoading = false;

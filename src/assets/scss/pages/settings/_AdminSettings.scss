@@ -58,7 +58,7 @@
                     border: 1px solid $border-color;
 
                     &:hover {
-                        background: darken($light-color, 5%);
+                        background: $light-color;
                     }
                 }
             }
@@ -513,7 +513,7 @@
                                     border: 1px solid $border-color;
 
                                     &:hover {
-                                        background: darken($light-color, 5%);
+                                        background: $light-color;
                                     }
                                 }
 

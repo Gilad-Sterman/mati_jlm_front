@@ -23,7 +23,8 @@ import {
   Target,
   Zap,
   AlertTriangle,
-  MessageCircle
+  MessageCircle,
+  Rocket
 } from 'lucide-react';
 import { 
   fetchReportsForSession
@@ -89,12 +90,34 @@ export const AdviserReportPage = () => {
     }
   }, [dispatch, currentSession]);
 
-  // Helper function to parse markdown report content
-  const parseMarkdownReport = (content) => {
-    if (!content || typeof content !== 'string') {
+  // Helper function to parse JSON report content
+  const parseReportContent = (content) => {
+    if (!content) {
       return null;
     }
 
+    // If content is already an object (from socket), use it directly
+    if (typeof content === 'object') {
+      return content;
+    }
+
+    // If content is a string, try to parse as JSON
+    if (typeof content === 'string') {
+      try {
+        const parsed = JSON.parse(content);
+        return parsed;
+      } catch (error) {
+        console.warn('Failed to parse report content as JSON, falling back to legacy markdown parsing:', error);
+        // Fallback to legacy markdown parsing for old reports
+        return parseLegacyMarkdownReport(content);
+      }
+    }
+
+    return null;
+  };
+
+  // Legacy markdown parser for backward compatibility
+  const parseLegacyMarkdownReport = (content) => {
     const sections = {};
     
     // Extract header information (client details, etc.)
@@ -103,7 +126,7 @@ export const AdviserReportPage = () => {
       const headerText = headerMatch[1];
       sections.header = headerText;
       
-      // Extract specific header fields
+      // Extract specific fields from header
       const clientNameMatch = headerText.match(/\*\*Client Name:\*\*\s*(.+)/i);
       const clientEmailMatch = headerText.match(/\*\*Client Email:\*\*\s*(.+)/i);
       const businessDomainMatch = headerText.match(/\*\*Business Domain:\*\*\s*(.+)/i);
@@ -129,9 +152,9 @@ export const AdviserReportPage = () => {
       const sectionTitle = match[2].trim();
       const sectionContent = match[3].trim();
       
-      // Map section titles to keys
+      // Map section titles to keys for backward compatibility
       if (sectionTitle.toLowerCase().includes('meeting summary') || sectionTitle.toLowerCase().includes('סיכום')) {
-        sections.meetingSummary = sectionContent;
+        sections.meeting_summary = sectionContent;
       } else if (sectionTitle.toLowerCase().includes('key discussion') || sectionTitle.toLowerCase().includes('נקודות מפתח')) {
         sections.keyDiscussionPoints = sectionContent;
       } else if (sectionTitle.toLowerCase().includes('action items') || sectionTitle.toLowerCase().includes('פעולות')) {
@@ -201,8 +224,8 @@ export const AdviserReportPage = () => {
     if (adviserReport) {
       const reportContent = adviserReport.content;
       
-      // Parse the markdown content
-      const parsedSections = parseMarkdownReport(reportContent);
+      // Parse the report content (JSON or legacy markdown)
+      const parsedSections = parseReportContent(reportContent);
       
       // Create enhanced report object with actual parsed data
       const enhancedReport = {
@@ -499,19 +522,24 @@ export const AdviserReportPage = () => {
               )}
 
               {/* Report Sections */}
-              {report?.parsedSections?.meetingSummary && (
+              {report?.parsedSections?.meeting_summary && report.parsedSections.meeting_summary.trim() && (
                 <section className="report-section">
                   <h2><Smile size={16} /> {t('reports.meetingSummary')}</h2>
                   <div className="section-content">
-                    <p>{report.parsedSections.meetingSummary}</p>
+                    <p>{report.parsedSections.meeting_summary}</p>
                   </div>
                 </section>
               )}
 
-              {report?.parsedSections?.keyDiscussionPoints && (
+              {(report?.parsedSections?.key_points || report?.parsedSections?.keyDiscussionPoints) && 
+               ((Array.isArray(report.parsedSections.key_points) && report.parsedSections.key_points.length > 0) ||
+                (report.parsedSections.keyDiscussionPoints?.trim())) && (
                 <CollapsibleSection id="discussion" title={t('reports.keyDiscussionPoints')}>
                   <div className="discussion-points">
-                    {extractBulletPoints(report.parsedSections.keyDiscussionPoints).map((point, index) => (
+                    {(Array.isArray(report.parsedSections.key_points) ? 
+                      report.parsedSections.key_points : 
+                      extractBulletPoints(report.parsedSections.keyDiscussionPoints || '')
+                    ).map((point, index) => (
                       <div key={index} className="discussion-point">
                         <ArrowRight className="point-icon" size={16} />
                         <span>{point}</span>
@@ -521,10 +549,15 @@ export const AdviserReportPage = () => {
                 </CollapsibleSection>
               )}
 
-              {report?.parsedSections?.actionItems && (
+              {(report?.parsedSections?.action_items || report?.parsedSections?.actionItems) && 
+               ((Array.isArray(report.parsedSections.action_items) && report.parsedSections.action_items.length > 0) ||
+                (report.parsedSections.actionItems?.trim())) && (
                 <CollapsibleSection id="actions" title={t('reports.actionItems')}>
                   <div className="action-items">
-                    {extractBulletPoints(report.parsedSections.actionItems).map((item, index) => (
+                    {(Array.isArray(report.parsedSections.action_items) ? 
+                      report.parsedSections.action_items : 
+                      extractBulletPoints(report.parsedSections.actionItems || '')
+                    ).map((item, index) => (
                       <div key={index} className="action-item">
                         <CheckCircle className="action-icon" size={16} />
                         <span>{item}</span>
@@ -534,10 +567,15 @@ export const AdviserReportPage = () => {
                 </CollapsibleSection>
               )}
 
-              {report?.parsedSections?.nextSteps && (
-                <CollapsibleSection id="nextsteps" title={t('reports.nextSteps')}>
+              {(report?.parsedSections?.next_steps || report?.parsedSections?.nextSteps) && 
+               ((Array.isArray(report.parsedSections.next_steps) && report.parsedSections.next_steps.length > 0) ||
+                (report.parsedSections.nextSteps?.trim())) && (
+                <CollapsibleSection id="next-steps" title={t('reports.nextSteps')}>
                   <div className="next-steps">
-                    {extractBulletPoints(report.parsedSections.nextSteps).map((step, index) => (
+                    {(Array.isArray(report.parsedSections.next_steps) ? 
+                      report.parsedSections.next_steps : 
+                      extractBulletPoints(report.parsedSections.nextSteps || '')
+                    ).map((step, index) => (
                       <div key={index} className="next-step">
                         <Calendar className="step-icon" size={16} />
                         <span>{step}</span>
@@ -547,23 +585,337 @@ export const AdviserReportPage = () => {
                 </CollapsibleSection>
               )}
 
-              {report?.parsedSections?.importantDecisions && (
+              {(report?.parsedSections?.decisions_made || report?.parsedSections?.importantDecisions) && 
+               ((Array.isArray(report.parsedSections.decisions_made) && report.parsedSections.decisions_made.length > 0) ||
+                (report.parsedSections.importantDecisions?.trim())) && (
                 <CollapsibleSection id="decisions" title={t('reports.importantDecisions')}>
                   <div className="important-decisions">
-                    <p>{report.parsedSections.importantDecisions}</p>
+                    {(Array.isArray(report.parsedSections.decisions_made) ? 
+                      report.parsedSections.decisions_made : 
+                      extractBulletPoints(report.parsedSections.importantDecisions || '')
+                    ).map((decision, index) => (
+                      <div key={index} className="decision-item">
+                        <span>{decision}</span>
+                      </div>
+                    ))}
                   </div>
                 </CollapsibleSection>
               )}
 
-              {report?.parsedSections?.analyticalInsights && (
-                <CollapsibleSection id="insights" title={t('reports.analyticalInsights')}>
+              {(report?.parsedSections?.client_psychology || report?.parsedSections?.analyticalInsights) && (
+                <CollapsibleSection id="psychology" title={t('reports.clientPsychology')}>
+                  <div className="meeting-tone">
+                    {typeof report.parsedSections.client_psychology === 'object' ? (
+                      <div className="tone-analysis-grid">
+                        {report.parsedSections.client_psychology.overall_tone && (
+                          <div className="tone-card overall-tone">
+                            <div className="tone-icon">
+                              <Smile size={32} />
+                            </div>
+                            <div className="tone-content">
+                              <h4>{t('reports.overallTone')}</h4>
+                              <p>{report.parsedSections.client_psychology.overall_tone}</p>
+                            </div>
+                          </div>
+                        )}
+                        {report.parsedSections.client_psychology.engagement_level && (
+                          <div className="tone-card engagement-tone">
+                            <div className="tone-icon">
+                              <Target size={32} />
+                            </div>
+                            <div className="tone-content">
+                              <h4>{t('reports.engagementLevel')}</h4>
+                              <p>{report.parsedSections.client_psychology.engagement_level}</p>
+                            </div>
+                          </div>
+                        )}
+                        {report.parsedSections.client_psychology.energy_level && (
+                          <div className="tone-card energy-tone">
+                            <div className="tone-icon">
+                              <Zap size={32} />
+                            </div>
+                            <div className="tone-content">
+                              <h4>{t('reports.energyLevel')}</h4>
+                              <p>{report.parsedSections.client_psychology.energy_level}</p>
+                            </div>
+                          </div>
+                        )}
+                        {report.parsedSections.client_psychology.concerns_resistance && (
+                          <div className="tone-card concerns-tone">
+                            <div className="tone-icon">
+                              <AlertTriangle size={32} />
+                            </div>
+                            <div className="tone-content">
+                              <h4>{t('reports.concernsResistance')}</h4>
+                              <p>{report.parsedSections.client_psychology.concerns_resistance}</p>
+                            </div>
+                          </div>
+                        )}
+                        {report.parsedSections.client_psychology.motivation_level && (
+                          <div className="tone-card general-tone">
+                            <div className="tone-icon">
+                              <Rocket size={32} />
+                            </div>
+                            <div className="tone-content">
+                              <h4>{t('reports.motivationLevel')}</h4>
+                              <p>{report.parsedSections.client_psychology.motivation_level}</p>
+                            </div>
+                          </div>
+                        )}
+                        {report.parsedSections.client_psychology.decision_making_style && (
+                          <div className="tone-card general-tone">
+                            <div className="tone-icon">
+                              <CheckCircle size={32} />
+                            </div>
+                            <div className="tone-content">
+                              <h4>{t('reports.decisionMakingStyle')}</h4>
+                              <p>{report.parsedSections.client_psychology.decision_making_style}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="analytical-insights">
+                        <p>{report.parsedSections.client_psychology || report.parsedSections.analyticalInsights}</p>
+                      </div>
+                    )}
+                  </div>
+                </CollapsibleSection>
+              )}
+
+              {report?.parsedSections?.strategic_recommendations && report.parsedSections.strategic_recommendations.trim() && (
+                <CollapsibleSection id="strategy" title={t('reports.strategicRecommendations')}>
                   <div className="analytical-insights">
-                    <p>{report.parsedSections.analyticalInsights}</p>
+                    <p>{report.parsedSections.strategic_recommendations}</p>
                   </div>
                 </CollapsibleSection>
               )}
 
-              {report?.parsedSections?.followUpRecommendations && (
+              {report?.parsedSections?.conversation_dynamics && (
+                <CollapsibleSection id="dynamics" title={t('reports.conversationDynamics')}>
+                  <div className="conversation-dynamics">
+                    {typeof report.parsedSections.conversation_dynamics === 'object' ? (
+                      <div className="dynamics-structured">
+                        {report.parsedSections.conversation_dynamics.speaker_count === 'single' && 
+                         report.parsedSections.conversation_dynamics.single_speaker && (
+                          <div className="single-speaker-analysis">
+                            <h4>Single Speaker Analysis</h4>
+                            <div className="meeting-tone">
+                              <div className="tone-analysis-grid">
+                                {report.parsedSections.conversation_dynamics.single_speaker.speaking_style && (
+                                  <div className="tone-card overall-tone">
+                                    <div className="tone-icon">
+                                      <User size={32} />
+                                    </div>
+                                    <div className="tone-content">
+                                      <h4>{t('reports.speakingStyle')}</h4>
+                                      <p>{report.parsedSections.conversation_dynamics.single_speaker.speaking_style}</p>
+                                    </div>
+                                  </div>
+                                )}
+                                {report.parsedSections.conversation_dynamics.single_speaker.content_flow && (
+                                  <div className="tone-card engagement-tone">
+                                    <div className="tone-icon">
+                                      <ArrowRight size={32} />
+                                    </div>
+                                    <div className="tone-content">
+                                      <h4>{t('reports.contentFlow')}</h4>
+                                      <p>{report.parsedSections.conversation_dynamics.single_speaker.content_flow}</p>
+                                    </div>
+                                  </div>
+                                )}
+                                {report.parsedSections.conversation_dynamics.single_speaker.key_themes && 
+                                 Array.isArray(report.parsedSections.conversation_dynamics.single_speaker.key_themes) && (
+                                  <div className="tone-card general-tone">
+                                    <div className="tone-icon">
+                                      <Target size={32} />
+                                    </div>
+                                    <div className="tone-content">
+                                      <h4>{t('reports.keyThemes')}</h4>
+                                      <div className="action-items">
+                                        {report.parsedSections.conversation_dynamics.single_speaker.key_themes.map((theme, index) => (
+                                          <div key={index} className="action-item">
+                                            <ArrowRight className="action-icon" size={16} />
+                                            <span>{theme}</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {report.parsedSections.conversation_dynamics.speaker_count === 'multiple' && (() => {
+                          // Handle both data structures: direct properties vs nested multiple_speakers
+                          const speakersData = report.parsedSections.conversation_dynamics.multiple_speakers || report.parsedSections.conversation_dynamics;
+                          const primarySpeaker = speakersData.primary_speaker;
+                          const secondarySpeaker = speakersData.secondary_speaker;
+                          const interactionQuality = speakersData.interaction_quality;
+                          const dialogueBalance = speakersData.dialogue_balance;
+                          
+                          return (
+                            <div className="multiple-speakers-analysis">
+                              <h4>Multiple Speakers Analysis</h4>
+                              <div className="speaking-analysis">
+                                <div className="speakers-list">
+                                  {primarySpeaker && (
+                                    <div className="speaker-card">
+                                      <div className="speaker-header">
+                                        <div className="speaker-info">
+                                          <div className="speaker-avatar" style={{backgroundColor: '#007bff'}}>
+                                            {primarySpeaker.name?.charAt(0) || 'P'}
+                                          </div>
+                                          <div className="speaker-details">
+                                            <h4>{primarySpeaker.name || 'Primary Speaker'}</h4>
+                                            <div className="speaker-percentage">
+                                              {primarySpeaker.speaking_time_percentage || 'N/A'}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      {primarySpeaker.speaking_time_percentage && (
+                                        <div className="speaker-bar-container">
+                                          <div 
+                                            className="speaker-bar" 
+                                            style={{
+                                              width: primarySpeaker.speaking_time_percentage,
+                                              backgroundColor: '#007bff'
+                                            }}
+                                          ></div>
+                                        </div>
+                                      )}
+                                      <p className="speaker-description">
+                                        <strong>Role:</strong> {primarySpeaker.role || 'N/A'}<br/>
+                                        <strong>Style:</strong> {primarySpeaker.communication_style || 'N/A'}
+                                      </p>
+                                    </div>
+                                  )}
+                                  
+                                  {secondarySpeaker && (
+                                    <div className="speaker-card">
+                                      <div className="speaker-header">
+                                        <div className="speaker-info">
+                                          <div className="speaker-avatar" style={{backgroundColor: '#28a745'}}>
+                                            {secondarySpeaker.name?.charAt(0) || 'S'}
+                                          </div>
+                                          <div className="speaker-details">
+                                            <h4>{secondarySpeaker.name || 'Secondary Speaker'}</h4>
+                                            <div className="speaker-percentage">
+                                              {secondarySpeaker.speaking_time_percentage || 'N/A'}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      {secondarySpeaker.speaking_time_percentage && (
+                                        <div className="speaker-bar-container">
+                                          <div 
+                                            className="speaker-bar" 
+                                            style={{
+                                              width: secondarySpeaker.speaking_time_percentage,
+                                              backgroundColor: '#28a745'
+                                            }}
+                                          ></div>
+                                        </div>
+                                      )}
+                                      <p className="speaker-description">
+                                        <strong>Role:</strong> {secondarySpeaker.role || 'N/A'}<br/>
+                                        <strong>Style:</strong> {secondarySpeaker.communication_style || 'N/A'}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              {(interactionQuality || dialogueBalance) && (
+                                <div className="meeting-tone">
+                                  <div className="tone-analysis-grid">
+                                    {interactionQuality && (
+                                      <div className="tone-card engagement-tone">
+                                        <div className="tone-icon">
+                                          <MessageCircle size={32} />
+                                        </div>
+                                        <div className="tone-content">
+                                          <h4>{t('reports.interactionQuality')}</h4>
+                                          <p>{interactionQuality}</p>
+                                        </div>
+                                      </div>
+                                    )}
+                                    {dialogueBalance && (
+                                      <div className="tone-card overall-tone">
+                                        <div className="tone-icon">
+                                          <Target size={32} />
+                                        </div>
+                                        <div className="tone-content">
+                                          <h4>{t('reports.dialogueBalance')}</h4>
+                                          <p>{dialogueBalance}</p>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    ) : (
+                      <div className="analytical-insights">
+                        <p>{report.parsedSections.conversation_dynamics}</p>
+                      </div>
+                    )}
+                  </div>
+                </CollapsibleSection>
+              )}
+
+              {report?.parsedSections?.client_concerns && Array.isArray(report.parsedSections.client_concerns) && 
+               report.parsedSections.client_concerns.length > 0 && (
+                <CollapsibleSection id="concerns" title={t('reports.clientConcerns')}>
+                  <div className="action-items">
+                    {report.parsedSections.client_concerns.map((concern, index) => (
+                      <div key={index} className="action-item">
+                        <AlertTriangle className="action-icon" size={16} />
+                        <span>{concern}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CollapsibleSection>
+              )}
+
+              {report?.parsedSections?.opportunities_identified && Array.isArray(report.parsedSections.opportunities_identified) && 
+               report.parsedSections.opportunities_identified.length > 0 && (
+                <CollapsibleSection id="opportunities" title={t('reports.opportunitiesIdentified')}>
+                  <div className="action-items">
+                    {report.parsedSections.opportunities_identified.map((opportunity, index) => (
+                      <div key={index} className="action-item">
+                        <Target className="action-icon" size={16} />
+                        <span>{opportunity}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CollapsibleSection>
+              )}
+
+              {report?.parsedSections?.key_quotes && Array.isArray(report.parsedSections.key_quotes) && 
+               report.parsedSections.key_quotes.length > 0 && (
+                <CollapsibleSection id="quotes" title={t('reports.keyQuotes')}>
+                  <div className="quotes-list">
+                    {report.parsedSections.key_quotes.map((quote, index) => (
+                      <div key={index} className="quote-item">
+                        <blockquote>"{quote.quote}"</blockquote>
+                        <div className="quote-meta">
+                          <span className="quote-time">{quote.speaker}</span>
+                          {quote.context && <span className="quote-insight">{quote.context}</span>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CollapsibleSection>
+              )}
+
+              {report?.parsedSections?.followUpRecommendations && report.parsedSections.followUpRecommendations.trim() && (
                 <CollapsibleSection id="recommendations" title={t('reports.followUpRecommendations')}>
                   <div className="followup-recommendations">
                     {extractBulletPoints(report.parsedSections.followUpRecommendations).map((recommendation, index) => (

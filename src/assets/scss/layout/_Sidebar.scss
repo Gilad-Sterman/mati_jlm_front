@@ -3,7 +3,7 @@
     flex-direction: column;
     width: 280px;
     height: 100vh;
-    background: linear-gradient(180deg, $primary-color 0%, darken($primary-color, 10%) 100%);
+    background: linear-gradient(180deg, $primary-color 0%,$primary-color 100%);
     color: $white-color;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
     position: fixed;

@@ -51,6 +51,9 @@ export const sessionService = {
     // Add file
     formData.append('file', sessionData.file);
     
+    // Add filename separately to preserve UTF-8 encoding
+    formData.append('fileName', sessionData.file.name);
+    
     // Add session fields
     if (sessionData.title) {
       formData.append('title', sessionData.title);

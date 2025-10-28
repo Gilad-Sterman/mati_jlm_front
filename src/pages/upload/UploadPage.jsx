@@ -106,8 +106,8 @@ export function UploadPage() {
                 return;
             }
 
-            // Validate file size (max 100MB)
-            const maxSize = 100 * 1024 * 1024; // 100MB
+            // Validate file size (max 50MB)
+            const maxSize = 50 * 1024 * 1024; // 50MB
             if (file.size > maxSize) {
                 alert(t('upload.errors.fileTooLarge'));
                 return;
@@ -293,7 +293,7 @@ export function UploadPage() {
                                 <div className="report-preview">
                                     <h4>{t('upload.reportPreview')}</h4>
                                     <div className="report-content">
-                                        {currentReport.content.substring(0, 200)}...
+                                        {currentReport.content.meeting_summary}...
                                     </div>
                                 </div>
                             )}
