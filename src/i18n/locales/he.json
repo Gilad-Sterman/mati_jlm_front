@@ -84,8 +84,8 @@
         "uploadingFile": "מעלה קובץ",
         "fileUploadedSuccessfully": "הקובץ הועלה בהצלחה!",
         "uploadDescription": "הקובץ נשמר בענן באופן בטוח",
-        "aiProcessingInProgress": "עיבוד בינה מלאכותית בתהליך",
-        "aiTranscription": "תמלול בינה מלאכותית",
+        "aiProcessingInProgress": "עיבוד בינה מלאכותית בתהליך, תהליך זה עשוי לקחת כמה דקות",
+        "aiTranscription": "תמלול ועיבוד בעזרת בינה מלאכותית",
         "transcriptionDescription": "המרת אודיו לטקסט באמצעות בינה מלאכותית מתקדמת",
         "reportGeneration": "יצירת דוחות",
         "reportDescription": "יצירת דוחות מותאמים אישית עבור היועץ והלקוח",
@@ -218,6 +218,14 @@
         "approving": "מאשר...",
         "approveAndSend": "אישור ושליחה",
         "regenerate": "יצירה מחדש",
+        "regenerateFullReport": "יצירת דוח מלא מחדש",
+        "regenerating": "יוצר מחדש...",
+        "confirmFullRegeneration": "האם אתה בטוח שברצונך ליצור את הדוח המלא מחדש? פעולה זו תחליף את התוכן הנוכחי בחלק התצוגה המובנית ובחלק התובנות בתוכן חדש שנוצר על ידי הבינה המלאכותית.",
+        "regenerateFullReportTooltip": "יצירת הדוח המלא מחדש באמצעות בינה מלאכותית - פעולה זו תחליף את כל התוכן הנוכחי",
+        "regenerateWarning": "אזהרה: יצירה מחדש תחליף את כל תוכן הדוח הנוכחי כולל תובנות והמלצות",
+        "notesAndActions": "הערות ופעולות",
+        "notesForRegeneration": "הערות ליצירה מחדש",
+        "notesPlaceholder": "הוסף הוראות ספציפיות או הקשר עבור הבינה המלאכותית לקחת בחשבון בעת יצירת הדוח מחדש...",
         "downloadPDF": "הורדת PDF",
         "emailSummary": "שליחת דוח במייל",
         "originalTranscript": "תמליל מקורי",
@@ -326,6 +334,8 @@
         "meetingTone": "טון הפגישה וניתוח מעורבות",
         "speakingTimeAnalysis": "ניתוח זמן דיבור",
         "keyQuotesFromConversation": "ציטוטים מרכזיים מהשיחה",
-        "professionalAssessment": "הערכה מקצועית"
+        "professionalAssessment": "הערכה מקצועית",
+        "regeneratingReport": "מחדש דוח",
+        "regenerationInProgress": "הבינה המלאכותית מנתחת את התמליל ויוצרת תוכן חדש בהתבסס על ההערות שלך..."
     }
 }

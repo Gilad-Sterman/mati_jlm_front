@@ -109,6 +109,30 @@ export const approveReport = createAsyncThunk(
   }
 );
 
+export const regenerateFullReport = createAsyncThunk(
+  'reports/regenerateFullReport',
+  async ({ sessionId, notes }, { rejectWithValue, getState }) => {
+    try {
+      // Get the adviser report for this session
+      const state = getState();
+      const sessionReports = state.reports.reportsBySession[sessionId] || [];
+      const adviserReport = sessionReports.find(r => r.type === 'adviser');
+      
+      if (!adviserReport) {
+        throw new Error('No adviser report found for this session');
+      }
+      
+      // Call the regenerate service with the adviser report ID
+      const response = await reportService.regenerateReport(adviserReport.id, { notes });
+      return response.data.job; // Return job info, not report (report comes via socket)
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to regenerate report'
+      );
+    }
+  }
+);
+
 // Initial state
 const initialState = {
   // Map of sessionId -> reports array
@@ -297,6 +321,26 @@ const reportSlice = createSlice({
       .addCase(approveReport.fulfilled, (state, action) => {
         const approvedReport = action.payload;
         reportSlice.caseReducers.updateReportInState(state, { payload: approvedReport });
+      })
+
+      // Regenerate full report
+      .addCase(regenerateFullReport.pending, (state, action) => {
+        const { sessionId } = action.meta.arg;
+        state.isLoadingSession[sessionId] = true;
+        delete state.sessionErrors[sessionId];
+      })
+      .addCase(regenerateFullReport.fulfilled, (state, action) => {
+        const { sessionId } = action.meta.arg;
+        state.isLoadingSession[sessionId] = false;
+        
+        // The payload contains job info, not the report itself
+        // The actual report will be updated via socket events or page refresh
+        console.log('✅ Regeneration job started successfully:', action.payload);
+      })
+      .addCase(regenerateFullReport.rejected, (state, action) => {
+        const { sessionId } = action.meta.arg;
+        state.isLoadingSession[sessionId] = false;
+        state.sessionErrors[sessionId] = action.payload;
       })
 
       // Reset on logout

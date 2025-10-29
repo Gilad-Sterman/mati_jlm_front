@@ -143,6 +143,14 @@
         "approving": "Approving...",
         "approveAndSend": "Approve & Send",
         "regenerate": "Regenerate",
+        "regenerateFullReport": "Regenerate Full Report",
+        "regenerating": "Regenerating...",
+        "confirmFullRegeneration": "Are you sure you want to regenerate the full report? This will overwrite both the current structure display and insights sections with new AI-generated content.",
+        "regenerateFullReportTooltip": "Regenerate the entire report using AI - this will replace all current content",
+        "regenerateWarning": "Warning: Regenerating will overwrite all current report content including insights and recommendations",
+        "notesAndActions": "Notes & Actions",
+        "notesForRegeneration": "Notes for AI (required)",
+        "notesPlaceholder": "Add specific instructions or context for the AI to consider when regenerating the report (required)...",
         "downloadPDF": "Download PDF",
         "emailSummary": "Email Summary",
         "back": "Back",
@@ -247,6 +255,8 @@
         "meetingTone": "Meeting Tone & Engagement Analysis",
         "speakingTimeAnalysis": "Speaking Time Analysis",
         "keyQuotesFromConversation": "Key Quotes from Conversation",
-        "professionalAssessment": "Professional Assessment"
+        "professionalAssessment": "Professional Assessment",
+        "regeneratingReport": "Regenerating Report",
+        "regenerationInProgress": "AI is analyzing the transcript and generating new content based on your notes..."
     }
 }

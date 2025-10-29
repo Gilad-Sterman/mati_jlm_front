@@ -27,14 +27,17 @@ import {
   Rocket
 } from 'lucide-react';
 import {
-  fetchReportsForSession
+  fetchReportsForSession,
+  regenerateFullReport
 } from '../../store/reportSlice';
+import { useAppSocket } from '../../hooks/useAppSocket';
 import { fetchSessions } from '../../store/sessionSlice';
 
 export const AdviserReportPage = () => {
   const { sessionId } = useParams();
   const navigate = useNavigate();
   const reportsFetched = useRef(false); // Track if reports already fetched
+  const { socketConnected, socketService } = useAppSocket();
 
   const handleBackClick = () => {
     // Use browser history to go back, fallback to sessions if no history
@@ -89,6 +92,49 @@ export const AdviserReportPage = () => {
       dispatch(fetchSessions());
     }
   }, [dispatch, currentSession]);
+
+  // Socket listeners for regeneration events
+  useEffect(() => {
+    if (!socketConnected || !socketService.socket) return;
+
+    const socket = socketService.socket;
+
+    // Listen for regeneration events
+    const handleRegenerationStarted = (data) => {
+      console.log('🔄 Regeneration started:', data);
+      // Just log for now - the loading state is handled by the component that initiated it
+    };
+
+    const handleRegenerationComplete = async (data) => {
+      console.log('✅ Regeneration complete:', data);
+      if (data.sessionId === sessionId) {
+        // Refresh all reports to get the new version
+        console.log('🔄 Refreshing reports after regeneration...');
+        await dispatch(fetchReportsForSession(sessionId));
+        console.log('✅ Reports refreshed successfully');
+      }
+    };
+
+    const handleRegenerationError = (data) => {
+      console.error('❌ Regeneration error:', data);
+      if (data.sessionId === sessionId) {
+        // TODO: Show error notification to user
+        console.error('Regeneration failed:', data.message);
+      }
+    };
+
+    // Add listeners
+    socket.on('report_regeneration_started', handleRegenerationStarted);
+    socket.on('report_regeneration_complete', handleRegenerationComplete);
+    socket.on('report_regeneration_error', handleRegenerationError);
+
+    // Cleanup listeners
+    return () => {
+      socket.off('report_regeneration_started', handleRegenerationStarted);
+      socket.off('report_regeneration_complete', handleRegenerationComplete);
+      socket.off('report_regeneration_error', handleRegenerationError);
+    };
+  }, [socketConnected, socketService.socket, sessionId, dispatch]);
 
   // Helper function to parse JSON report content
   const parseReportContent = (content) => {
@@ -283,6 +329,79 @@ export const AdviserReportPage = () => {
   const Level1StructureDisplay = ({ level1Data, sessionData }) => {
     if (!level1Data) return null;
 
+    const [notes, setNotes] = useState('');
+    const [isRegenerating, setIsRegenerating] = useState(false);
+    const [showRegenerationLoader, setShowRegenerationLoader] = useState(false);
+
+    // Listen for regeneration completion to clear loading state
+    useEffect(() => {
+      if (!socketConnected || !socketService.socket) return;
+
+      const socket = socketService.socket;
+
+      const handleRegenerationStarted = (data) => {
+        if (data.sessionId === sessionId) {
+          setShowRegenerationLoader(true);
+        }
+      };
+
+      const handleRegenerationComplete = (data) => {
+        if (data.sessionId === sessionId) {
+          setIsRegenerating(false);
+          setShowRegenerationLoader(false);
+        }
+      };
+
+      const handleRegenerationError = (data) => {
+        if (data.sessionId === sessionId) {
+          setIsRegenerating(false);
+          setShowRegenerationLoader(false);
+        }
+      };
+
+      socket.on('report_regeneration_started', handleRegenerationStarted);
+      socket.on('report_regeneration_complete', handleRegenerationComplete);
+      socket.on('report_regeneration_error', handleRegenerationError);
+
+      return () => {
+        socket.off('report_regeneration_started', handleRegenerationStarted);
+        socket.off('report_regeneration_complete', handleRegenerationComplete);
+        socket.off('report_regeneration_error', handleRegenerationError);
+      };
+    }, [socketConnected, socketService.socket, sessionId]);
+
+    const handleRegenerateFullReport = async () => {
+      const trimmedNotes = notes.trim();
+      if (!trimmedNotes) {
+        return; // Button should be disabled, but extra safety check
+      }
+
+      if (!window.confirm(t('reports.confirmFullRegeneration'))) {
+        return;
+      }
+
+      setIsRegenerating(true);
+      try {
+        const jobInfo = await dispatch(regenerateFullReport({
+          sessionId,
+          notes: trimmedNotes
+        })).unwrap();
+
+        console.log('✅ Regeneration job started:', jobInfo);
+
+        // Clear notes after job starts successfully
+        setNotes('');
+
+        // Keep loading state - will be cleared by socket event
+        // Note: Don't refresh yet - wait for socket event when regeneration completes
+      } catch (error) {
+        console.error('Error regenerating full report:', error);
+        setIsRegenerating(false); // Clear loading on API error (not AI processing error)
+        // TODO: Show error message to user
+      }
+      // Note: Don't clear loading state on success - wait for socket events
+    };
+
     return (
       <div className="level1-structure-display">
         <div className="structure-header">
@@ -345,14 +464,16 @@ export const AdviserReportPage = () => {
         {/* Main Topics */}
         {level1Data.main_topics && Array.isArray(level1Data.main_topics) && level1Data.main_topics.length > 0 && (
           <section className="main-topics-section">
-            <h3>{t('reports.mainTopics')}</h3>
-            <div className="topics-list">
-              {level1Data.main_topics.map((topic, index) => (
-                <div key={index} className="topic-item">
-                  <Lightbulb className="topic-icon" size={16} />
-                  <span>{topic}</span>
-                </div>
-              ))}
+            <div>
+              <h3>{t('reports.mainTopics')}</h3>
+              <div className="topics-list">
+                {level1Data.main_topics.map((topic, index) => (
+                  <div key={index} className="topic-item">
+                    <Lightbulb className="topic-icon" size={16} />
+                    <span>{topic}</span>
+                  </div>
+                ))}
+              </div>
             </div>
             {/* General Sentiment */}
             {level1Data.general_sentiment && (
@@ -387,6 +508,69 @@ export const AdviserReportPage = () => {
             </div>
           </section>
         )}
+
+        {/* Notes Section with Regenerate Button */}
+        <section className="notes-regenerate-section">
+          <div className="section-header-with-regenerate">
+            <h3>{t('reports.notesAndActions')}</h3>
+          </div>
+
+          {showRegenerationLoader ? (
+            // Show animated loader during regeneration
+            <div className="regeneration-loader">
+              <div className="loader-content">
+                <div className="loader-animation">
+                  <div className="spinner-ring">
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                  </div>
+                </div>
+                <div className="loader-text">
+                  <h4>🤖 {t('reports.regeneratingReport')}</h4>
+                  <p>{t('reports.regenerationInProgress')}</p>
+                  <div className="progress-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            // Show normal notes content
+            <div className="notes-content">
+              <div className="regenerate-warning">
+                <AlertTriangle size={16} />
+                <span>{t('reports.regenerateWarning')}</span>
+              </div>
+
+              <div className="notes-input-section">
+                <label className="notes-label">
+                  <Edit3 size={14} />
+                  {t('reports.notesForRegeneration')}
+                </label>
+                <textarea
+                  className="notes-textarea"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder={t('reports.notesPlaceholder')}
+                  rows={3}
+                />
+              </div>
+              <button
+                className={`regenerate-full-btn ${isRegenerating ? 'loading' : ''}`}
+                onClick={handleRegenerateFullReport}
+                disabled={isRegenerating || !notes.trim()}
+                title={t('reports.regenerateFullReportTooltip')}
+              >
+                <RotateCcw size={16} className={isRegenerating ? 'spinning' : ''} />
+                {isRegenerating ? t('reports.regenerating') : t('reports.regenerateFullReport')}
+              </button>
+            </div>
+          )}
+        </section>
       </div>
     );
   };
@@ -643,7 +827,7 @@ export const AdviserReportPage = () => {
             className="back-button"
             onClick={handleBackClick}
           >
-           { i18n.language === 'he' ? <ArrowRight size={16} /> : <ArrowLeft size={16} />}
+            {i18n.language === 'he' ? <ArrowRight size={16} /> : <ArrowLeft size={16} />}
             {t('common.back')}
           </button>
           <h1>{t('reports.adviserReport')}</h1>

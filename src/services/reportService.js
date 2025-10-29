@@ -108,9 +108,11 @@ class ReportService {
   /**
    * Regenerate a report using AI
    */
-  async regenerateReport(reportId) {
+  async regenerateReport(reportId, options = {}) {
     try {
-      const response = await api.post(`/reports/${reportId}/regenerate`);
+      const response = await api.post(`/reports/${reportId}/regenerate`, {
+        notes: options.notes || null
+      });
       return response.data;
     } catch (error) {
       console.error('Error regenerating report:', error);
