@@ -17,6 +17,7 @@ import { SessionsPage } from './pages/sessions/SessionsPage'
 import { AdviserReportPage } from './pages/reports/AdviserReportPage'
 import { ClientReportPage } from './pages/reports/ClientReportPage'
 import { SummaryReportPage } from './pages/reports/SummaryReportPage'
+import { ReportsPage } from './pages/reports/ReportsPage'
 
 function App() {
   const { t, i18n } = useTranslation();
@@ -99,6 +100,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <SummaryReportPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/reports/:sessionId"
+                element={
+                  <ProtectedRoute>
+                    <ReportsPage />
                   </ProtectedRoute>
                 }
               />

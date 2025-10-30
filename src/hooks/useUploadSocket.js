@@ -67,6 +67,18 @@ export const useUploadSocket = () => {
       dispatch(handleAdvisorReportGenerated(data));
     };
 
+    const onReportsGenerated = (data) => {
+      console.log('✅ Frontend received reports_generated event:', data);
+      // Map the new payload structure to the expected format
+      const mappedData = {
+        sessionId: data.sessionId,
+        message: data.message,
+        report: data.reports?.advisor || data.reports?.client || data.report // Fallback to advisor report for compatibility
+      };
+      console.log('📋 Mapped data for Redux:', mappedData);
+      dispatch(handleAdvisorReportGenerated(mappedData));
+    };
+
     const onTranscriptionError = (data) => {
       console.error('❌ Frontend received transcription_error:', data);
       dispatch(handleProcessingError({ ...data, stage: 'transcription' }));
@@ -90,6 +102,7 @@ export const useUploadSocket = () => {
     socket.on('transcription_complete', onTranscriptionComplete);
     socket.on('report_generation_started', onReportGenerationStarted);
     socket.on('advisor_report_generated', onAdvisorReportGenerated);
+    socket.on('reports_generated', onReportsGenerated);
     socket.on('transcription_error', onTranscriptionError);
     socket.on('report_generation_error', onReportGenerationError);
 
@@ -107,6 +120,7 @@ export const useUploadSocket = () => {
       socket.off('transcription_complete', onTranscriptionComplete);
       socket.off('report_generation_started', onReportGenerationStarted);
       socket.off('advisor_report_generated', onAdvisorReportGenerated);
+      socket.off('reports_generated', onReportsGenerated);
       socket.off('transcription_error', onTranscriptionError);
       socket.off('report_generation_error', onReportGenerationError);
     };

@@ -244,7 +244,7 @@ const sessionSlice = createSlice({
       if (sessionIndex !== -1) {
         state.sessions[sessionIndex] = {
           ...state.sessions[sessionIndex],
-          status: 'advisor_report_generated'
+          status: 'reports_generated'
         };
       }
     },
@@ -326,7 +326,7 @@ const sessionSlice = createSlice({
       })
       .addCase(fetchSessionById.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.currentSession = action.payload;
+        state.currentSession = action.payload.session || action.payload;
         state.error = null;
       })
       .addCase(fetchSessionById.rejected, (state, action) => {

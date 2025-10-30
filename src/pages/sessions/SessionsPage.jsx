@@ -140,6 +140,7 @@ export function SessionsPage() {
                             navigateToClientReport={navigateToClientReport}
                             navigateToSummaryReport={navigateToSummaryReport}
                             availableReports={reportsBySession[session.id] || []}
+                            navigate={navigate}
                             t={t}
                             i18n={i18n}
                         />
@@ -161,6 +162,7 @@ const SessionCard = React.memo(function SessionCard({
     navigateToClientReport,
     navigateToSummaryReport,
     availableReports,
+    navigate,
     t,
     i18n
 }) {
@@ -219,24 +221,12 @@ const SessionCard = React.memo(function SessionCard({
             </div>
 
             {/* Report Actions */}
-            <div className="session-actions">
-                {isReportAvailable(reportsByType.adviser) && (
-                    <button 
-                        className="report-btn adviser-btn"
-                        onClick={() => navigateToAdviserReport(session.id)}
-                        title={t('sessions.viewAdviserReport')}
-                    >
-                        <Eye size={16} />
-                        <span>{t('sessions.adviserReport')}</span>
-                        {i18n.language === 'he' ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
-                    </button>
-                )}
-                
+            <div className="session-actions">                
                 {isReportAvailable(reportsByType.client) && (
                     <button 
                         className="report-btn client-btn"
-                        onClick={() => navigateToClientReport(session.id)}
-                        title={t('sessions.viewClientReport')}
+                        onClick={() => navigate(`/reports/${session.id}`)}
+                        title={t('sessions.viewReports')}
                     >
                         <Eye size={16} />
                         <span>{t('sessions.clientReport')}</span>
@@ -244,21 +234,8 @@ const SessionCard = React.memo(function SessionCard({
                     </button>
                 )}
                 
-                {isReportAvailable(reportsByType.summary) && (
-                    <button 
-                        className="report-btn summary-btn"
-                        onClick={() => navigateToSummaryReport(session.id)}
-                        title={t('sessions.viewSummaryReport')}
-                    >
-                        <Eye size={16} />
-                        <span>{t('sessions.summaryReport')}</span>
-                        {i18n.language === 'he' ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
-                    </button>
-                )}
-                
                 {!isReportAvailable(reportsByType.adviser) && 
-                 !isReportAvailable(reportsByType.client) && 
-                 !isReportAvailable(reportsByType.summary) && (
+                 !isReportAvailable(reportsByType.client) && (
                     <div className="no-reports">
                         <span>{t('sessions.noReportsAvailable')}</span>
                     </div>

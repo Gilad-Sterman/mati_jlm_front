@@ -303,7 +303,7 @@ export function UploadPage() {
                                     className="primary-button"
                                     onClick={() => {
                                         // TODO: Navigate to report view/edit page
-                                        navigate(`/reports/adviser/${currentUploadSession.id}`);
+                                        navigate(`/reports/${currentUploadSession.id}`);
                                     }}
                                 >
                                     {t('upload.ViewEditReport')}
