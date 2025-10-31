@@ -82,6 +82,12 @@ export const sessionService = {
     return response.data;
   },
 
+  // Get all sessions with their reports in a single optimized query
+  async getSessionsWithReports(params = {}) {
+    const response = await api.get('/sessions/with-reports', { params });
+    return response.data;
+  },
+
   // Get session by ID
   async getSessionById(id) {
     const response = await api.get(`/sessions/${id}`);

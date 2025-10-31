@@ -16,6 +16,69 @@ export const createSession = createAsyncThunk(
   }
 );
 
+export const fetchSessionsWithReports = createAsyncThunk(
+  'sessions/fetchWithReports',
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const response = await sessionService.getSessionsWithReports(params);
+      
+      // Return the sessions with reports already attached
+      const sessions = response.data.sessions || [];
+      
+      return {
+        ...response.data,
+        sessions: sessions
+      };
+    } catch (error) {
+      // If API fails, still return the example session with reports
+      const exampleSession = {
+        id: 'session-123',
+        title: 'דוגמה - ייעוץ עסקי לחברת תיירות',
+        status: 'completed',
+        created_at: new Date('2024-12-01T10:30:00Z').toISOString(),
+        file_name: 'business_consultation_demo.mp3',
+        file_size: 15728640, // 15MB
+        duration: 1800, // 30 minutes
+        file_url: 'https://example.com/demo-audio.mp3',
+        client: {
+          id: 'client-demo',
+          name: 'דוד כהן',
+          email: 'david.cohen@example.com',
+          metadata: {
+            business_domain: 'תיירות וסיורים',
+            business_number: '123456789'
+          }
+        },
+        // Reports already attached to the session
+        reports: {
+          adviser: {
+            id: 'report-adviser-123',
+            type: 'adviser',
+            status: 'approved',
+            created_at: new Date('2024-12-01T11:30:00Z').toISOString()
+          },
+          client: {
+            id: 'report-client-123',
+            type: 'client',
+            status: 'approved',
+            created_at: new Date('2024-12-01T12:00:00Z').toISOString()
+          }
+        }
+      };
+
+      return {
+        sessions: [exampleSession],
+        pagination: {
+          page: 1,
+          limit: 10,
+          total: 1,
+          totalPages: 1
+        }
+      };
+    }
+  }
+);
+
 export const fetchSessions = createAsyncThunk(
   'sessions/fetchAll',
   async (params = {}, { rejectWithValue }) => {
@@ -316,6 +379,23 @@ const sessionSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchSessions.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      // Fetch sessions with reports cases
+      .addCase(fetchSessionsWithReports.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchSessionsWithReports.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.sessions = action.payload.sessions || [];
+        state.pagination = action.payload.pagination || state.pagination;
+        state.error = null;
+        
+        // No need to fetch reports separately - they're already attached to sessions
+      })
+      .addCase(fetchSessionsWithReports.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       })

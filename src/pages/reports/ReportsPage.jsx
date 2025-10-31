@@ -282,7 +282,7 @@ function ClientReportDisplay({ report }) {
 
             {/* Agreed Actions */}
             {content.agreed_actions && (
-                <CollapsibleSection title={t('reports.agreedActions')} defaultOpen={false}>
+                <CollapsibleSection title={t('reports.agreedActions')} defaultOpen={true}>
                     {content.agreed_actions.immediate_actions && content.agreed_actions.immediate_actions.length > 0 && (
                         <div className="actions-item">
                             <h4>{t('reports.immediateActions')}</h4>
@@ -335,7 +335,7 @@ function AdvisorReportDisplay({ report }) {
             <CollapsibleSection title={t('reports.speakingTimeAnalysis')} defaultOpen={true}>
                 <div className="speaking-time-visual">
                     <div className="duration-info">
-                        <h4>{t('reports.duration')}: {content.conversation_duration}</h4>
+                        <h4>{t('reports.duration')}: {content.conversation_duration.split('.')[0]} דקות</h4>
                     </div>
                     <div className="speaking-comparison">
                         <div className="speaker-section advisor-section">
@@ -421,7 +421,7 @@ function AdvisorReportDisplay({ report }) {
             </CollapsibleSection>
 
             {/* Feedback Section */}
-            <CollapsibleSection title={t('reports.feedback')} defaultOpen={false}>
+            <CollapsibleSection title={t('reports.feedback')} defaultOpen={true}>
                 {/* Points to Preserve */}
                 {content.points_to_preserve && (
                     <div className="feedback-section">
