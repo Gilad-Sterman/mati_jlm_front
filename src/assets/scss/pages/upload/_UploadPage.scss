@@ -88,7 +88,7 @@
 
             .upload-button {
                 padding: $spacing-md $spacing-xl;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, $secondary-color 0%, $primary-color 100%);
                 color: $white-color;
                 border: none;
                 border-radius: $border-radius-sm;
@@ -194,7 +194,7 @@
                         input[type="radio"] {
                             width: auto;
                             margin: 0;
-                            accent-color: #667eea;
+                            accent-color: $secondary-color;
                         }
 
                         span {
@@ -206,14 +206,14 @@
 
                         // When radio is checked
                         input[type="radio"]:checked + span {
-                            color: #667eea;
+                            color: $secondary-color;
                             font-weight: 600;
                         }
                     }
 
                     // Selected state
                     .radio-option:has(input:checked) {
-                        border-color: #667eea;
+                        border-color: $secondary-color;
                         background: rgba(102, 126, 234, 0.1);
                     }
                 }

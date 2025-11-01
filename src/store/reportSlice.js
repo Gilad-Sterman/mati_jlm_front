@@ -109,25 +109,25 @@ export const approveReport = createAsyncThunk(
   }
 );
 
-export const regenerateFullReport = createAsyncThunk(
-  'reports/regenerateFullReport',
+export const regenerateClientReport = createAsyncThunk(
+  'reports/regenerateClientReport',
   async ({ sessionId, notes }, { rejectWithValue, getState }) => {
     try {
-      // Get the adviser report for this session
+      // Get the client report for this session
       const state = getState();
       const sessionReports = state.reports.reportsBySession[sessionId] || [];
-      const adviserReport = sessionReports.find(r => r.type === 'adviser');
+      const clientReport = sessionReports.find(r => r.type === 'client' && r.is_current_version);
       
-      if (!adviserReport) {
-        throw new Error('No adviser report found for this session');
+      if (!clientReport) {
+        throw new Error('No client report found for this session');
       }
       
-      // Call the regenerate service with the adviser report ID
-      const response = await reportService.regenerateReport(adviserReport.id, { notes });
+      // Call the regenerate service with the client report ID
+      const response = await reportService.regenerateReport(clientReport.id, { notes });
       return response.data.job; // Return job info, not report (report comes via socket)
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || 'Failed to regenerate report'
+        error.response?.data?.message || 'Failed to regenerate client report'
       );
     }
   }
@@ -144,6 +144,7 @@ const initialState = {
   // Loading states
   isLoading: false,
   isLoadingSession: {}, // Map of sessionId -> boolean
+  isRegeneratingSession: {}, // Map of sessionId -> boolean (for regeneration)
   // Errors
   error: null,
   sessionErrors: {}, // Map of sessionId -> error message
@@ -185,6 +186,28 @@ const reportSlice = createSlice({
       if (state.currentReport?.id === reportId) {
         state.currentReport = updatedReport;
       }
+    },
+    // Handle regeneration started event from socket
+    regenerationStarted: (state, action) => {
+      const { sessionId } = action.payload;
+      state.isRegeneratingSession[sessionId] = true;
+      delete state.sessionErrors[sessionId];
+    },
+    // Handle regeneration completed event from socket
+    regenerationCompleted: (state, action) => {
+      const { sessionId, report } = action.payload;
+      state.isRegeneratingSession[sessionId] = false;
+      
+      // Update the report in state
+      if (report) {
+        reportSlice.caseReducers.updateReportInState(state, { payload: report });
+      }
+    },
+    // Handle regeneration error event from socket
+    regenerationError: (state, action) => {
+      const { sessionId, error } = action.payload;
+      state.isRegeneratingSession[sessionId] = false;
+      state.sessionErrors[sessionId] = error;
     }
   },
   extraReducers: (builder) => {
@@ -323,23 +346,22 @@ const reportSlice = createSlice({
         reportSlice.caseReducers.updateReportInState(state, { payload: approvedReport });
       })
 
-      // Regenerate full report
-      .addCase(regenerateFullReport.pending, (state, action) => {
+      // Regenerate client report
+      .addCase(regenerateClientReport.pending, (state, action) => {
         const { sessionId } = action.meta.arg;
-        state.isLoadingSession[sessionId] = true;
+        // Don't use regular loading state for regeneration
         delete state.sessionErrors[sessionId];
       })
-      .addCase(regenerateFullReport.fulfilled, (state, action) => {
+      .addCase(regenerateClientReport.fulfilled, (state, action) => {
         const { sessionId } = action.meta.arg;
-        state.isLoadingSession[sessionId] = false;
+        // Start regeneration loading state
+        state.isRegeneratingSession[sessionId] = true;
         
         // The payload contains job info, not the report itself
-        // The actual report will be updated via socket events or page refresh
-        console.log('✅ Regeneration job started successfully:', action.payload);
+        // The actual report will be updated via socket events
       })
-      .addCase(regenerateFullReport.rejected, (state, action) => {
+      .addCase(regenerateClientReport.rejected, (state, action) => {
         const { sessionId } = action.meta.arg;
-        state.isLoadingSession[sessionId] = false;
         state.sessionErrors[sessionId] = action.payload;
       })
 
@@ -355,7 +377,10 @@ export const {
   clearError, 
   clearSessionError, 
   clearCurrentReport,
-  updateReportInState
+  updateReportInState,
+  regenerationStarted,
+  regenerationCompleted,
+  regenerationError
 } = reportSlice.actions;
 
 // Selectors
@@ -371,6 +396,9 @@ export const selectIsLoadingReports = (state) => state.reports.isLoading;
 
 export const selectIsLoadingSessionReports = (sessionId) => (state) => 
   state.reports.isLoadingSession[sessionId] || false;
+
+export const selectIsRegeneratingSessionReports = (sessionId) => (state) => 
+  state.reports.isRegeneratingSession[sessionId] || false;
 
 export const selectReportsError = (state) => state.reports.error;
 

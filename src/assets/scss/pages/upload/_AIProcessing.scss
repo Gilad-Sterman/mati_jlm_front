@@ -43,7 +43,7 @@
         .success-header {
             text-align: center;
             margin-bottom: $spacing-lg;
-            
+
             .success-icon {
                 width: 80px;
                 height: 80px;
@@ -54,7 +54,7 @@
                 justify-content: center;
                 margin: 0 auto $spacing-lg;
                 box-shadow: 0 8px 25px rgba(46, 204, 113, 0.3);
-                
+
                 .check-icon {
                     color: $white-color;
                     width: 40px;
@@ -126,7 +126,7 @@
                 @media (max-width: 768px) {
                     flex-direction: column;
                     align-items: center;
-                    
+
                     &[dir="rtl"] {
                         flex-direction: column;
                     }
@@ -151,12 +151,12 @@
                                 background: #e1e8ed;
                                 transition: all 0.3s ease;
                                 z-index: 1;
-                                
+
                                 &.rtl {
                                     left: auto;
                                     right: calc(100% + #{$spacing-md});
                                 }
-                                
+
                             }
                         }
                     }
@@ -352,9 +352,17 @@
                 border-radius: 50%;
                 animation: wave 1.4s infinite ease-in-out;
 
-                &:nth-child(1) { animation-delay: -0.32s; }
-                &:nth-child(2) { animation-delay: -0.16s; }
-                &:nth-child(3) { animation-delay: 0s; }
+                &:nth-child(1) {
+                    animation-delay: -0.32s;
+                }
+
+                &:nth-child(2) {
+                    animation-delay: -0.16s;
+                }
+
+                &:nth-child(3) {
+                    animation-delay: 0s;
+                }
             }
         }
     }
@@ -425,7 +433,6 @@
                 font-size: 0.9rem;
                 line-height: 1.6;
                 color: $text-muted;
-                max-height: 120px;
                 overflow: hidden;
                 position: relative;
 
@@ -437,6 +444,96 @@
                     right: 0;
                     height: 20px;
                     background: linear-gradient(transparent, $white-color);
+                }
+
+                .adviser-score {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-bottom: $spacing-xs;
+                }
+
+                .entrepreneur-score {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-bottom: $spacing-xs;
+                }
+
+                .advisor-speaking {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+
+                    .speaking-bar {
+                        display: flex;
+                        height: 40px;
+                        border-radius: 8px;
+                        overflow: hidden;
+                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+                        .advisor-segment {
+                            background: linear-gradient(135deg, $secondary-color1 0%, $light-color 100%);
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            color: white;
+                            font-weight: 600;
+                            transition: all 0.3s ease;
+
+                            &:hover {
+                                filter: brightness(1.1);
+                            }
+
+                            .percentage {
+                                font-size: 14px;
+                            }
+                        }
+
+                        .entrepreneur-segment {
+                            background: linear-gradient(135deg, $secondary-color 0%, $light-color 100%);
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            color: white;
+                            font-weight: 600;
+                            transition: all 0.3s ease;
+
+                            &:hover {
+                                filter: brightness(1.1);
+                            }
+
+                            .percentage {
+                                font-size: 14px;
+                            }
+                        }
+                    }
+
+                    .speaking-legend {
+                        display: flex;
+                        gap: 24px;
+                        justify-content: center;
+                        font-size: 14px;
+
+                        .legend-item {
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+
+                            .advisor-dot,
+                            .entrepreneur-dot {
+                                width: 12px;
+                                height: 12px;
+                                border-radius: 50%;
+                            }
+
+                            .advisor-dot {
+                                background: linear-gradient(135deg, $secondary-color1 0%, $light-color 100%);
+                            }
+
+                            .entrepreneur-dot {
+                                background: linear-gradient(135deg, $secondary-color 0%, $light-color 100%);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -487,8 +584,15 @@
 
 // Animations
 @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
 }
 
 @keyframes pulse-ring {
@@ -496,6 +600,7 @@
         transform: translate(-50%, -50%) scale(0.8);
         opacity: 1;
     }
+
     100% {
         transform: translate(-50%, -50%) scale(1.2);
         opacity: 0;
@@ -503,9 +608,13 @@
 }
 
 @keyframes wave {
-    0%, 60%, 100% {
+
+    0%,
+    60%,
+    100% {
         transform: initial;
     }
+
     30% {
         transform: translateY(-15px);
     }
@@ -516,9 +625,11 @@
         transform: scale(0);
         opacity: 0;
     }
+
     50% {
         transform: scale(1.1);
     }
+
     100% {
         transform: scale(1);
         opacity: 1;

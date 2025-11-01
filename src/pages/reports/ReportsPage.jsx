@@ -3,8 +3,17 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { ArrowLeft, FileText, User, Calendar, Clock, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
-import { fetchReportsForSession } from '../../store/reportSlice';
+import { 
+    fetchReportsForSession, 
+    regenerateClientReport, 
+    regenerationStarted, 
+    regenerationCompleted, 
+    regenerationError,
+    selectIsRegeneratingSessionReports 
+} from '../../store/reportSlice';
 import { fetchSessionById } from '../../store/sessionSlice';
+import { RegenerateModal } from './components/RegenerateModal';
+import { useAppSocket } from '../../hooks/useAppSocket';
 
 export function ReportsPage() {
     const { sessionId } = useParams();
@@ -13,6 +22,11 @@ export function ReportsPage() {
     const dispatch = useDispatch();
 
     const [loading, setLoading] = useState(true);
+    const [showRegenerateModal, setShowRegenerateModal] = useState(false);
+    const [isSubmittingRegeneration, setIsSubmittingRegeneration] = useState(false);
+    
+    // Socket connection for regeneration events
+    const { socketConnected, socketService } = useAppSocket();
 
     // Get reports and session data from Redux
     const reports = useSelector(state => state.reports.reportsBySession[sessionId]) || [];
@@ -23,6 +37,7 @@ export function ReportsPage() {
     );
     const isLoadingReports = useSelector(state => state.reports.isLoadingSession[sessionId]);
     const isLoadingSessions = useSelector(state => state.sessions.isLoading);
+    const isRegeneratingReports = useSelector(selectIsRegeneratingSessionReports(sessionId));
 
     // Memoize filtered reports to prevent unnecessary re-renders
     const clientReport = useMemo(() =>
@@ -52,6 +67,56 @@ export function ReportsPage() {
         }
     }, [isLoadingReports, isLoadingSessions]);
 
+    // Socket event listeners for regeneration
+    useEffect(() => {
+        if (!socketConnected || !sessionId) return;
+
+        const socket = socketService.socket;
+        if (!socket) return;
+
+        const handleRegenerationStarted = (data) => {
+            if (data.sessionId === sessionId) {
+                dispatch(regenerationStarted({ sessionId }));
+                // Close modal and clear submission loading when regeneration starts
+                setShowRegenerateModal(false);
+                setIsSubmittingRegeneration(false);
+            }
+        };
+
+        const handleRegenerationComplete = (data) => {
+            if (data.sessionId === sessionId) {
+                dispatch(regenerationCompleted({ 
+                    sessionId, 
+                    report: data.report 
+                }));
+                // Refresh reports to get the new version
+                dispatch(fetchReportsForSession(sessionId));
+            }
+        };
+
+        const handleRegenerationError = (data) => {
+            console.error('❌ Regeneration error:', data);
+            if (data.sessionId === sessionId) {
+                dispatch(regenerationError({ 
+                    sessionId, 
+                    error: data.message || 'Regeneration failed' 
+                }));
+            }
+        };
+
+        // Add event listeners
+        socket.on('report_regeneration_started', handleRegenerationStarted);
+        socket.on('report_regeneration_complete', handleRegenerationComplete);
+        socket.on('report_regeneration_error', handleRegenerationError);
+
+        // Cleanup
+        return () => {
+            socket.off('report_regeneration_started', handleRegenerationStarted);
+            socket.off('report_regeneration_complete', handleRegenerationComplete);
+            socket.off('report_regeneration_error', handleRegenerationError);
+        };
+    }, [socketConnected, sessionId, dispatch, socketService]);
+
     const handleBack = () => {
         navigate('/sessions');
     };
@@ -66,6 +131,29 @@ export function ReportsPage() {
         const minutes = Math.floor(duration / 60);
         const seconds = Math.floor(duration % 60);
         return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    };
+
+    const handleRegenerateClick = () => {
+        setShowRegenerateModal(true);
+    };
+
+    const handleRegenerateSubmit = async (notes) => {
+        setIsSubmittingRegeneration(true);
+        try {
+            await dispatch(regenerateClientReport({ sessionId, notes })).unwrap();
+            // Don't close modal here - it will be closed by socket event
+            // The report will be updated via socket events
+        } catch (error) {
+            console.error('Failed to regenerate client report:', error);
+            setIsSubmittingRegeneration(false);
+            // Keep modal open to show error or allow retry
+        }
+    };
+
+    const handleModalClose = () => {
+        if (!isLoadingReports && !isRegeneratingReports && !isSubmittingRegeneration) {
+            setShowRegenerateModal(false);
+        }
     };
 
     if (loading) {
@@ -130,15 +218,18 @@ export function ReportsPage() {
                                 <div className="header-left">
                                     <h2>{t('reports.clientReport')}</h2>
                                     <span className="report-type-badge client">{t('reports.clientFacing')}</span>
+                                    {clientReport && clientReport.version_number > 1 && (
+                                        <span className="version-badge">
+                                            {t('reports.regenerated')} v{clientReport.version_number}
+                                        </span>
+                                    )}
                                 </div>
                                 {clientReport && (
                                     <button
                                         className="regenerate-button"
-                                        onClick={() => {
-                                            // TODO: Open regenerate modal
-                                            console.log('Open regenerate modal for client report');
-                                        }}
+                                        onClick={handleRegenerateClick}
                                         title={t('reports.regenerateReport')}
+                                        disabled={isLoadingReports || isRegeneratingReports}
                                     >
                                         <RefreshCw size={16} />
                                         {t('reports.regenerate')}
@@ -146,7 +237,17 @@ export function ReportsPage() {
                                 )}
                             </div>
 
-                            {clientReport ? (
+                            {isLoadingReports ? (
+                                <div className="report-loading">
+                                    <div className="spinner"></div>
+                                    <p>{t('common.loading')}</p>
+                                </div>
+                            ) : isRegeneratingReports ? (
+                                <div className="report-loading">
+                                    <div className="spinner"></div>
+                                    <p>{t('reports.regeneratingReport')}</p>
+                                </div>
+                            ) : clientReport ? (
                                 <ClientReportDisplay report={clientReport} />
                             ) : (
                                 <div className="no-report">
@@ -175,6 +276,14 @@ export function ReportsPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Regenerate Modal */}
+            <RegenerateModal
+                isOpen={showRegenerateModal}
+                onClose={handleModalClose}
+                onRegenerate={handleRegenerateSubmit}
+                isLoading={isSubmittingRegeneration}
+            />
         </div>
     );
 }

@@ -28,7 +28,6 @@ import {
 } from 'lucide-react';
 import {
   fetchReportsForSession,
-  regenerateFullReport
 } from '../../store/reportSlice';
 import { useAppSocket } from '../../hooks/useAppSocket';
 import { fetchSessions } from '../../store/sessionSlice';
@@ -370,37 +369,37 @@ export const AdviserReportPage = () => {
       };
     }, [socketConnected, socketService.socket, sessionId]);
 
-    const handleRegenerateFullReport = async () => {
-      const trimmedNotes = notes.trim();
-      if (!trimmedNotes) {
-        return; // Button should be disabled, but extra safety check
-      }
+    // const handleRegenerateFullReport = async () => {
+    //   const trimmedNotes = notes.trim();
+    //   if (!trimmedNotes) {
+    //     return; // Button should be disabled, but extra safety check
+    //   }
 
-      if (!window.confirm(t('reports.confirmFullRegeneration'))) {
-        return;
-      }
+    //   if (!window.confirm(t('reports.confirmFullRegeneration'))) {
+    //     return;
+    //   }
 
-      setIsRegenerating(true);
-      try {
-        const jobInfo = await dispatch(regenerateFullReport({
-          sessionId,
-          notes: trimmedNotes
-        })).unwrap();
+    //   setIsRegenerating(true);
+    //   try {
+    //     const jobInfo = await dispatch(regenerateFullReport({
+    //       sessionId,
+    //       notes: trimmedNotes
+    //     })).unwrap();
 
-        console.log('✅ Regeneration job started:', jobInfo);
+    //     console.log('✅ Regeneration job started:', jobInfo);
 
-        // Clear notes after job starts successfully
-        setNotes('');
+    //     // Clear notes after job starts successfully
+    //     setNotes('');
 
-        // Keep loading state - will be cleared by socket event
-        // Note: Don't refresh yet - wait for socket event when regeneration completes
-      } catch (error) {
-        console.error('Error regenerating full report:', error);
-        setIsRegenerating(false); // Clear loading on API error (not AI processing error)
-        // TODO: Show error message to user
-      }
-      // Note: Don't clear loading state on success - wait for socket events
-    };
+    //     // Keep loading state - will be cleared by socket event
+    //     // Note: Don't refresh yet - wait for socket event when regeneration completes
+    //   } catch (error) {
+    //     console.error('Error regenerating full report:', error);
+    //     setIsRegenerating(false); // Clear loading on API error (not AI processing error)
+    //     // TODO: Show error message to user
+    //   }
+    //   // Note: Don't clear loading state on success - wait for socket events
+    // };
 
     return (
       <div className="level1-structure-display">

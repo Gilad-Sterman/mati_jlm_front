@@ -4,24 +4,24 @@ import { useTranslation } from 'react-i18next';
 import { Upload, FileAudio, User, Plus, X, Check, AlertCircle } from 'lucide-react';
 
 // Redux imports
-import { 
-  createSession, 
-  selectIsUploading, 
-  selectUploadProgress, 
-  selectUploadStatus,
-  selectUploadMessage,
-  selectCurrentUploadSession,
-  selectUiState,
-  selectError as selectSessionError, 
-  clearError as clearSessionError,
-  resetUploadState,
-  handleUploadStarted,
-  selectProcessingStage,
-  selectProcessingMessage,
-  selectTranscriptionComplete,
-  selectAdvisorReportGenerated,
-  selectCurrentReport,
-  resetProcessingState
+import {
+    createSession,
+    selectIsUploading,
+    selectUploadProgress,
+    selectUploadStatus,
+    selectUploadMessage,
+    selectCurrentUploadSession,
+    selectUiState,
+    selectError as selectSessionError,
+    clearError as clearSessionError,
+    resetUploadState,
+    handleUploadStarted,
+    selectProcessingStage,
+    selectProcessingMessage,
+    selectTranscriptionComplete,
+    selectAdvisorReportGenerated,
+    selectCurrentReport,
+    resetProcessingState
 } from '../../store/sessionSlice';
 import { fetchClientsForSelection, quickCreateClient, selectSelectionClients, selectIsCreating, selectError as selectClientError, clearError as clearClientError } from '../../store/clientSlice';
 import { selectUser } from '../../store/authSlice';
@@ -52,7 +52,7 @@ export function UploadPage() {
     const sessionError = useSelector(selectSessionError);
     const isCreatingClient = useSelector(selectIsCreating);
     const clientError = useSelector(selectClientError);
-    
+
     // AI Processing state
     const processingStage = useSelector(selectProcessingStage);
     const processingMessage = useSelector(selectProcessingMessage);
@@ -121,7 +121,7 @@ export function UploadPage() {
         e.preventDefault();
         e.stopPropagation();
         setDragActive(false);
-        
+
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
             handleFileSelect(e.dataTransfer.files);
         }
@@ -239,7 +239,7 @@ export function UploadPage() {
         switch (uiState) {
             case 'uploading':
                 return (
-                    <AIProcessing 
+                    <AIProcessing
                         fileName={currentUploadSession?.fileName}
                         fileUrl={currentUploadSession?.fileUrl}
                         duration={currentUploadSession?.duration}
@@ -251,10 +251,10 @@ export function UploadPage() {
                         advisorReportGenerated={advisorReportGenerated}
                     />
                 );
-            
+
             case 'transcribing':
                 return (
-                    <AIProcessing 
+                    <AIProcessing
                         fileName={currentUploadSession?.fileName}
                         fileUrl={currentUploadSession?.fileUrl}
                         duration={currentUploadSession?.duration}
@@ -266,10 +266,10 @@ export function UploadPage() {
                         advisorReportGenerated={advisorReportGenerated}
                     />
                 );
-            
+
             case 'generating_report':
                 return (
-                    <AIProcessing 
+                    <AIProcessing
                         fileName={currentUploadSession?.fileName}
                         fileUrl={currentUploadSession?.fileUrl}
                         duration={currentUploadSession?.duration}
@@ -281,25 +281,63 @@ export function UploadPage() {
                         advisorReportGenerated={advisorReportGenerated}
                     />
                 );
-            
+
             case 'report_ready':
                 return (
                     <div className="report-ready">
                         <div className="success-content">
                             <Check className="success-icon" />
                             <h3>{t('upload.advisorReportReady')}</h3>
-                            
+
                             {currentReport && (
                                 <div className="report-preview">
                                     <h4>{t('upload.reportPreview')}</h4>
                                     <div className="report-content">
-                                        {currentReport.content.meeting_summary}...
+                                        <div className='adviser-score'>
+                                            <span className='title'>{t('upload.adviserScore')}</span>
+                                            <span>{currentReport.content.advisor_performance_score}%</span>
+                                        </div>
+                                        <div className='entrepreneur-score'>
+                                            <span className='title'>{t('upload.entrepreneurScore')}</span>
+                                            <span>{currentReport.content.entrepreneur_readiness_score}%</span>
+                                        </div>
+                                        <div className='advisor-speaking'>
+                                            <span className='title'>{t('upload.speakingPercentages')}</span>
+
+                                            {/* Visual bar */}
+                                            <div className='speaking-bar'>
+                                                <div
+                                                    className='advisor-segment'
+                                                    style={{ width: `${currentReport.content.advisor_speaking_percentage}%` }}
+                                                >
+                                                    <span className='percentage'>{currentReport.content.advisor_speaking_percentage}%</span>
+                                                </div>
+                                                <div
+                                                    className='entrepreneur-segment'
+                                                    style={{ width: `${currentReport.content.entrepreneur_speaking_percentage}%` }}
+                                                >
+                                                    <span className='percentage'>{currentReport.content.entrepreneur_speaking_percentage}%</span>
+                                                </div>
+                                            </div>
+
+                                            {/* Legend */}
+                                            <div className='speaking-legend'>
+                                                <div className='legend-item'>
+                                                    <span className='advisor-dot'></span>
+                                                    <span>{t('upload.advisorSpeakingPercentage')}</span>
+                                                </div>
+                                                <div className='legend-item'>
+                                                    <span className='entrepreneur-dot'></span>
+                                                    <span>{t('upload.entrepreneurSpeakingPercentage')}</span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             )}
-                            
+
                             <div className="action-buttons">
-                                <button 
+                                <button
                                     className="primary-button"
                                     onClick={() => {
                                         // TODO: Navigate to report view/edit page
@@ -308,8 +346,8 @@ export function UploadPage() {
                                 >
                                     {t('upload.ViewEditReport')}
                                 </button>
-                                
-                                <button 
+
+                                <button
                                     className="secondary-button"
                                     onClick={() => {
                                         dispatch(resetProcessingState());
@@ -322,10 +360,10 @@ export function UploadPage() {
                         </div>
                     </div>
                 );
-            
+
             case 'processing': // Legacy fallback
                 return (
-                    <AIProcessing 
+                    <AIProcessing
                         fileName={currentUploadSession?.fileName}
                         fileUrl={currentUploadSession?.fileUrl}
                         duration={currentUploadSession?.duration}
@@ -337,7 +375,7 @@ export function UploadPage() {
                         advisorReportGenerated={advisorReportGenerated}
                     />
                 );
-            
+
             case 'error':
                 return (
                     <div className="upload-error">
@@ -345,7 +383,7 @@ export function UploadPage() {
                             <AlertCircle className="error-icon" />
                             <h3>{t('upload.processingFailed')}</h3>
                             <p>{processingMessage || uploadMessage || sessionError}</p>
-                            <button 
+                            <button
                                 className="retry-button"
                                 onClick={() => {
                                     dispatch(resetProcessingState());
@@ -357,269 +395,269 @@ export function UploadPage() {
                         </div>
                     </div>
                 );
-            
+
             default: // 'upload' state
                 return (
                     <div className="upload-card">
-                    {/* File Upload Section */}
-                    <div className="upload-area">
-                        <h2>{t('upload.fileUpload')}</h2>
-                        
-                        {!selectedFile ? (
-                            <div 
-                                className={`upload-dropzone ${dragActive ? 'active' : ''}`}
-                                onDrop={handleDrop}
-                                onDragOver={handleDragOver}
-                                onDragLeave={handleDragLeave}
-                                onClick={() => fileInputRef.current?.click()}
-                            >
-                                <Upload className="upload-icon" />
-                                <h3>{t('upload.dropzone.title')}</h3>
-                                <p>{t('upload.dropzone.description')}</p>
-                                <button type="button" className="upload-button">
-                                    {t('upload.dropzone.button')}
-                                </button>
+                        {/* File Upload Section */}
+                        <div className="upload-area">
+                            <h2>{t('upload.fileUpload')}</h2>
+
+                            {!selectedFile ? (
+                                <div
+                                    className={`upload-dropzone ${dragActive ? 'active' : ''}`}
+                                    onDrop={handleDrop}
+                                    onDragOver={handleDragOver}
+                                    onDragLeave={handleDragLeave}
+                                    onClick={() => fileInputRef.current?.click()}
+                                >
+                                    <Upload className="upload-icon" />
+                                    <h3>{t('upload.dropzone.title')}</h3>
+                                    <p>{t('upload.dropzone.description')}</p>
+                                    <button type="button" className="upload-button">
+                                        {t('upload.dropzone.button')}
+                                    </button>
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="audio/*"
+                                        onChange={handleFileInputChange}
+                                        style={{ display: 'none' }}
+                                    />
+                                </div>
+                            ) : (
+                                <div className="file-selected">
+                                    <div className="file-info">
+                                        <FileAudio className="file-icon" />
+                                        <div className="file-details">
+                                            <h4>{selectedFile.name}</h4>
+                                            <p>{formatFileSize(selectedFile.size)}</p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            className="remove-file"
+                                            onClick={removeFile}
+                                            disabled={isUploading}
+                                        >
+                                            <X />
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Session Details Form */}
+                        <div className="upload-form">
+                            <h2>{t('upload.sessionDetails')}</h2>
+
+                            {/* Session Title */}
+                            <div className="form-group">
+                                <label htmlFor="sessionTitle">{t('upload.sessionTitle')}</label>
                                 <input
-                                    ref={fileInputRef}
-                                    type="file"
-                                    accept="audio/*"
-                                    onChange={handleFileInputChange}
-                                    style={{ display: 'none' }}
+                                    type="text"
+                                    id="sessionTitle"
+                                    value={sessionTitle}
+                                    onChange={(e) => setSessionTitle(e.target.value)}
+                                    placeholder={t('upload.sessionTitlePlaceholder')}
+                                    disabled={isUploading}
                                 />
                             </div>
-                        ) : (
-                            <div className="file-selected">
-                                <div className="file-info">
-                                    <FileAudio className="file-icon" />
-                                    <div className="file-details">
-                                        <h4>{selectedFile.name}</h4>
-                                        <p>{formatFileSize(selectedFile.size)}</p>
+
+                            {/* Client Selection Mode */}
+                            <div className="form-group">
+                                <label>{t('upload.clientSelection')}</label>
+                                <div className="client-mode-selection">
+                                    <div className="radio-group">
+                                        <label className="radio-option">
+                                            <input
+                                                type="radio"
+                                                name="clientMode"
+                                                value="existing"
+                                                checked={clientMode === 'existing'}
+                                                onChange={(e) => handleClientModeChange(e.target.value)}
+                                                disabled={isUploading}
+                                            />
+                                            <span>{t('upload.existingClient')}</span>
+                                        </label>
+                                        <label className="radio-option">
+                                            <input
+                                                type="radio"
+                                                name="clientMode"
+                                                value="new"
+                                                checked={clientMode === 'new'}
+                                                onChange={(e) => handleClientModeChange(e.target.value)}
+                                                disabled={isUploading}
+                                            />
+                                            <span>{t('upload.newClient')}</span>
+                                        </label>
                                     </div>
-                                    <button 
-                                        type="button" 
-                                        className="remove-file"
-                                        onClick={removeFile}
+                                </div>
+                            </div>
+
+                            {/* Existing Client Selection */}
+                            {clientMode === 'existing' && (
+                                <div className="form-group">
+                                    <label htmlFor="clientSelect">{t('upload.selectClient')}</label>
+                                    <select
+                                        id="clientSelect"
+                                        value={selectedClientId}
+                                        onChange={(e) => setSelectedClientId(e.target.value)}
                                         disabled={isUploading}
                                     >
-                                        <X />
-                                    </button>
+                                        <option value="">{t('upload.chooseClient')}</option>
+                                        {clients.map(client => (
+                                            <option key={client.id} value={client.id}>
+                                                {client.name} {client.email && `(${client.email})`}
+                                            </option>
+                                        ))}
+                                    </select>
                                 </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Session Details Form */}
-                    <div className="upload-form">
-                        <h2>{t('upload.sessionDetails')}</h2>
-
-                        {/* Session Title */}
-                        <div className="form-group">
-                            <label htmlFor="sessionTitle">{t('upload.sessionTitle')}</label>
-                            <input
-                                type="text"
-                                id="sessionTitle"
-                                value={sessionTitle}
-                                onChange={(e) => setSessionTitle(e.target.value)}
-                                placeholder={t('upload.sessionTitlePlaceholder')}
-                                disabled={isUploading}
-                            />
-                        </div>
-
-                        {/* Client Selection Mode */}
-                        <div className="form-group">
-                            <label>{t('upload.clientSelection')}</label>
-                            <div className="client-mode-selection">
-                                <div className="radio-group">
-                                    <label className="radio-option">
-                                        <input
-                                            type="radio"
-                                            name="clientMode"
-                                            value="existing"
-                                            checked={clientMode === 'existing'}
-                                            onChange={(e) => handleClientModeChange(e.target.value)}
-                                            disabled={isUploading}
-                                        />
-                                        <span>{t('upload.existingClient')}</span>
-                                    </label>
-                                    <label className="radio-option">
-                                        <input
-                                            type="radio"
-                                            name="clientMode"
-                                            value="new"
-                                            checked={clientMode === 'new'}
-                                            onChange={(e) => handleClientModeChange(e.target.value)}
-                                            disabled={isUploading}
-                                        />
-                                        <span>{t('upload.newClient')}</span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Existing Client Selection */}
-                        {clientMode === 'existing' && (
-                            <div className="form-group">
-                                <label htmlFor="clientSelect">{t('upload.selectClient')}</label>
-                                <select
-                                    id="clientSelect"
-                                    value={selectedClientId}
-                                    onChange={(e) => setSelectedClientId(e.target.value)}
-                                    disabled={isUploading}
-                                >
-                                    <option value="">{t('upload.chooseClient')}</option>
-                                    {clients.map(client => (
-                                        <option key={client.id} value={client.id}>
-                                            {client.name} {client.email && `(${client.email})`}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
-
-                        {/* New Client Form */}
-                        {clientMode === 'new' && (
-                            <div className="new-client-form">
-                                <h3>{t('upload.newClientDetails')}</h3>
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label>{t('upload.clientName')} *</label>
-                                        <input
-                                            type="text"
-                                            value={newClient.name}
-                                            onChange={(e) => handleNewClientChange('name', e.target.value)}
-                                            placeholder={t('upload.clientNamePlaceholder')}
-                                            disabled={isUploading}
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label>{t('upload.clientEmail')} *</label>
-                                        <input
-                                            type="email"
-                                            value={newClient.email}
-                                            onChange={(e) => handleNewClientChange('email', e.target.value)}
-                                            placeholder={t('upload.clientEmailPlaceholder')}
-                                            disabled={isUploading}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label>{t('upload.businessDomain')}</label>
-                                        <input
-                                            type="text"
-                                            value={newClient.business_domain}
-                                            onChange={(e) => handleNewClientChange('business_domain', e.target.value)}
-                                            placeholder={t('upload.businessDomainPlaceholder')}
-                                            disabled={isUploading}
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label>{t('upload.businessNumber')}</label>
-                                        <input
-                                            type="text"
-                                            value={newClient.business_number}
-                                            onChange={(e) => handleNewClientChange('business_number', e.target.value)}
-                                            placeholder={t('upload.businessNumberPlaceholder')}
-                                            disabled={isUploading}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Error Messages */}
-                        {sessionError && (
-                            <div className="error-message">
-                                <AlertCircle />
-                                {sessionError}
-                            </div>
-                        )}
-
-                        {clientError && (
-                            <div className="error-message">
-                                <AlertCircle />
-                                {clientError}
-                            </div>
-                        )}
-
-                        {/* Upload Progress */}
-                        {(isUploading || uploadStatus) && (
-                            <div className={`upload-progress ${uploadStatus}`}>
-                                <div className="progress-info">
-                                    {currentUploadSession && (
-                                        <h4>{currentUploadSession.fileName}</h4>
-                                    )}
-                                    <p className="progress-message">
-                                        {uploadMessage || t('upload.uploading')}
-                                    </p>
-                                </div>
-                                
-                                <div className="progress-bar">
-                                    <div 
-                                        className={`progress-fill ${uploadStatus}`}
-                                        style={{ width: `${uploadProgress}%` }}
-                                    ></div>
-                                </div>
-                                
-                                <div className="progress-details">
-                                    <span className="progress-percentage">{uploadProgress}%</span>
-                                    {uploadStatus === 'complete' && (
-                                        <span className="progress-status success">
-                                            <Check size={16} />
-                                            {t('upload.complete')}
-                                        </span>
-                                    )}
-                                    {uploadStatus === 'error' && (
-                                        <span className="progress-status error">
-                                            <AlertCircle size={16} />
-                                            {t('upload.failed')}
-                                        </span>
-                                    )}
-                                    {uploadStatus === 'uploading' && (
-                                        <span className="progress-status uploading">
-                                            <div className="spinner-small"></div>
-                                            {t('upload.inProgress')}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Upload Button */}
-                        <button
-                            type="button"
-                            className={`process-button ${uploadStatus === 'complete' ? 'success' : ''}`}
-                            onClick={handleUpload}
-                            disabled={!selectedFile || 
-                                     (clientMode === 'existing' && !selectedClientId) || 
-                                     (clientMode === 'new' && (!newClient.name.trim() || !newClient.email.trim())) || 
-                                     isUploading || 
-                                     uploadStatus === 'uploading'}
-                        >
-                            {uploadStatus === 'complete' ? (
-                                <>
-                                    <Check />
-                                    {t('upload.uploadComplete')}
-                                </>
-                            ) : isUploading || uploadStatus === 'uploading' ? (
-                                <>
-                                    <div className="spinner"></div>
-                                    {uploadStatus === 'started' ? t('upload.creating') : t('upload.uploading')}
-                                </>
-                            ) : uploadStatus === 'error' ? (
-                                <>
-                                    <AlertCircle />
-                                    {t('upload.retry')}
-                                </>
-                            ) : (
-                                <>
-                                    <Check />
-                                    {t('upload.startProcessing')}
-                                </>
                             )}
-                        </button>
+
+                            {/* New Client Form */}
+                            {clientMode === 'new' && (
+                                <div className="new-client-form">
+                                    <h3>{t('upload.newClientDetails')}</h3>
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label>{t('upload.clientName')} *</label>
+                                            <input
+                                                type="text"
+                                                value={newClient.name}
+                                                onChange={(e) => handleNewClientChange('name', e.target.value)}
+                                                placeholder={t('upload.clientNamePlaceholder')}
+                                                disabled={isUploading}
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>{t('upload.clientEmail')} *</label>
+                                            <input
+                                                type="email"
+                                                value={newClient.email}
+                                                onChange={(e) => handleNewClientChange('email', e.target.value)}
+                                                placeholder={t('upload.clientEmailPlaceholder')}
+                                                disabled={isUploading}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label>{t('upload.businessDomain')}</label>
+                                            <input
+                                                type="text"
+                                                value={newClient.business_domain}
+                                                onChange={(e) => handleNewClientChange('business_domain', e.target.value)}
+                                                placeholder={t('upload.businessDomainPlaceholder')}
+                                                disabled={isUploading}
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>{t('upload.businessNumber')}</label>
+                                            <input
+                                                type="text"
+                                                value={newClient.business_number}
+                                                onChange={(e) => handleNewClientChange('business_number', e.target.value)}
+                                                placeholder={t('upload.businessNumberPlaceholder')}
+                                                disabled={isUploading}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Error Messages */}
+                            {sessionError && (
+                                <div className="error-message">
+                                    <AlertCircle />
+                                    {sessionError}
+                                </div>
+                            )}
+
+                            {clientError && (
+                                <div className="error-message">
+                                    <AlertCircle />
+                                    {clientError}
+                                </div>
+                            )}
+
+                            {/* Upload Progress */}
+                            {(isUploading || uploadStatus) && (
+                                <div className={`upload-progress ${uploadStatus}`}>
+                                    <div className="progress-info">
+                                        {currentUploadSession && (
+                                            <h4>{currentUploadSession.fileName}</h4>
+                                        )}
+                                        <p className="progress-message">
+                                            {uploadMessage || t('upload.uploading')}
+                                        </p>
+                                    </div>
+
+                                    <div className="progress-bar">
+                                        <div
+                                            className={`progress-fill ${uploadStatus}`}
+                                            style={{ width: `${uploadProgress}%` }}
+                                        ></div>
+                                    </div>
+
+                                    <div className="progress-details">
+                                        <span className="progress-percentage">{uploadProgress}%</span>
+                                        {uploadStatus === 'complete' && (
+                                            <span className="progress-status success">
+                                                <Check size={16} />
+                                                {t('upload.complete')}
+                                            </span>
+                                        )}
+                                        {uploadStatus === 'error' && (
+                                            <span className="progress-status error">
+                                                <AlertCircle size={16} />
+                                                {t('upload.failed')}
+                                            </span>
+                                        )}
+                                        {uploadStatus === 'uploading' && (
+                                            <span className="progress-status uploading">
+                                                <div className="spinner-small"></div>
+                                                {t('upload.inProgress')}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Upload Button */}
+                            <button
+                                type="button"
+                                className={`process-button ${uploadStatus === 'complete' ? 'success' : ''}`}
+                                onClick={handleUpload}
+                                disabled={!selectedFile ||
+                                    (clientMode === 'existing' && !selectedClientId) ||
+                                    (clientMode === 'new' && (!newClient.name.trim() || !newClient.email.trim())) ||
+                                    isUploading ||
+                                    uploadStatus === 'uploading'}
+                            >
+                                {uploadStatus === 'complete' ? (
+                                    <>
+                                        <Check />
+                                        {t('upload.uploadComplete')}
+                                    </>
+                                ) : isUploading || uploadStatus === 'uploading' ? (
+                                    <>
+                                        <div className="spinner"></div>
+                                        {uploadStatus === 'started' ? t('upload.creating') : t('upload.uploading')}
+                                    </>
+                                ) : uploadStatus === 'error' ? (
+                                    <>
+                                        <AlertCircle />
+                                        {t('upload.retry')}
+                                    </>
+                                ) : (
+                                    <>
+                                        <Check />
+                                        {t('upload.startProcessing')}
+                                    </>
+                                )}
+                            </button>
+                        </div>
                     </div>
-                </div>
                 );
         }
     };
@@ -627,9 +665,9 @@ export function UploadPage() {
     return (
         <div className="upload-page">
             <div className="page-header">
-                <h1>{t('upload.title')}</h1>                
+                <h1>{t('upload.title')}</h1>
             </div>
-            
+
             <div className="upload-content">
                 {renderContent()}
             </div>

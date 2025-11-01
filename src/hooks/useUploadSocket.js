@@ -68,14 +68,12 @@ export const useUploadSocket = () => {
     };
 
     const onReportsGenerated = (data) => {
-      console.log('✅ Frontend received reports_generated event:', data);
       // Map the new payload structure to the expected format
       const mappedData = {
         sessionId: data.sessionId,
         message: data.message,
         report: data.reports?.advisor || data.reports?.client || data.report // Fallback to advisor report for compatibility
       };
-      console.log('📋 Mapped data for Redux:', mappedData);
       dispatch(handleAdvisorReportGenerated(mappedData));
     };
 
