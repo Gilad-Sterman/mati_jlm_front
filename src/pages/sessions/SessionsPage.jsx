@@ -16,7 +16,7 @@ export function SessionsPage() {
     const isLoading = useSelector(state => state.sessions.isLoading);
     const currentUser = useSelector(state => state.auth.user);
     const isAdmin = currentUser?.role === 'admin';
-    
+
     // Search, filter, and sort state
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
@@ -24,40 +24,40 @@ export function SessionsPage() {
     const [sortBy, setSortBy] = useState('created_at');
     const [sortDirection, setSortDirection] = useState('desc');
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
-    
+
     // Debounce search term to avoid too many API calls
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearchTerm(searchTerm);
         }, 500);
-        
+
         return () => clearTimeout(timer);
     }, [searchTerm]);
-    
+
     // Load sessions with reports in a single API call with filters
     useEffect(() => {
         const params = {};
-        
+
         if (debouncedSearchTerm) params.search_term = debouncedSearchTerm;
         if (statusFilter) params.status = statusFilter;
         if (isAdmin && adviserFilter) params.adviser_id = adviserFilter;
         if (sortBy) params.sort_by = sortBy;
         if (sortDirection) params.sort_direction = sortDirection;
-        
+
         dispatch(fetchSessionsWithReports(params));
     }, [dispatch, debouncedSearchTerm, statusFilter, adviserFilter, sortBy, sortDirection, isAdmin]);
 
     // Get unique advisers from sessions for admin filter (MOVED BEFORE EARLY RETURN)
     const uniqueAdvisers = React.useMemo(() => {
         if (!isAdmin || !sessions.length) return [];
-        
+
         const advisersMap = new Map();
         sessions.forEach(session => {
             if (session.adviser && session.adviser.id) {
                 advisersMap.set(session.adviser.id, session.adviser.name || session.adviser.email);
             }
         });
-        
+
         return Array.from(advisersMap.entries()).map(([id, name]) => ({
             value: id,
             label: name
@@ -129,7 +129,7 @@ export function SessionsPage() {
             setSortDirection('desc');
         }
     };
-    
+
     // Get status options
     const statusOptions = [
         { value: '', label: t('sessions.filterAllStatuses') },
@@ -139,7 +139,7 @@ export function SessionsPage() {
         { value: 'completed', label: t('sessions.status.completed') },
         { value: 'failed', label: t('sessions.status.failed') }
     ];
-    
+
     // Reset all filters
     const resetFilters = () => {
         setSearchTerm('');
@@ -148,7 +148,7 @@ export function SessionsPage() {
         setSortBy('created_at');
         setSortDirection('desc');
     };
-    
+
     return (
         <section className="sessions-page">
             <div className="sessions-header">
@@ -158,14 +158,14 @@ export function SessionsPage() {
                     <span className="count-label">{t('sessions.sessionsCount', { count: sessions.length })}</span>
                 </div>
             </div>
-            
+
             {/* Search and Filter Controls */}
             <div className="sessions-controls">
                 <div className="search-box">
                     <Search size={18} />
-                    <input 
-                        type="text" 
-                        placeholder={t('sessions.searchPlaceholder')} 
+                    <input
+                        type="text"
+                        placeholder={t('sessions.searchPlaceholder')}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -175,12 +175,12 @@ export function SessionsPage() {
                         </button>
                     )}
                 </div>
-                
+
                 <div className="filter-controls">
                     <div className="filter-item">
                         <label>{t('sessions.filterStatus')}</label>
-                        <select 
-                            value={statusFilter} 
+                        <select
+                            value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
                         >
                             {statusOptions.map(option => (
@@ -190,12 +190,12 @@ export function SessionsPage() {
                             ))}
                         </select>
                     </div>
-                    
+
                     {isAdmin && (
                         <div className="filter-item">
                             <label>{t('sessions.filterAdviser')}</label>
-                            <select 
-                                value={adviserFilter} 
+                            <select
+                                value={adviserFilter}
                                 onChange={(e) => setAdviserFilter(e.target.value)}
                             >
                                 <option value="">{t('sessions.filterAllAdvisers')}</option>
@@ -207,9 +207,9 @@ export function SessionsPage() {
                             </select>
                         </div>
                     )}
-                    
+
                     <div className="sort-controls">
-                        <button 
+                        <button
                             className={`sort-button ${sortBy === 'created_at' ? 'active' : ''}`}
                             onClick={() => toggleSort('created_at')}
                             title={t('sessions.sortDate')}
@@ -217,8 +217,8 @@ export function SessionsPage() {
                             {sortBy === 'created_at' && sortDirection === 'asc' ? <SortAsc size={18} /> : <SortDesc size={18} />}
                             {t('sessions.sortDate')}
                         </button>
-                        
-                        <button 
+
+                        <button
                             className={`sort-button ${sortBy === 'title' ? 'active' : ''}`}
                             onClick={() => toggleSort('title')}
                             title={t('sessions.sortTitle')}
@@ -227,7 +227,7 @@ export function SessionsPage() {
                             {t('sessions.sortTitle')}
                         </button>
                     </div>
-                    
+
                     {(searchTerm || statusFilter || adviserFilter || sortBy !== 'created_at' || sortDirection !== 'desc') && (
                         <button className="reset-filters" onClick={resetFilters}>
                             {t('sessions.filterReset')}
@@ -235,7 +235,7 @@ export function SessionsPage() {
                     )}
                 </div>
             </div>
-            
+
             {/* Sessions List with Loading States */}
             {isLoading ? (
                 <div className="loading-container">
@@ -252,10 +252,20 @@ export function SessionsPage() {
                 </div>
             ) : (
                 <div className="sessions-list">
+                    {/* {sessions.length > 0 && <div className="sessions-avg">
+                        <div className="avg-item">
+                            <span className="avg-label">{t('sessions.avgEntrepreneurScore')}</span>
+                            <span className="avg-value">{Math.round(sessions.reduce((total, session) => total + Number(JSON.parse(session.reports?.adviser?.content).entrepreneur_readiness_score) , 0) / sessions.length)}%</span>
+                        </div>
+                        <div className="avg-item">
+                            <span className="avg-label">{t('sessions.avgAdviserScore')}</span>
+                            <span className="avg-value">{Math.round(sessions.reduce((total, session) => total + Number(JSON.parse(session.reports?.adviser?.content).advisor_performance_score), 0) / sessions.length)}%</span>
+                        </div>
+                    </div>} */}
                     {sessions.map(session => (
-                        <SessionCard 
-                            key={session.id} 
-                            session={session} 
+                        <SessionCard
+                            key={session.id}
+                            session={session}
                             formatDate={formatDate}
                             getStatusClass={getStatusClass}
                             getStatusTranslation={getStatusTranslation}
@@ -275,11 +285,11 @@ export function SessionsPage() {
 }
 
 // Session card with report buttons
-const SessionCard = React.memo(function SessionCard({ 
-    session, 
-    formatDate, 
-    getStatusClass, 
-    getStatusTranslation, 
+const SessionCard = React.memo(function SessionCard({
+    session,
+    formatDate,
+    getStatusClass,
+    getStatusTranslation,
     isReportAvailable,
     navigateToAdviserReport,
     navigateToClientReport,
@@ -301,32 +311,32 @@ const SessionCard = React.memo(function SessionCard({
                             <Calendar size={14} />
                             <span>{formatDate(session.created_at)}</span>
                         </div>
-                        
+
                         {session.duration && (
                             <div className="meta-item">
                                 <Clock size={14} />
                                 <span>{Math.floor(session.duration / 60)}:{(session.duration % 60).toString().padStart(2, '0')}</span>
                             </div>
                         )}
-                        
+
                         <div className="meta-item">
                             <FileAudio size={14} />
                             <span className="file-name">{session.file_name}</span>
                         </div>
-                        
+
                         <div className="meta-item file-size">
                             <span>{(session.file_size / (1024 * 1024)).toFixed(1)} MB</span>
                         </div>
                     </div>
                 </div>
-                
+
                 <div className={`session-status ${getStatusClass(session.status)}`}>
                     {getStatusTranslation(session.status)}
                 </div>
             </div>
-            
+
             <div className="session-content">
-                
+
                 {/* Client Section */}
                 <div className="participant-section client-section">
                     <div className="participant-header">
@@ -345,7 +355,7 @@ const SessionCard = React.memo(function SessionCard({
                             </div>
                         )}
                     </div>
-                    
+
                     {/* Entrepreneur Score from Adviser Report */}
                     {reportsByType.adviser && reportsByType.adviser.content && (
                         <div className="performance-scores">
@@ -359,7 +369,7 @@ const SessionCard = React.memo(function SessionCard({
                                         return null;
                                     }
                                 }
-                                
+
                                 // Helper function to get score class and text
                                 const getScoreInfo = (score) => {
                                     if (score >= 90) return { class: 'score-excellent', text: t('sessions.scoreExcellent') };
@@ -368,7 +378,7 @@ const SessionCard = React.memo(function SessionCard({
                                     if (score >= 40) return { class: 'score-poor', text: t('sessions.scorePoor') };
                                     return { class: 'score-very-poor', text: t('sessions.scoreVeryPoor') };
                                 };
-                                
+
                                 return (
                                     <>
                                         {content.entrepreneur_readiness_score && (
@@ -388,7 +398,7 @@ const SessionCard = React.memo(function SessionCard({
                         </div>
                     )}
                 </div>
-                
+
                 {/* Adviser Section */}
                 {session.adviser && (
                     <div className="participant-section adviser-section">
@@ -402,7 +412,7 @@ const SessionCard = React.memo(function SessionCard({
                                 <div className="participant-email">{session.adviser.email}</div>
                             )}
                         </div>
-                        
+
                         {/* Advisor Performance Score from Adviser Report */}
                         {reportsByType.adviser && reportsByType.adviser.content && (
                             <div className="performance-scores">
@@ -416,7 +426,7 @@ const SessionCard = React.memo(function SessionCard({
                                             return null;
                                         }
                                     }
-                                    
+
                                     // Helper function to get score class and text
                                     const getScoreInfo = (score) => {
                                         if (score >= 90) return { class: 'score-excellent', text: t('sessions.scoreExcellent') };
@@ -425,7 +435,7 @@ const SessionCard = React.memo(function SessionCard({
                                         if (score >= 40) return { class: 'score-poor', text: t('sessions.scorePoor') };
                                         return { class: 'score-very-poor', text: t('sessions.scoreVeryPoor') };
                                     };
-                                    
+
                                     return (
                                         <>
                                             {content.advisor_performance_score && (
@@ -449,9 +459,9 @@ const SessionCard = React.memo(function SessionCard({
             </div>
 
             {/* Report Actions */}
-            <div className="session-actions">                
+            <div className="session-actions">
                 {isReportAvailable(reportsByType.client) && (
-                    <button 
+                    <button
                         className="report-btn client-btn"
                         onClick={() => navigate(`/reports/${session.id}`)}
                         title={t('sessions.viewReports')}
@@ -461,13 +471,13 @@ const SessionCard = React.memo(function SessionCard({
                         {i18n.language === 'he' ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
                     </button>
                 )}
-                
-                {!isReportAvailable(reportsByType.adviser) && 
-                 !isReportAvailable(reportsByType.client) && (
-                    <div className="no-reports">
-                        <span>{t('sessions.noReportsAvailable')}</span>
-                    </div>
-                )}
+
+                {!isReportAvailable(reportsByType.adviser) &&
+                    !isReportAvailable(reportsByType.client) && (
+                        <div className="no-reports">
+                            <span>{t('sessions.noReportsAvailable')}</span>
+                        </div>
+                    )}
             </div>
         </div>
     );

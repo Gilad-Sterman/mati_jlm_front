@@ -241,6 +241,32 @@
         flex-direction: column;
         gap: $spacing-lg;
 
+        .sessions-avg {
+            display: flex;
+            flex-direction: row;
+            gap: $spacing-lg;
+            margin-bottom: $spacing-lg;
+
+            .avg-item {
+                display: flex;
+                flex-direction: column;
+                gap: $spacing-xs;
+                align-items: center;
+                
+                .avg-label {
+                    font-size: $font-size-xs;
+                    color: $text-muted;
+                    font-weight: 500;
+                }
+                
+                .avg-value {
+                    font-size: $font-size-lg;
+                    font-weight: 600;
+                    color: $primary-color;
+                }
+            }
+        }
+
         .session-card {
             background: $white-color;
             border-radius: $border-radius-lg;

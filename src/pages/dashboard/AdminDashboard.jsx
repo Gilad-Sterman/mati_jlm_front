@@ -1,19 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { 
-    Users, 
-    FileText, 
-    TrendingUp, 
-    Activity, 
-    CheckCircle, 
-    AlertCircle, 
-    Calendar, 
-    BarChart3, 
+import {
+    Users,
+    FileText,
+    TrendingUp,
+    Activity,
+    CheckCircle,
+    AlertCircle,
+    Calendar,
+    BarChart3,
     Settings,
     Award,
     TrendingDown,
     Star,
-    UserCheck
+    UserCheck,
+    Link,
+    ExternalLink,
+    Link2Off,
+    Eye
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -33,6 +37,38 @@ export function AdminDashboard() {
             completed: 20,
             failed: 2
         },
+        lastSessions: [
+            {
+                id: 1,
+                title: "פגישה עם אריק",
+                status: "הושלם",
+                advisor: "Sarah Cohen",
+                entrepreneur: "David Levi",
+                date: "2023-06-15",
+                score: 85,
+                scoreColor: "high"
+            },
+            {
+                id: 2,
+                title: "מיכאל ורחל - פגישה 4",
+                status: "בתהליך",
+                advisor: "Rachel Ben-David",
+                entrepreneur: "Michael Green",
+                date: "2023-06-14",
+                score: 72,
+                scoreColor: "medium"
+            },
+            {
+                id: 3,
+                title: "סטרטאפ טכנולוגי",
+                status: "נכשל",
+                advisor: "Lisa Brown",
+                entrepreneur: "Tom Wilson",
+                date: "2023-06-13",
+                score: 65,
+                scoreColor: "low"
+            }
+        ],
         averageScores: {
             advisorPerformance: 78.5,
             entrepreneurReadiness: 72.3
@@ -99,7 +135,7 @@ export function AdminDashboard() {
                 // TODO: Replace with real API call
                 // const response = await dashboardService.getDashboardStats();
                 // setDashboardData(response.data);
-                
+
                 // Simulate API delay
                 setTimeout(() => {
                     setDashboardData(demoData);
@@ -118,38 +154,31 @@ export function AdminDashboard() {
     // Calculate stats from data
     const getStats = () => {
         if (!dashboardData) return [];
-        
+
         const { totalSessions, sessionsByStatus, averageScores } = dashboardData;
         const completionRate = ((sessionsByStatus.completed / totalSessions) * 100).toFixed(1);
-        
+
         return [
-            { 
-                icon: FileText, 
-                label: t('dashboard.totalSessions'), 
-                value: totalSessions.toLocaleString(), 
-                change: "+8.2%", 
-                trend: "up" 
+            {
+                icon: FileText,
+                label: t('dashboard.totalSessions'),
+                value: totalSessions.toLocaleString(),
+                change: "+8.2%",
+                trend: "up"
             },
-            { 
-                icon: CheckCircle, 
-                label: t('dashboard.completionRate'), 
-                value: `${completionRate}%`, 
-                change: "+2.1%", 
-                trend: "up" 
+            {
+                icon: TrendingUp,
+                label: t('dashboard.avgAdvisorScore'),
+                value: `${averageScores.advisorPerformance}%`,
+                change: "+1.5%",
+                trend: "up"
             },
-            { 
-                icon: TrendingUp, 
-                label: t('dashboard.avgAdvisorScore'), 
-                value: `${averageScores.advisorPerformance}%`, 
-                change: "+1.5%", 
-                trend: "up" 
-            },
-            { 
-                icon: Activity, 
-                label: t('dashboard.avgEntrepreneurScore'), 
-                value: `${averageScores.entrepreneurReadiness}%`, 
-                change: "+3.2%", 
-                trend: "up" 
+            {
+                icon: Activity,
+                label: t('dashboard.avgEntrepreneurScore'),
+                value: `${averageScores.entrepreneurReadiness}%`,
+                change: "+3.2%",
+                trend: "up"
             }
         ];
     };
@@ -202,28 +231,23 @@ export function AdminDashboard() {
                     ))}
                 </div>
 
-                {/* Session Status Breakdown */}
+                {/* Last Sessions */}
                 <div className="dashboard-section">
                     <div className="section-header">
-                        <h2>{t('dashboard.sessionBreakdown')}</h2>
+                        <h2>{t('dashboard.lastSessions')}</h2>
                         <button className="btn btn-primary" onClick={() => navigate('/sessions')}>{t('dashboard.viewAllSessions')}</button>
                     </div>
-                    <div className="status-breakdown">
-                        {Object.entries(dashboardData.sessionsByStatus).map(([status, count]) => (
-                            <div key={status} className="status-item">
-                                <div className="status-info">
-                                    <span className="status-label">{t(`sessions.status.${status}`)}</span>
-                                    <span className="status-count">{count}</span>
+                    <div className="last-sessions">
+                        {dashboardData?.lastSessions?.map((session) => (
+                            <div key={session.id} className="last-session">
+                                <div className="session-info">
+                                    <span className="session-title">{session.title}</span>
+                                    <span className="session-status">{session.status}</span>
+                                    <span className="session-date">{session.date}</span>
+                                    <span className="session-entrepreneur">{session.entrepreneur}</span>
+                                    <span className="session-adviser">{session.adviser}</span>
+                                    <span className={`session-score ${session.scoreColor}`}>{session.score}</span>
                                 </div>
-                                <div className="status-bar">
-                                    <div 
-                                        className={`status-fill status-${status}`}
-                                        style={{ width: `${(count / dashboardData.totalSessions) * 100}%` }}
-                                    ></div>
-                                </div>
-                                <span className="status-percentage">
-                                    {((count / dashboardData.totalSessions) * 100).toFixed(1)}%
-                                </span>
                             </div>
                         ))}
                     </div>
@@ -255,50 +279,14 @@ export function AdminDashboard() {
                                             </div>
                                         </div>
                                         <div className="adviser-score">
-                                            <div 
+                                            <div
                                                 className="score-circle"
                                                 style={{ backgroundColor: getScoreColor(adviser.averageScore) }}
                                             >
                                                 {adviser.averageScore}%
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Worst Advisers */}
-                    <div className="dashboard-card">
-                        <div className="card-header">
-                            <div className="header-title">
-                                <TrendingDown size={20} />
-                                <h3>{t('dashboard.needsImprovement')}</h3>
-                            </div>
-                        </div>
-                        <div className="card-content">
-                            <div className="advisers-list">
-                                {dashboardData.worstAdvisers.map((adviser, index) => (
-                                    <div key={adviser.id} className="adviser-item worst-adviser">
-                                        <div className="adviser-rank">
-                                            <span className="rank-number">#{index + 1}</span>
-                                        </div>
-                                        <div className="adviser-info">
-                                            <div className="adviser-name">{adviser.name}</div>
-                                            <div className="adviser-email">{adviser.email}</div>
-                                            <div className="adviser-stats">
-                                                <span>{adviser.totalSessions} {t('dashboard.sessions')}</span>
-                                                <span>{adviser.successRate}% {t('dashboard.successRate')}</span>
-                                            </div>
-                                        </div>
-                                        <div className="adviser-score">
-                                            <div 
-                                                className="score-circle"
-                                                style={{ backgroundColor: getScoreColor(adviser.averageScore) }}
-                                            >
-                                                {adviser.averageScore}%
-                                            </div>
-                                        </div>
+                                        <button className="btn btn-primary view-adviser-sessions" onClick={() => navigate(`/sessions?adviser_id=${adviser.id}`)}>{t('dashboard.viewAdviserSessions')}</button>
                                     </div>
                                 ))}
                             </div>

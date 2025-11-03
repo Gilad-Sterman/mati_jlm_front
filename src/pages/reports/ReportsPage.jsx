@@ -2,14 +2,14 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { ArrowLeft, FileText, User, Calendar, Clock, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
-import { 
-    fetchReportsForSession, 
-    regenerateClientReport, 
-    regenerationStarted, 
-    regenerationCompleted, 
+import { ArrowLeft, FileText, User, Calendar, Clock, ChevronDown, ChevronUp, RefreshCw, BookOpenText, FileWarning, FileCheck, FileQuestion, Flag } from 'lucide-react';
+import {
+    fetchReportsForSession,
+    regenerateClientReport,
+    regenerationStarted,
+    regenerationCompleted,
     regenerationError,
-    selectIsRegeneratingSessionReports 
+    selectIsRegeneratingSessionReports
 } from '../../store/reportSlice';
 import { fetchSessionById } from '../../store/sessionSlice';
 import { RegenerateModal } from './components/RegenerateModal';
@@ -24,7 +24,7 @@ export function ReportsPage() {
     const [loading, setLoading] = useState(true);
     const [showRegenerateModal, setShowRegenerateModal] = useState(false);
     const [isSubmittingRegeneration, setIsSubmittingRegeneration] = useState(false);
-    
+
     // Socket connection for regeneration events
     const { socketConnected, socketService } = useAppSocket();
 
@@ -85,9 +85,9 @@ export function ReportsPage() {
 
         const handleRegenerationComplete = (data) => {
             if (data.sessionId === sessionId) {
-                dispatch(regenerationCompleted({ 
-                    sessionId, 
-                    report: data.report 
+                dispatch(regenerationCompleted({
+                    sessionId,
+                    report: data.report
                 }));
                 // Refresh reports to get the new version
                 dispatch(fetchReportsForSession(sessionId));
@@ -97,9 +97,9 @@ export function ReportsPage() {
         const handleRegenerationError = (data) => {
             console.error('❌ Regeneration error:', data);
             if (data.sessionId === sessionId) {
-                dispatch(regenerationError({ 
-                    sessionId, 
-                    error: data.message || 'Regeneration failed' 
+                dispatch(regenerationError({
+                    sessionId,
+                    error: data.message || 'Regeneration failed'
                 }));
             }
         };
@@ -216,12 +216,23 @@ export function ReportsPage() {
                         <div className="report-section client-section">
                             <div className="report-section-header">
                                 <div className="header-left">
-                                    <h2>{t('reports.clientReport')}</h2>
-                                    <span className="report-type-badge client">{t('reports.clientFacing')}</span>
+                                    <div>
+                                        <h2>{t('reports.clientReport')}</h2>
+                                        <span className="client-report-msg">{t('reports.clientFacing')}</span>
+                                    </div>
                                     {clientReport && clientReport.version_number > 1 && (
                                         <span className="version-badge">
                                             {t('reports.regenerated')} v{clientReport.version_number}
                                         </span>
+                                    )}
+                                    {clientReport && (
+                                        <button
+                                            className="export-pdf-button"
+                                            title={t('reports.exportAsPDF')}
+                                        >
+                                            <FileText size={16} />
+                                            {t('reports.exportAsPDF')}
+                                        </button>
                                     )}
                                 </div>
                                 {clientReport && (
@@ -289,7 +300,7 @@ export function ReportsPage() {
 }
 
 // Collapsible Section Component
-function CollapsibleSection({ title, children, defaultOpen = true }) {
+function CollapsibleSection({ title, children, defaultOpen = true, icon }) {
     const [isOpen, setIsOpen] = useState(defaultOpen);
 
     return (
@@ -298,7 +309,7 @@ function CollapsibleSection({ title, children, defaultOpen = true }) {
                 className="collapsible-header"
                 onClick={() => setIsOpen(!isOpen)}
             >
-                <h3>{title}</h3>
+                <h3> {icon} {title}</h3>
                 {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
             </button>
             {isOpen && (
@@ -328,14 +339,51 @@ function ClientReportDisplay({ report }) {
         <div className="client-report-content">
             {/* Executive Summary */}
             {content.executive_summary && (
-                <CollapsibleSection title={t('reports.executiveSummary')} defaultOpen={true}>
+                <CollapsibleSection title={t('reports.executiveSummary')} defaultOpen={true} icon={<BookOpenText size={20} />}>
                     <p>{content.executive_summary}</p>
                 </CollapsibleSection>
             )}
 
             {/* Entrepreneur Needs */}
-            {content.entrepreneur_needs && (
-                <CollapsibleSection title={t('reports.entrepreneurNeeds')} defaultOpen={true}>
+            {content.entrepreneur_needs?.length > 0 && (
+                <CollapsibleSection title={t('reports.entrepreneurNeeds')} defaultOpen={true} icon={<FileQuestion size={20} />}>
+                    {content.entrepreneur_needs.map((need, index) => (
+                        <div className="need-item" key={index}>
+                            <h4>{t('reports.needConceptualization')}: {need.need_conceptualization}</h4>
+                            <p>{need.need_explanation}</p>
+                            {need.supporting_quotes && need.supporting_quotes.length > 0 && (
+                                <div className="quotes-section">
+                                    <h5>{t('reports.supportingQuotes')}</h5>
+                                    <ul className="quotes-list">
+                                        {need.supporting_quotes.map((quote, index) => (
+                                            <li key={index} className="quote-item">"{quote}"</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                    {content.entrepreneur_needs.need_explanation && (
+                        <div className="need-item">
+                            <h4>{t('reports.needExplanation')}</h4>
+                            <p>{content.entrepreneur_needs.need_explanation}</p>
+                        </div>
+                    )}
+                    {content.entrepreneur_needs.supporting_quotes && content.entrepreneur_needs.supporting_quotes.length > 0 && (
+                        <div className="quotes-section">
+                            <h4>{t('reports.supportingQuotes')}</h4>
+                            <ul className="quotes-list">
+                                {content.entrepreneur_needs.supporting_quotes.map((quote, index) => (
+                                    <li key={index} className="quote-item">"{quote}"</li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                </CollapsibleSection>
+            )}
+
+            {content.entrepreneur_needs.need_conceptualization && (
+                <CollapsibleSection title={t('reports.entrepreneurNeeds')} defaultOpen={true} icon={<FileQuestion size={20} />}>
                     {content.entrepreneur_needs.need_conceptualization && (
                         <div className="need-item">
                             <h4>{t('reports.needConceptualization')}</h4>
@@ -362,8 +410,45 @@ function ClientReportDisplay({ report }) {
             )}
 
             {/* Advisor Solutions */}
-            {content.advisor_solutions && (
-                <CollapsibleSection title={t('reports.advisorSolutions')} defaultOpen={true}>
+            {content.advisor_solutions?.length > 0 && (
+                <CollapsibleSection title={t('reports.advisorSolutions')} defaultOpen={true} icon={<FileQuestion size={20} />}>
+                    {content.advisor_solutions.map((solution, index) => (
+                        <div className="need-item" key={index}>
+                            <h4>{t('reports.solutionConceptualization')}: {solution.solution_conceptualization}</h4>
+                            <p>{solution.solution_explanation}</p>
+                            {solution.supporting_quotes && solution.supporting_quotes.length > 0 && (
+                                <div className="quotes-section">
+                                    <h5>{t('reports.supportingQuotes')}</h5>
+                                    <ul className="quotes-list">
+                                        {solution.supporting_quotes.map((quote, index) => (
+                                            <li key={index} className="quote-item">"{quote}"</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                    {content.advisor_solutions.solution_explanation && (
+                        <div className="need-item">
+                            <h4>{t('reports.solutionExplanation')}</h4>
+                            <p>{content.advisor_solutions.solution_explanation}</p>
+                        </div>
+                    )}
+                    {content.entrepreneur_needs.supporting_quotes && content.entrepreneur_needs.supporting_quotes.length > 0 && (
+                        <div className="quotes-section">
+                            <h4>{t('reports.supportingQuotes')}</h4>
+                            <ul className="quotes-list">
+                                {content.entrepreneur_needs.supporting_quotes.map((quote, index) => (
+                                    <li key={index} className="quote-item">"{quote}"</li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                </CollapsibleSection>
+            )}
+
+            {content.advisor_solutions.solution_conceptualization && (
+                <CollapsibleSection title={t('reports.advisorSolutions')} defaultOpen={true} icon={<FileCheck size={20} />}>
                     {content.advisor_solutions.solution_conceptualization && (
                         <div className="solution-item">
                             <h4>{t('reports.solutionConceptualization')}</h4>
@@ -391,7 +476,7 @@ function ClientReportDisplay({ report }) {
 
             {/* Agreed Actions */}
             {content.agreed_actions && (
-                <CollapsibleSection title={t('reports.agreedActions')} defaultOpen={true}>
+                <CollapsibleSection title={t('reports.agreedActions')} defaultOpen={true} icon={<Flag size={20} />}>
                     {content.agreed_actions.immediate_actions && content.agreed_actions.immediate_actions.length > 0 && (
                         <div className="actions-item">
                             <h4>{t('reports.immediateActions')}</h4>
@@ -410,6 +495,7 @@ function ClientReportDisplay({ report }) {
                     )}
                 </CollapsibleSection>
             )}
+
         </div>
     );
 }
@@ -501,9 +587,6 @@ function AdvisorReportDisplay({ report }) {
                                 <span className="score-number" style={{ color: getScoreInfo(content.entrepreneur_readiness_score).color }}>
                                     {content.entrepreneur_readiness_score}%
                                 </span>
-                                <span className="score-description" style={{ color: getScoreInfo(content.entrepreneur_readiness_score).color }}>
-                                    {getScoreInfo(content.entrepreneur_readiness_score).text}
-                                </span>
                             </div>
                         </div>
                     </div>
@@ -520,11 +603,45 @@ function AdvisorReportDisplay({ report }) {
                                 <span className="score-number" style={{ color: getScoreInfo(content.advisor_performance_score).color }}>
                                     {content.advisor_performance_score}%
                                 </span>
-                                <span className="score-description" style={{ color: getScoreInfo(content.advisor_performance_score).color }}>
-                                    {getScoreInfo(content.advisor_performance_score).text}
-                                </span>
                             </div>
                         </div>
+                    </div>
+                </div>
+                <div className="score-breakdown">
+                    <h4>{t('reports.scoreBreakdown')}</h4>
+                    <div className="score-breakdown-content adviser">
+                        <h5>{t('reports.advisorPerformance')}</h5>
+                        <ul>
+                            <li>
+                                <span>{t('reports.adviserBreakdown1')}: 25%</span>
+                            </li>
+                            <li>
+                                <span>{t('reports.adviserBreakdown2')}: 25%</span>
+                            </li>
+                            <li>
+                                <span>{t('reports.adviserBreakdown3')}: 25%</span>
+                            </li>
+                            <li>
+                                <span>{t('reports.adviserBreakdown4')}: 25%</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div className="score-breakdown-content entrepreneur">
+                        <h5>{t('reports.entrepreneurReadiness')}</h5>
+                        <ul>
+                            <li>
+                                <span>{t('reports.entrepreneurBreakdown1')}: 25%</span>
+                            </li>
+                            <li>
+                                <span>{t('reports.entrepreneurBreakdown2')}: 25%</span>
+                            </li>
+                            <li>
+                                <span>{t('reports.entrepreneurBreakdown3')}: 25%</span>
+                            </li>
+                            <li>
+                                <span>{t('reports.entrepreneurBreakdown4')}: 25%</span>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </CollapsibleSection>
@@ -532,20 +649,20 @@ function AdvisorReportDisplay({ report }) {
             {/* Feedback Section */}
             <CollapsibleSection title={t('reports.feedback')} defaultOpen={true}>
                 {/* Points to Preserve */}
-                {content.points_to_preserve && (
+                {content.points_to_preserve?.length > 0 && (
                     <div className="feedback-section">
                         <h4>{t('reports.pointsToPreserve')}</h4>
                         <div className="points-content positive">
-                            {content.points_to_preserve.demonstrations && content.points_to_preserve.demonstrations.length > 0 && (
+                            {content.points_to_preserve.map((point, index) => (
                                 <div className="points-item">
-                                    <h5>{t('reports.demonstrations')}</h5>
                                     <ul>
-                                        {content.points_to_preserve.demonstrations.map((demo, index) => (
-                                            <li key={index}>{demo}</li>
-                                        ))}
+                                        <li key={index}>
+                                            <span className="title">{point.title}:</span>
+                                            <span>{point.description}</span>
+                                        </li>
                                     </ul>
                                 </div>
-                            )}
+                            ))}
                             {content.points_to_preserve.supporting_quotes && content.points_to_preserve.supporting_quotes.length > 0 && (
                                 <div className="quotes-section">
                                     <h5>{t('reports.supportingQuotes')}</h5>
@@ -559,6 +676,35 @@ function AdvisorReportDisplay({ report }) {
                         </div>
                     </div>
                 )}
+
+                {typeof content.points_to_preserve === 'object' && content.points_to_preserve.demonstrations && (
+                    <div className="feedback-section">
+                        <h4>{t('reports.pointsToPreserve')}</h4>
+                        <div className="points-content positive">
+                            <div className="points-item">
+                                <ul>
+                                    {content.points_to_preserve.demonstrations.map((point, index) => (
+                                        <li key={index}>
+                                            <span>{point}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                            {/* {content.points_to_preserve.supporting_quotes && content.points_to_preserve.supporting_quotes.length > 0 && (
+                                <div className="quotes-section">
+                                    <h5>{t('reports.supportingQuotes')}</h5>
+                                    <ul className="quotes-list">
+                                        {content.points_to_preserve.supporting_quotes.map((quote, index) => (
+                                            <li key={index} className="quote-item">"{quote}"</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )} */}
+                        </div>
+                    </div>
+                )}
+
+
 
                 {/* Points for Improvement */}
                 {content.points_for_improvement && (
@@ -585,7 +731,7 @@ function AdvisorReportDisplay({ report }) {
                                     </ul>
                                 </div>
                             )}
-                            {content.points_for_improvement.supporting_quotes && content.points_for_improvement.supporting_quotes.length > 0 && (
+                            {/* {content.points_for_improvement.supporting_quotes && content.points_for_improvement.supporting_quotes.length > 0 && (
                                 <div className="quotes-section">
                                     <h5>{t('reports.supportingQuotes')}</h5>
                                     <ul className="quotes-list">
@@ -594,7 +740,7 @@ function AdvisorReportDisplay({ report }) {
                                         ))}
                                     </ul>
                                 </div>
-                            )}
+                            )} */}
                         </div>
                     </div>
                 )}
