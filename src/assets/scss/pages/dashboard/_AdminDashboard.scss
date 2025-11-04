@@ -186,120 +186,192 @@
 
             .last-sessions {
                 padding: $spacing-xl;
+                display: flex;
+                flex-direction: column;
+                gap: $spacing-md;
 
-                .last-session {
-                    display: flex;
-                    align-items: center;
-                    gap: $spacing-md;
-                    margin-bottom: $spacing-lg;
-                    background-color: #2ecc710d;
-                    border: 1px solid #2ecc70cc;
-                    padding: $spacing-lg $spacing-xl;
-                    border-radius: $border-radius-sm;
-                    color: $text-color;
+                .session-card {
+                    background: $white-color;
+                    border: 1px solid $border-color;
+                    border-radius: $border-radius-md;
+                    padding: $spacing-md;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 
-                    &:last-child {
-                        margin-bottom: 0;
+                    &:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+                        border-color: rgba($secondary-color, 0.3);
                     }
 
-                    .session-info {
-                        min-width: 200px;
-                        display: grid;
-                        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-                        width: 100%;
+                    .session-header {
+                        display: flex;
                         justify-content: space-between;
-                        align-items: center;
+                        align-items: flex-start;
+                        margin-bottom: $spacing-sm;
+                        padding-bottom: $spacing-sm;
+                        border-bottom: 1px solid rgba($border-color, 0.5);
 
-                        .session-label {
-                            font-size: $font-size-sm;
-                            font-weight: bold;
+                        .session-title-section {
+                            flex: 1;
+
+                            .session-title {
+                                font-size: $font-size-lg;
+                                font-weight: 600;
+                                color: $primary-color;
+                                margin: 0 0 $spacing-xs;
+                                line-height: 1.3;
+                            }
+
+                            .session-status {
+                                display: inline-block;
+                                padding: $spacing-xs $spacing-sm;
+                                background: rgba($success-color, 0.1);
+                                color: $success-color;
+                                border-radius: $border-radius-xs;
+                                font-size: $font-size-xs;
+                                font-weight: 600;
+                            }
                         }
 
-                        .session-count {
-                            font-size: $font-size-md;
-                            font-weight: 600;
-                        }
+                        .session-date-time {
+                            text-align: right;
+                            color: $text-muted;
 
-                        .session-date {
-                            font-size: $font-size-sm;
-                            font-weight: 500;
-                        }
+                            .session-date {
+                                display: block;
+                                font-size: $font-size-sm;
+                                font-weight: 500;
+                                margin-bottom: $spacing-xs;
+                            }
 
-                        .session-entrepreneur {
-                            font-size: $font-size-sm;
-                            font-weight: 500;
+                            .session-time {
+                                display: block;
+                                font-size: $font-size-xs;
+                                color: $text-muted;
+                            }
                         }
+                    }
 
-                        .session-adviser {
-                            font-size: $font-size-sm;
-                            font-weight: 500;
-                            color: $text-color;
-                        }
-                        .session-score {
-                            font-size: $font-size-sm;
-                            font-weight: 500;
-                            width: 30px;
-                            height: 30px;
-                            border-radius: 50%;
-                            padding: $spacing-xs $spacing-sm;
+                    .session-participants {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: $spacing-md;
+                        margin-bottom: $spacing-sm;
+
+                        .participant {
                             display: flex;
-                            align-items: center;
+                            justify-content: space-between;
+                            align-items: flex-start;
+                            gap: $spacing-sm;
+
+                            .participant-info {
+                                flex: 1;
+
+                                .participant-label {
+                                    display: block;
+                                    font-size: $font-size-xs;
+                                    font-weight: 600;
+                                    color: $text-muted;
+                                    text-transform: uppercase;
+                                    letter-spacing: 0.5px;
+                                    margin-bottom: $spacing-xs;
+                                }
+
+                                .participant-name {
+                                    display: block;
+                                    font-size: $font-size-md;
+                                    font-weight: 600;
+                                    color: $primary-color;
+                                    margin-bottom: $spacing-xs;
+                                }
+
+                                .participant-email {
+                                    display: block;
+                                    font-size: $font-size-xs;
+                                    color: $text-muted;
+                                    margin-bottom: $spacing-xs;
+                                }
+
+                                .participant-domain {
+                                    display: block;
+                                    font-size: $font-size-xs;
+                                    color: $secondary-color;
+                                    font-weight: 500;
+                                }
+                            }
+
+                            .score-badge {
+                                width: 36px;
+                                height: 36px;
+                                border-radius: 50%;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                font-size: $font-size-xs;
+                                font-weight: 700;
+                                color: $white-color;
+                                flex-shrink: 0;
+                                direction: ltr;
+
+                                &.high {
+                                    background: $success-color;
+                                }
+
+                                &.medium {
+                                    background: $warning-color;
+                                }
+
+                                &.low {
+                                    background: $danger-color;
+                                }
+                            }
+                        }
+                    }
+
+
+                    .session-footer {
+                        display: flex;
+                        justify-content: flex-end;
+                        align-items: center;
+                        padding-top: $spacing-sm;
+                        border-top: 1px solid rgba($border-color, 0.5);
+
+                        .btn {
+                            &.btn-sm {
+                                padding: $spacing-sm $spacing-md;
+                                font-size: $font-size-xs;
+                            }
+
+                            &.btn-primary {
+                                background: linear-gradient(135deg, $secondary-color 0%, #2980b9 100%);
+                                color: $white-color;
+                                border: none;
+                                font-weight: 600;
+                                border-radius: $border-radius-sm;
+                                cursor: pointer;
+                                transition: all 0.3s ease;
+
+                                &:hover {
+                                    transform: translateY(-1px);
+                                    box-shadow: 0 4px 12px rgba($secondary-color, 0.3);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Responsive design for session cards
+                @media (max-width: 768px) {
+                    .session-card {
+                        .session-participants {
+                            grid-template-columns: 1fr;
+                            gap: $spacing-sm;
+                        }
+
+                        .session-footer {
                             justify-content: center;
-                            color: $white-color;
-                            opacity: 0.8;
-
-                            &.high {
-                                background-color: $success-color;
-                            }
-                            &.medium {
-                                background-color: $warning-color;
-                            }
-                            &.low {
-                                background-color: $danger-color;
-                            }
                         }
-                    }
-
-                    .status-bar {
-                        flex: 1;
-                        height: 8px;
-                        background-color: rgba($border-color, 0.3);
-                        border-radius: 4px;
-                        overflow: hidden;
-
-                        .status-fill {
-                            height: 100%;
-                            border-radius: 4px;
-                            transition: width 0.3s ease;
-
-                            &.status-uploaded {
-                                background-color: $info-color;
-                            }
-
-                            &.status-processing {
-                                background-color: $warning-color;
-                            }
-
-                            &.status-reports_generated {
-                                background-color: $success-color;
-                            }
-
-                            &.status-completed {
-                                background-color: darken($success-color, 10%);
-                            }
-
-                            &.status-failed {
-                                background-color: $danger-color;
-                            }
-                        }
-                    }
-
-                    .status-percentage {
-                        min-width: 50px;
-                        text-align: right;
-                        font-size: $font-size-sm;
-                        font-weight: 600;
-                        color: $text-muted;
                     }
                 }
             }

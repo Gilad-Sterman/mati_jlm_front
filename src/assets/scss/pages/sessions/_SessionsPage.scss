@@ -146,6 +146,20 @@
                     font-size: $font-size-xs;
                     color: $text-muted;
                     font-weight: 500;
+                    display: flex;
+                    align-items: center;
+                    gap: $spacing-xs;
+
+                    .filter-badge {
+                        background: rgba($secondary-color, 0.1);
+                        color: $secondary-color;
+                        padding: 2px $spacing-xs;
+                        border-radius: $border-radius-xs;
+                        font-size: $font-size-xs;
+                        font-weight: 600;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                    }
                 }
                 
                 select {

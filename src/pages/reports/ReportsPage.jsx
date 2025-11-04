@@ -654,9 +654,9 @@ function AdvisorReportDisplay({ report }) {
                         <h4>{t('reports.pointsToPreserve')}</h4>
                         <div className="points-content positive">
                             {content.points_to_preserve.map((point, index) => (
-                                <div className="points-item">
+                                <div className="points-item" key={index}>
                                     <ul>
-                                        <li key={index}>
+                                        <li>
                                             <span className="title">{point.title}:</span>
                                             <span>{point.description}</span>
                                         </li>

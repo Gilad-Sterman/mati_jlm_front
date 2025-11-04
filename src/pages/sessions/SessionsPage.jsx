@@ -2,7 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { fetchSessionsWithReports } from "../../store/sessionSlice";
 import { FileAudio, Calendar, User, Building, Clock, FileText, ChevronRight, Eye, ChevronLeft, Loader2, Search, Filter, SortAsc, SortDesc } from "lucide-react";
 
@@ -10,6 +10,7 @@ export function SessionsPage() {
     const { t, i18n } = useTranslation();
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
 
     // Redux state
     const sessions = useSelector(state => state.sessions.sessions);
@@ -17,10 +18,10 @@ export function SessionsPage() {
     const currentUser = useSelector(state => state.auth.user);
     const isAdmin = currentUser?.role === 'admin';
 
-    // Search, filter, and sort state
+    // Initialize filters from URL parameters
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
-    const [adviserFilter, setAdviserFilter] = useState('');
+    const [adviserFilter, setAdviserFilter] = useState(searchParams.get('adviser_id') || '');
     const [sortBy, setSortBy] = useState('created_at');
     const [sortDirection, setSortDirection] = useState('desc');
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
@@ -46,6 +47,14 @@ export function SessionsPage() {
 
         dispatch(fetchSessionsWithReports(params));
     }, [dispatch, debouncedSearchTerm, statusFilter, adviserFilter, sortBy, sortDirection, isAdmin]);
+
+    // Handle URL parameter changes (e.g., when navigating from dashboard)
+    useEffect(() => {
+        const adviserIdFromUrl = searchParams.get('adviser_id');
+        if (adviserIdFromUrl && adviserIdFromUrl !== adviserFilter) {
+            setAdviserFilter(adviserIdFromUrl);
+        }
+    }, [searchParams, adviserFilter]);
 
     // Get unique advisers from sessions for admin filter (MOVED BEFORE EARLY RETURN)
     const uniqueAdvisers = React.useMemo(() => {
@@ -147,6 +156,9 @@ export function SessionsPage() {
         setAdviserFilter('');
         setSortBy('created_at');
         setSortDirection('desc');
+        
+        // Clear URL parameters
+        navigate('/sessions', { replace: true });
     };
 
     return (
@@ -193,7 +205,12 @@ export function SessionsPage() {
 
                     {isAdmin && (
                         <div className="filter-item">
-                            <label>{t('sessions.filterAdviser')}</label>
+                            <label>
+                                {t('sessions.filterAdviser')}
+                                {searchParams.get('adviser_id') && (
+                                    <span className="filter-badge">{t('sessions.fromDashboard')}</span>
+                                )}
+                            </label>
                             <select
                                 value={adviserFilter}
                                 onChange={(e) => setAdviserFilter(e.target.value)}

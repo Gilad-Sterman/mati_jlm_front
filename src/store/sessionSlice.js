@@ -141,6 +141,20 @@ export const fetchSessionById = createAsyncThunk(
   }
 );
 
+export const fetchDashboardStats = createAsyncThunk(
+  'sessions/fetchDashboardStats',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await sessionService.getSessionStats();
+      return response.data.stats;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to fetch dashboard stats'
+      );
+    }
+  }
+);
+
 // Initial state
 const initialState = {
   sessions: [],
@@ -159,6 +173,11 @@ const initialState = {
   transcriptionComplete: false,
   advisorReportGenerated: false,
   currentReport: null, // Generated advisor report data
+  
+  // Dashboard stats
+  dashboardStats: null,
+  isDashboardLoading: false,
+  dashboardError: null,
   
   error: null,
   pagination: {
@@ -413,6 +432,20 @@ const sessionSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
+      // Dashboard stats cases
+      .addCase(fetchDashboardStats.pending, (state) => {
+        state.isDashboardLoading = true;
+        state.dashboardError = null;
+      })
+      .addCase(fetchDashboardStats.fulfilled, (state, action) => {
+        state.isDashboardLoading = false;
+        state.dashboardStats = action.payload;
+        state.dashboardError = null;
+      })
+      .addCase(fetchDashboardStats.rejected, (state, action) => {
+        state.isDashboardLoading = false;
+        state.dashboardError = action.payload;
+      })
       // Reset session state on logout
       .addCase('auth/logout', (state) => {
         return {
@@ -454,6 +487,11 @@ export const selectUploadMessage = (state) => state.sessions.uploadMessage;
 export const selectCurrentUploadSession = (state) => state.sessions.currentUploadSession;
 export const selectUiState = (state) => state.sessions.uiState;
 export const selectError = (state) => state.sessions.error;
+
+// Dashboard selectors
+export const selectDashboardStats = (state) => state.sessions.dashboardStats;
+export const selectIsDashboardLoading = (state) => state.sessions.isDashboardLoading;
+export const selectDashboardError = (state) => state.sessions.dashboardError;
 
 // AI Processing selectors
 export const selectProcessingStage = (state) => state.sessions.processingStage;

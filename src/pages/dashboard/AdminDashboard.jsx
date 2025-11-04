@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useDispatch, useSelector } from 'react-redux';
 import {
     Users,
     FileText,
@@ -20,143 +21,35 @@ import {
     Eye
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { 
+    fetchDashboardStats, 
+    selectDashboardStats, 
+    selectIsDashboardLoading, 
+    selectDashboardError 
+} from '../../store/sessionSlice';
 
 export function AdminDashboard() {
     const { t } = useTranslation();
-    const [dashboardData, setDashboardData] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const dispatch = useDispatch();
     const navigate = useNavigate();
+    
+    // Redux selectors
+    const dashboardData = useSelector(selectDashboardStats);
+    const loading = useSelector(selectIsDashboardLoading);
+    const error = useSelector(selectDashboardError);
 
-    // Demo data structure - ready for API integration
-    const demoData = {
-        totalSessions: 47,
-        sessionsByStatus: {
-            uploaded: 5,
-            processing: 12,
-            reports_generated: 8,
-            completed: 20,
-            failed: 2
-        },
-        lastSessions: [
-            {
-                id: 1,
-                title: "פגישה עם אריק",
-                status: "הושלם",
-                advisor: "Sarah Cohen",
-                entrepreneur: "David Levi",
-                date: "2023-06-15",
-                score: 85,
-                scoreColor: "high"
-            },
-            {
-                id: 2,
-                title: "מיכאל ורחל - פגישה 4",
-                status: "בתהליך",
-                advisor: "Rachel Ben-David",
-                entrepreneur: "Michael Green",
-                date: "2023-06-14",
-                score: 72,
-                scoreColor: "medium"
-            },
-            {
-                id: 3,
-                title: "סטרטאפ טכנולוגי",
-                status: "נכשל",
-                advisor: "Lisa Brown",
-                entrepreneur: "Tom Wilson",
-                date: "2023-06-13",
-                score: 65,
-                scoreColor: "low"
-            }
-        ],
-        averageScores: {
-            advisorPerformance: 78.5,
-            entrepreneurReadiness: 72.3
-        },
-        topAdvisers: [
-            {
-                id: 1,
-                name: "Sarah Cohen",
-                email: "sarah.cohen@example.com",
-                averageScore: 92.5,
-                totalSessions: 156,
-                successRate: 98.1
-            },
-            {
-                id: 2,
-                name: "David Levi",
-                email: "david.levi@example.com",
-                averageScore: 89.2,
-                totalSessions: 134,
-                successRate: 96.3
-            },
-            {
-                id: 3,
-                name: "Rachel Ben-David",
-                email: "rachel.bendavid@example.com",
-                averageScore: 87.8,
-                totalSessions: 98,
-                successRate: 95.9
-            }
-        ],
-        worstAdvisers: [
-            {
-                id: 4,
-                name: "Michael Green",
-                email: "michael.green@example.com",
-                averageScore: 58.3,
-                totalSessions: 67,
-                successRate: 78.2
-            },
-            {
-                id: 5,
-                name: "Lisa Brown",
-                email: "lisa.brown@example.com",
-                averageScore: 61.7,
-                totalSessions: 45,
-                successRate: 82.1
-            },
-            {
-                id: 6,
-                name: "Tom Wilson",
-                email: "tom.wilson@example.com",
-                averageScore: 64.2,
-                totalSessions: 52,
-                successRate: 84.6
-            }
-        ]
-    };
-
-    // Simulate API call - ready for real implementation
+    // Fetch dashboard data on component mount
     useEffect(() => {
-        const fetchDashboardData = async () => {
-            try {
-                setLoading(true);
-                // TODO: Replace with real API call
-                // const response = await dashboardService.getDashboardStats();
-                // setDashboardData(response.data);
-
-                // Simulate API delay
-                setTimeout(() => {
-                    setDashboardData(demoData);
-                    setLoading(false);
-                }, 1000);
-            } catch (error) {
-                console.error('Error fetching dashboard data:', error);
-                setDashboardData(demoData); // Fallback to demo data
-                setLoading(false);
-            }
-        };
-
-        fetchDashboardData();
-    }, []);
+        dispatch(fetchDashboardStats());
+    }, [dispatch]);
 
     // Calculate stats from data
     const getStats = () => {
         if (!dashboardData) return [];
 
         const { totalSessions, sessionsByStatus, averageScores } = dashboardData;
-        const completionRate = ((sessionsByStatus.completed / totalSessions) * 100).toFixed(1);
+        const completedSessions = sessionsByStatus.completed || 0;
+        const completionRate = totalSessions > 0 ? ((completedSessions / totalSessions) * 100).toFixed(1) : '0.0';
 
         return [
             {
@@ -194,12 +87,46 @@ export function AdminDashboard() {
         return (
             <section className="admin-dashboard">
                 <div className="dashboard-header">
-                    <h1>{t('dashboard.header')}</h1>
+                    <h1>{t('common.dashboard')}</h1>
                     <p>{t('dashboard.loading')}</p>
                 </div>
                 <div className="loading-spinner">
                     <Activity size={48} className="animate-spin" />
                 </div>
+            </section>
+        );
+    }
+
+    if (error) {
+        return (
+            <section className="admin-dashboard">
+                <div className="dashboard-header">
+                    <h1>{t('common.dashboard')}</h1>
+                    <p className="error-message">Error loading dashboard: {error}</p>
+                </div>
+                <button 
+                    className="btn btn-primary" 
+                    onClick={() => dispatch(fetchDashboardStats())}
+                >
+                    {t('common.retry')}
+                </button>
+            </section>
+        );
+    }
+
+    if (!dashboardData && !loading) {
+        return (
+            <section className="admin-dashboard">
+                <div className="dashboard-header">
+                    <h1>{t('common.dashboard')}</h1>
+                    <p>No data available</p>
+                </div>
+                <button 
+                    className="btn btn-primary" 
+                    onClick={() => dispatch(fetchDashboardStats())}
+                >
+                    {t('common.loadData')}
+                </button>
             </section>
         );
     }
@@ -239,14 +166,57 @@ export function AdminDashboard() {
                     </div>
                     <div className="last-sessions">
                         {dashboardData?.lastSessions?.map((session) => (
-                            <div key={session.id} className="last-session">
-                                <div className="session-info">
-                                    <span className="session-title">{session.title}</span>
-                                    <span className="session-status">{session.status}</span>
-                                    <span className="session-date">{session.date}</span>
-                                    <span className="session-entrepreneur">{session.entrepreneur}</span>
-                                    <span className="session-adviser">{session.adviser}</span>
-                                    <span className={`session-score ${session.scoreColor}`}>{session.score}</span>
+                            <div key={session.id} className="session-card">
+                                <div className="session-header">
+                                    <div className="session-title-section">
+                                        <h4 className="session-title">{session.title}</h4>
+                                        <span className="session-status">{session.status}</span>
+                                    </div>
+                                    <div className="session-date-time">
+                                        <span className="session-date">{session.date}</span>
+                                        <span className="session-time">{session.time}</span>
+                                    </div>
+                                </div>
+
+                                <div className="session-participants">
+                                    <div className="participant advisor">
+                                        <div className="participant-info">
+                                            <span className="participant-label">{t('dashboard.advisor')}</span>
+                                            <span className="participant-name">{session.advisor.name}</span>
+                                            {session.advisor.email && (
+                                                <span className="participant-email">{session.advisor.email}</span>
+                                            )}
+                                        </div>
+                                        <div className={`score-badge ${session.scores.advisorColor}`}>
+                                            {session.scores.advisor}%
+                                        </div>
+                                    </div>
+                                    <div className="participant client">
+                                        <div className="participant-info">
+                                            <span className="participant-label">{t('dashboard.client')}</span>
+                                            <span className="participant-name">{session.client.name}</span>
+                                            {session.client.businessDomain && (
+                                                <span className="participant-domain">{session.client.businessDomain}</span>
+                                            )}
+                                        </div>
+                                        <div className={`score-badge ${session.scores.entrepreneurColor}`}>
+                                            {session.scores.entrepreneur}%
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Topics and file info hidden but data preserved */}
+                                
+                                <div className="session-footer">
+                                    {/* Only show button for sessions with reports */}
+                                    {session.scores && (session.scores.advisor > 0 || session.scores.entrepreneur > 0) && (
+                                        <button 
+                                            className="btn btn-sm btn-primary"
+                                            onClick={() => navigate(`/reports/${session.id}`)}
+                                        >
+                                            {t('dashboard.viewReports')}
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         ))}
@@ -265,7 +235,8 @@ export function AdminDashboard() {
                         </div>
                         <div className="card-content">
                             <div className="advisers-list">
-                                {dashboardData.topAdvisers.map((adviser, index) => (
+                                {dashboardData.topAdvisers && dashboardData.topAdvisers.length > 0 ? (
+                                    dashboardData.topAdvisers.map((adviser, index) => (
                                     <div key={adviser.id} className="adviser-item top-adviser">
                                         <div className="adviser-rank">
                                             <span className="rank-number">#{index + 1}</span>
@@ -288,7 +259,12 @@ export function AdminDashboard() {
                                         </div>
                                         <button className="btn btn-primary view-adviser-sessions" onClick={() => navigate(`/sessions?adviser_id=${adviser.id}`)}>{t('dashboard.viewAdviserSessions')}</button>
                                     </div>
-                                ))}
+                                    ))
+                                ) : (
+                                    <div className="no-data">
+                                        <p>{t('dashboard.noAdvisersData')}</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
