@@ -105,6 +105,67 @@
                 font-weight: 500;
                 animation: fadeIn 0.3s ease;
             }
+
+            .password-requirements {
+                margin-top: $spacing-md;
+                padding: $spacing-md;
+                background-color: #f8f9fa;
+                border-radius: $border-radius-sm;
+                border: 1px solid #e1e8ed;
+
+                .requirements-title {
+                    margin: 0 0 $spacing-sm;
+                    font-size: $font-size-xs;
+                    font-weight: 600;
+                    color: $text-color;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+
+                .requirements-list {
+                    margin: 0;
+                    padding: 0;
+                    list-style: none;
+
+                    li {
+                        display: flex;
+                        align-items: center;
+                        margin-bottom: $spacing-xs;
+                        font-size: $font-size-xs;
+                        transition: all 0.3s ease;
+
+                        &:last-child {
+                            margin-bottom: 0;
+                        }
+
+                        &::before {
+                            content: '✗';
+                            margin-right: $spacing-sm;
+                            font-weight: bold;
+                            font-size: 12px;
+                            width: 16px;
+                            text-align: center;
+                        }
+
+                        &.invalid {
+                            color: #6c757d;
+                            
+                            &::before {
+                                color: $danger-color;
+                            }
+                        }
+
+                        &.valid {
+                            color: $success-color;
+                            
+                            &::before {
+                                content: '✓';
+                                color: $success-color;
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         .login-button {
@@ -144,7 +205,7 @@
         padding: 0 $spacing-xl $spacing-xxl;
 
         p {
-            margin: 0;
+            margin: 0 0 $spacing-sm;
             color: #6c757d;
             font-size: $font-size-sm;
             cursor: pointer;
@@ -153,6 +214,36 @@
             &:hover {
                 color: $secondary-color;
             }
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+
+        .register-link {
+            color: $secondary-color;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+
+            &:hover {
+                color: $primary-color;
+                text-decoration: underline;
+            }
+        }
+    }
+
+    // Success message styling for register page
+    .success-message {
+        text-align: center;
+        padding: $spacing-xl;
+        color: $success-color;
+        font-size: $font-size-md;
+        font-weight: 500;
+        
+        p {
+            margin: 0;
+            animation: fadeIn 0.5s ease;
         }
     }
 }

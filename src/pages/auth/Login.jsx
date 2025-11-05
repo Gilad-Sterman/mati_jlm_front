@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { loginUser, clearError, selectAuth } from '../../store/authSlice';
 import authService from '../../services/authService';
@@ -188,6 +188,12 @@ export function Login() {
 
                 <div className="login-footer">
                     <p>{t('login.forgotPassword')}</p>
+                    <p>
+                        {t('login.noAccount')}{' '}
+                        <Link to="/register" className="register-link">
+                            {t('login.registerLink')}
+                        </Link>
+                    </p>
                 </div>
             </div>
         </section>

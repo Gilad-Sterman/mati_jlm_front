@@ -9,11 +9,54 @@
         "submit": "כניסה",
         "loggingIn": "מתחבר...",
         "forgotPassword": "שכחת את הסיסמה?",
+        "noAccount": "אין לך חשבון?",
+        "registerLink": "הרשמה כיועץ",
         "errors": {
             "emailRequired": "אימייל נדרש",
             "emailInvalid": "אנא הזן אימייל תקין",
             "passwordRequired": "סיסמה נדרשת",
             "passwordMinLength": "הסיסמה חייבת להכיל לפחות 6 תווים"
+        }
+    },
+    "register": {
+        "title": "הרשמה למערכת",
+        "subtitle": "צור חשבון יועץ",
+        "name": "שם מלא",
+        "namePlaceholder": "הזן את השם המלא שלך",
+        "email": "אימייל",
+        "emailPlaceholder": "הזן את האימייל שלך",
+        "password": "סיסמה",
+        "passwordPlaceholder": "הזן סיסמה",
+        "confirmPassword": "אישור סיסמה",
+        "confirmPasswordPlaceholder": "אשר את הסיסמה שלך",
+        "submit": "הרשמה",
+        "registering": "נרשם...",
+        "haveAccount": "כבר יש לך חשבון?",
+        "loginLink": "התחבר כאן",
+        "success": {
+            "title": "ההרשמה הושלמה בהצלחה!",
+            "message": "חשבון היועץ שלך נוצר בהצלחה.",
+            "redirecting": "מעביר לעמוד ההתחברות..."
+        },
+        "passwordRequirements": {
+            "title": "הסיסמה חייבת להכיל:",
+            "minLength": "לפחות 6 תווים",
+            "uppercase": "אות גדולה אחת (A-Z)",
+            "lowercase": "אות קטנה אחת (a-z)",
+            "number": "מספר אחד (0-9)"
+        },
+        "errors": {
+            "nameRequired": "שם מלא נדרש",
+            "nameMinLength": "השם חייב להכיל לפחות 2 תווים",
+            "emailRequired": "אימייל נדרש",
+            "emailInvalid": "אנא הזן אימייל תקין",
+            "passwordRequired": "סיסמה נדרשת",
+            "passwordMinLength": "הסיסמה חייבת להכיל לפחות 6 תווים",
+            "passwordUppercase": "הסיסמה חייבת להכיל לפחות אות גדולה אחת",
+            "passwordLowercase": "הסיסמה חייבת להכיל לפחות אות קטנה אחת",
+            "passwordNumber": "הסיסמה חייבת להכיל לפחות מספר אחד",
+            "confirmPasswordRequired": "אנא אשר את הסיסמה שלך",
+            "passwordMismatch": "הסיסמאות אינן תואמות"
         }
     },
     "common": {

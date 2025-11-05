@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { fetchSessionsWithReports } from "../../store/sessionSlice";
+import { fetchSessionsWithReports, selectAdvisers } from "../../store/sessionSlice";
 import { FileAudio, Calendar, User, Building, Clock, FileText, ChevronRight, Eye, ChevronLeft, Loader2, Search, Filter, SortAsc, SortDesc } from "lucide-react";
 
 export function SessionsPage() {
@@ -14,6 +14,7 @@ export function SessionsPage() {
 
     // Redux state
     const sessions = useSelector(state => state.sessions.sessions);
+    const advisers = useSelector(selectAdvisers);
     const isLoading = useSelector(state => state.sessions.isLoading);
     const currentUser = useSelector(state => state.auth.user);
     const isAdmin = currentUser?.role === 'admin';
@@ -56,22 +57,15 @@ export function SessionsPage() {
         }
     }, [searchParams, adviserFilter]);
 
-    // Get unique advisers from sessions for admin filter (MOVED BEFORE EARLY RETURN)
-    const uniqueAdvisers = React.useMemo(() => {
-        if (!isAdmin || !sessions.length) return [];
-
-        const advisersMap = new Map();
-        sessions.forEach(session => {
-            if (session.adviser && session.adviser.id) {
-                advisersMap.set(session.adviser.id, session.adviser.name || session.adviser.email);
-            }
-        });
-
-        return Array.from(advisersMap.entries()).map(([id, name]) => ({
-            value: id,
-            label: name
+    // Format advisers for dropdown
+    const formattedAdvisers = React.useMemo(() => {
+        if (!isAdmin || !advisers.length) return [];
+        
+        return advisers.map(adviser => ({
+            value: adviser.id,
+            label: `${adviser.name || adviser.email}${adviser.role === 'admin' ? ' (Admin)' : ''}`
         }));
-    }, [sessions, isAdmin]);
+    }, [advisers, isAdmin]);
 
     // Data is loaded when not loading (sessions can be empty due to filters)
     const dataLoaded = !isLoading;
@@ -213,10 +207,16 @@ export function SessionsPage() {
                             </label>
                             <select
                                 value={adviserFilter}
-                                onChange={(e) => setAdviserFilter(e.target.value)}
+                                onChange={(e) => {
+                                    setAdviserFilter(e.target.value);
+                                    // Clear URL parameters when changing filter manually
+                                    if (searchParams.get('adviser_id')) {
+                                        navigate('/sessions', { replace: true });
+                                    }
+                                }}
                             >
                                 <option value="">{t('sessions.filterAllAdvisers')}</option>
-                                {uniqueAdvisers.map(adviser => (
+                                {formattedAdvisers.map(adviser => (
                                     <option key={adviser.value} value={adviser.value}>
                                         {adviser.label}
                                     </option>

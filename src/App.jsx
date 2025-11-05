@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { Login } from './pages/auth/Login'
+import { Register } from './pages/auth/Register'
 import { Sidebar } from './layout/Sidebar'
 import { AppHeader } from './layout/AppHeader'
 import { PageContent } from './layout/main/PageContent'
@@ -38,8 +39,9 @@ function App() {
 
           <PageContent>
             <Routes>
-              {/* Public route - Login */}
+              {/* Public routes */}
               <Route path="/" element={<Login />} />
+              <Route path="/register" element={<Register />} />
 
               {/* Admin-only routes */}
               <Route

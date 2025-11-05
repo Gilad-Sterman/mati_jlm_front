@@ -9,11 +9,54 @@
         "submit": "Login",
         "loggingIn": "Logging in...",
         "forgotPassword": "Forgot your password?",
+        "noAccount": "Don't have an account?",
+        "registerLink": "Register as Adviser",
         "errors": {
             "emailRequired": "Email is required",
             "emailInvalid": "Please enter a valid email",
             "passwordRequired": "Password is required",
             "passwordMinLength": "Password must be at least 6 characters"
+        }
+    },
+    "register": {
+        "title": "Register to MATI -",
+        "subtitle": "Create your adviser account",
+        "name": "Full Name",
+        "namePlaceholder": "Enter your full name",
+        "email": "Email",
+        "emailPlaceholder": "Enter your email",
+        "password": "Password",
+        "passwordPlaceholder": "Enter your password",
+        "confirmPassword": "Confirm Password",
+        "confirmPasswordPlaceholder": "Confirm your password",
+        "submit": "Register",
+        "registering": "Registering...",
+        "haveAccount": "Already have an account?",
+        "loginLink": "Login here",
+        "success": {
+            "title": "Registration Successful!",
+            "message": "Your adviser account has been created successfully.",
+            "redirecting": "Redirecting to login page..."
+        },
+        "passwordRequirements": {
+            "title": "Password must contain:",
+            "minLength": "At least 6 characters",
+            "uppercase": "One uppercase letter (A-Z)",
+            "lowercase": "One lowercase letter (a-z)",
+            "number": "One number (0-9)"
+        },
+        "errors": {
+            "nameRequired": "Full name is required",
+            "nameMinLength": "Name must be at least 2 characters",
+            "emailRequired": "Email is required",
+            "emailInvalid": "Please enter a valid email",
+            "passwordRequired": "Password is required",
+            "passwordMinLength": "Password must be at least 6 characters",
+            "passwordUppercase": "Password must contain at least one uppercase letter",
+            "passwordLowercase": "Password must contain at least one lowercase letter",
+            "passwordNumber": "Password must contain at least one number",
+            "confirmPasswordRequired": "Please confirm your password",
+            "passwordMismatch": "Passwords do not match"
         }
     },
     "common": {

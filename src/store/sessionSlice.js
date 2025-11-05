@@ -158,6 +158,7 @@ export const fetchDashboardStats = createAsyncThunk(
 // Initial state
 const initialState = {
   sessions: [],
+  advisers: [], // List of all advisers for admin dropdown
   currentSession: null,
   isLoading: false,
   isUploading: false,
@@ -409,6 +410,7 @@ const sessionSlice = createSlice({
       .addCase(fetchSessionsWithReports.fulfilled, (state, action) => {
         state.isLoading = false;
         state.sessions = action.payload.sessions || [];
+        state.advisers = action.payload.advisers || []; // Store advisers data
         state.pagination = action.payload.pagination || state.pagination;
         state.error = null;
         
@@ -478,6 +480,7 @@ export const {
 
 // Selectors
 export const selectSessions = (state) => state.sessions.sessions;
+export const selectAdvisers = (state) => state.sessions.advisers;
 export const selectCurrentSession = (state) => state.sessions.currentSession;
 export const selectIsLoading = (state) => state.sessions.isLoading;
 export const selectIsUploading = (state) => state.sessions.isUploading;
