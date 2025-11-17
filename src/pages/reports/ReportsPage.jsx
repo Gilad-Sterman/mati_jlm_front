@@ -118,7 +118,11 @@ export function ReportsPage() {
     }, [socketConnected, sessionId, dispatch, socketService]);
 
     const handleBack = () => {
-        navigate('/sessions');
+        if (window.history.length > 1) {
+            navigate(-1);
+        } else {
+            navigate('/sessions');
+        }
     };
 
     const formatDate = (dateString) => {

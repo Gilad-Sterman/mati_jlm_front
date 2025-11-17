@@ -117,6 +117,7 @@
         "reportDescription": "Generating comprehensive analysis reports",
         "duration": "Duration",
         "uploadAnother": "Upload Another File",
+        "backToUpload": "Back to Upload",
         "uploadFailed": "Upload Failed",
         "tryAgain": "Try Again",
         "preparingUpload": "Preparing upload...",

@@ -166,6 +166,7 @@ const initialState = {
   uploadStatus: null, // 'started', 'uploading', 'complete', 'error'
   uploadMessage: '',
   currentUploadSession: null, // Session being uploaded
+  activeSessionId: null, // Session ID that should affect UI state (null means no active session for UI)
   uiState: 'upload', // 'upload', 'uploading', 'transcribing', 'generating_report', 'report_ready', 'processing', 'error'
   
   // AI Processing state
@@ -209,6 +210,7 @@ const sessionSlice = createSlice({
       state.uploadStatus = null;
       state.uploadMessage = '';
       state.currentUploadSession = null;
+      state.activeSessionId = null; // Clear active session
       state.uiState = 'upload';
       state.error = null;
       
@@ -225,7 +227,15 @@ const sessionSlice = createSlice({
       state.uploadStatus = null;
       state.uploadMessage = '';
       state.currentUploadSession = null;
+      state.activeSessionId = null; // Clear active session so socket events don't affect UI
       state.error = null;
+      
+      // Reset processing state for clean UI
+      state.processingStage = null;
+      state.processingMessage = '';
+      state.transcriptionComplete = false;
+      state.advisorReportGenerated = false;
+      state.currentReport = null;
     },
     // Socket event handlers
     handleUploadStarted: (state, action) => {
@@ -233,33 +243,42 @@ const sessionSlice = createSlice({
       state.uploadStatus = 'started';
       state.uploadMessage = message;
       state.currentUploadSession = { id: sessionId, fileName };
+      state.activeSessionId = sessionId; // Set this session as active for UI updates
       state.uploadProgress = 5;
       state.uiState = 'uploading'; // Switch to uploading UI
     },
     handleUploadProgress: (state, action) => {
-      const { progress, message } = action.payload;
-      state.uploadStatus = 'uploading';
-      state.uploadProgress = progress;
-      state.uploadMessage = message;
+      const { sessionId, progress, message } = action.payload;
+      
+      // Only update UI state if this is the active session
+      if (state.activeSessionId === sessionId) {
+        state.uploadStatus = 'uploading';
+        state.uploadProgress = progress;
+        state.uploadMessage = message;
+      }
     },
     handleUploadComplete: (state, action) => {
       const { sessionId, message, fileUrl, duration } = action.payload;
-      state.uploadStatus = 'complete';
-      state.uploadProgress = 100;
-      state.uploadMessage = message || 'Upload completed successfully!';
-      state.isUploading = false;
-      state.currentUploadSession = {
-        ...state.currentUploadSession,
-        sessionId,
-        fileUrl,
-        duration
-      };
       
-      // Transition to processing state - wait for transcription_started event
-      state.uiState = 'processing';
-      state.processingMessage = 'Upload complete, preparing transcription...';
+      // Only update UI state if this is the active session
+      if (state.activeSessionId === sessionId) {
+        state.uploadStatus = 'complete';
+        state.uploadProgress = 100;
+        state.uploadMessage = message || 'Upload completed successfully!';
+        state.isUploading = false;
+        state.currentUploadSession = {
+          ...state.currentUploadSession,
+          sessionId,
+          fileUrl,
+          duration
+        };
+        
+        // Transition to processing state - wait for transcription_started event
+        state.uiState = 'processing';
+        state.processingMessage = 'Upload complete, preparing transcription...';
+      }
       
-      // Update session in sessions array if it exists
+      // Always update session in sessions array (for data consistency)
       const sessionIndex = state.sessions.findIndex(s => s.id === sessionId);
       if (sessionIndex !== -1) {
         state.sessions[sessionIndex] = {
@@ -271,31 +290,47 @@ const sessionSlice = createSlice({
       }
     },
     handleUploadError: (state, action) => {
-      const { message, error } = action.payload;
-      state.uploadStatus = 'error';
-      state.uploadMessage = message;
-      state.error = error || message;
-      state.isUploading = false;
-      state.uploadProgress = 0;
-      state.uiState = 'error'; // Switch to error UI
+      const { sessionId, message, error } = action.payload;
+      
+      // Show errors even if not the active session (as requested by user)
+      // But only change UI state if it's the active session
+      if (state.activeSessionId === sessionId) {
+        state.uploadStatus = 'error';
+        state.uploadMessage = message;
+        state.error = error || message;
+        state.isUploading = false;
+        state.uploadProgress = 0;
+        state.uiState = 'error'; // Switch to error UI
+      } else {
+        // For non-active sessions, just set a general error that can be shown as a toast/notification
+        state.error = `Background upload failed for ${sessionId}: ${message || error}`;
+      }
     },
 
     // AI Processing event handlers
     handleTranscriptionStarted: (state, action) => {
       const { sessionId, message } = action.payload;
-      state.processingStage = 'transcribing';
-      state.processingMessage = message || 'Starting transcription...';
-      state.uiState = 'transcribing';
-      state.transcriptionComplete = false;
+      
+      // Only update UI state if this is the active session
+      if (state.activeSessionId === sessionId) {
+        state.processingStage = 'transcribing';
+        state.processingMessage = message || 'Starting transcription...';
+        state.uiState = 'transcribing';
+        state.transcriptionComplete = false;
+      }
     },
 
     handleTranscriptionComplete: (state, action) => {
       const { sessionId, transcript, message } = action.payload;
-      state.processingStage = 'transcribed';
-      state.processingMessage = message || 'Transcription completed';
-      state.transcriptionComplete = true;
       
-      // Update session in sessions array
+      // Only update UI state if this is the active session
+      if (state.activeSessionId === sessionId) {
+        state.processingStage = 'transcribed';
+        state.processingMessage = message || 'Transcription completed';
+        state.transcriptionComplete = true;
+      }
+      
+      // Always update session in sessions array (for data consistency)
       const sessionIndex = state.sessions.findIndex(s => s.id === sessionId);
       if (sessionIndex !== -1) {
         state.sessions[sessionIndex] = {
@@ -308,21 +343,29 @@ const sessionSlice = createSlice({
 
     handleReportGenerationStarted: (state, action) => {
       const { sessionId, message } = action.payload;
-      state.processingStage = 'generating_report';
-      state.processingMessage = message || 'Generating advisor report...';
-      state.uiState = 'generating_report';
-      state.advisorReportGenerated = false;
+      
+      // Only update UI state if this is the active session
+      if (state.activeSessionId === sessionId) {
+        state.processingStage = 'generating_report';
+        state.processingMessage = message || 'Generating advisor report...';
+        state.uiState = 'generating_report';
+        state.advisorReportGenerated = false;
+      }
     },
 
     handleAdvisorReportGenerated: (state, action) => {
       const { sessionId, report, message } = action.payload;
-      state.processingStage = 'completed';
-      state.processingMessage = message || 'Advisor report generated successfully!';
-      state.uiState = 'report_ready';
-      state.advisorReportGenerated = true;
-      state.currentReport = report;
       
-      // Update session in sessions array
+      // Only update UI state if this is the active session
+      if (state.activeSessionId === sessionId) {
+        state.processingStage = 'completed';
+        state.processingMessage = message || 'Advisor report generated successfully!';
+        state.uiState = 'report_ready';
+        state.advisorReportGenerated = true;
+        state.currentReport = report;
+      }
+      
+      // Always update session in sessions array (for data consistency)
       const sessionIndex = state.sessions.findIndex(s => s.id === sessionId);
       if (sessionIndex !== -1) {
         state.sessions[sessionIndex] = {
@@ -334,12 +377,20 @@ const sessionSlice = createSlice({
 
     handleProcessingError: (state, action) => {
       const { sessionId, message, error, stage } = action.payload;
-      state.processingStage = 'error';
-      state.processingMessage = message || 'Processing failed';
-      state.error = error || message;
-      state.uiState = 'error';
       
-      // Update session status to failed
+      // Show errors even if not the active session (as requested by user)
+      // But only change UI state if it's the active session
+      if (state.activeSessionId === sessionId) {
+        state.processingStage = 'error';
+        state.processingMessage = message || 'Processing failed';
+        state.error = error || message;
+        state.uiState = 'error';
+      } else {
+        // For non-active sessions, just set a general error that can be shown as a toast/notification
+        state.error = `Background processing failed for ${sessionId}: ${message || error}`;
+      }
+      
+      // Always update session status to failed (for data consistency)
       const sessionIndex = state.sessions.findIndex(s => s.id === sessionId);
       if (sessionIndex !== -1) {
         state.sessions[sessionIndex] = {
@@ -375,6 +426,7 @@ const sessionSlice = createSlice({
         state.sessions.unshift(action.payload.session);
         state.currentSession = action.payload.session;
         state.currentUploadSession = action.payload.session;
+        state.activeSessionId = action.payload.session.id; // Set as active session
         state.uploadStatus = 'started';
         state.uploadMessage = 'Session created, starting file upload...';
         state.error = null;

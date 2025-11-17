@@ -14,19 +14,6 @@ export function AppHeader() {
                 <h3>מרכז טיפוח יזמות</h3>
             </div>
             <div className="header-right">
-                {isAuthenticated && (
-                    <div style={{ 
-                        fontSize: '12px', 
-                        color: socketStatus.isConnected ? '#10b981' : '#6b7280',
-                        marginRight: '10px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '5px'
-                    }}>
-                        {socketStatus.isConnected ? '🟢' : '🔴'} 
-                        Real-time
-                    </div>
-                )}
                 <LangSelect />
             </div>
         </header>

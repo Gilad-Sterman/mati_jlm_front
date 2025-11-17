@@ -15,9 +15,6 @@ import { selectIsAuthenticated } from './store/authSlice'
 import { useAppSocket } from './hooks/useAppSocket'
 import { useTranslation } from 'react-i18next';
 import { SessionsPage } from './pages/sessions/SessionsPage'
-import { AdviserReportPage } from './pages/reports/AdviserReportPage'
-import { ClientReportPage } from './pages/reports/ClientReportPage'
-import { SummaryReportPage } from './pages/reports/SummaryReportPage'
 import { ReportsPage } from './pages/reports/ReportsPage'
 
 function App() {
@@ -81,30 +78,30 @@ function App() {
               />
 
               {/* Report routes */}
-              <Route
+              {/* <Route
                 path="/reports/adviser/:sessionId"
                 element={
                   <ProtectedRoute>
                     <AdviserReportPage />
                   </ProtectedRoute>
                 }
-              />
-              <Route
+              /> */}
+              {/* <Route
                 path="/reports/client/:sessionId"
                 element={
                   <ProtectedRoute>
                     <ClientReportPage />
                   </ProtectedRoute>
                 }
-              />
-              <Route
+              /> */}
+              {/* <Route
                 path="/reports/summary/:sessionId"
                 element={
                   <ProtectedRoute>
                     <SummaryReportPage />
                   </ProtectedRoute>
                 }
-              />
+              /> */}
               <Route
                 path="/reports/:sessionId"
                 element={

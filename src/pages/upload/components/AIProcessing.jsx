@@ -187,6 +187,17 @@ export function AIProcessing({
 
 
 
+        {/* Back to Upload Button */}
+        <div className="back-to-upload">
+          <button 
+            className="back-button"
+            onClick={handleBackToUpload}
+          >
+            <ArrowLeft className="back-icon" />
+            {t('upload.backToUpload')}
+          </button>
+        </div>
+
         {/* Processing Animation */}
         <div className="processing-animation">
           <div className="wave"></div>

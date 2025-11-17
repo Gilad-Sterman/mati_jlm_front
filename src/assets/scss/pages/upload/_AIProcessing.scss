@@ -338,6 +338,12 @@
             }
         }
 
+        .back-to-upload {
+            display: flex;
+            justify-content: center;
+            margin: $spacing-xl 0;
+        }
+
         .processing-animation {
             display: flex;
             justify-content: center;

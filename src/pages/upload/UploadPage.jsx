@@ -340,7 +340,6 @@ export function UploadPage() {
                                 <button
                                     className="primary-button"
                                     onClick={() => {
-                                        // TODO: Navigate to report view/edit page
                                         navigate(`/reports/${currentUploadSession.id}`);
                                     }}
                                 >
