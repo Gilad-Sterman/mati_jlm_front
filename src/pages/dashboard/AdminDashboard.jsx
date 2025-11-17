@@ -18,21 +18,22 @@ import {
     Link,
     ExternalLink,
     Link2Off,
-    Eye
+    Eye,
+    FileCheck
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { 
-    fetchDashboardStats, 
-    selectDashboardStats, 
-    selectIsDashboardLoading, 
-    selectDashboardError 
+import {
+    fetchDashboardStats,
+    selectDashboardStats,
+    selectIsDashboardLoading,
+    selectDashboardError
 } from '../../store/sessionSlice';
 
 export function AdminDashboard() {
     const { t } = useTranslation();
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    
+
     // Redux selectors
     const dashboardData = useSelector(selectDashboardStats);
     const loading = useSelector(selectIsDashboardLoading);
@@ -56,8 +57,8 @@ export function AdminDashboard() {
                 icon: FileText,
                 label: t('dashboard.totalSessions'),
                 value: totalSessions.toLocaleString(),
-                change: "+8.2%",
-                trend: "up"
+                change: `${completionRate}% ${t('dashboard.completed')}`,
+                trend: parseFloat(completionRate) >= 70 ? "up" : "neutral"
             },
             {
                 icon: TrendingUp,
@@ -104,8 +105,8 @@ export function AdminDashboard() {
                     <h1>{t('common.dashboard')}</h1>
                     <p className="error-message">Error loading dashboard: {error}</p>
                 </div>
-                <button 
-                    className="btn btn-primary" 
+                <button
+                    className="btn btn-primary"
                     onClick={() => dispatch(fetchDashboardStats())}
                 >
                     {t('common.retry')}
@@ -121,8 +122,8 @@ export function AdminDashboard() {
                     <h1>{t('common.dashboard')}</h1>
                     <p>No data available</p>
                 </div>
-                <button 
-                    className="btn btn-primary" 
+                <button
+                    className="btn btn-primary"
                     onClick={() => dispatch(fetchDashboardStats())}
                 >
                     {t('common.loadData')}
@@ -170,7 +171,16 @@ export function AdminDashboard() {
                                 <div className="session-header">
                                     <div className="session-title-section">
                                         <h4 className="session-title">{session.title}</h4>
-                                        <span className="session-status">{session.status}</span>
+                                        <span className={`session-status ${session.status === 'הושלם' ? 'status-completed' : ''}`}>
+                                            {session.status === 'הושלם' ? (
+                                                <div className="completed-badge">
+                                                    <FileCheck size={16} />
+                                                    <span className="completed-text">{session.status}</span>
+                                                </div>
+                                            ) : (
+                                                session.status
+                                            )}
+                                        </span>
                                     </div>
                                     <div className="session-date-time">
                                         <span className="session-date">{session.date}</span>
@@ -206,11 +216,11 @@ export function AdminDashboard() {
                                 </div>
 
                                 {/* Topics and file info hidden but data preserved */}
-                                
+
                                 <div className="session-footer">
                                     {/* Only show button for sessions with reports */}
                                     {session.scores && (session.scores.advisor > 0 || session.scores.entrepreneur > 0) && (
-                                        <button 
+                                        <button
                                             className="btn btn-sm btn-primary"
                                             onClick={() => navigate(`/reports/${session.id}`)}
                                         >
@@ -237,28 +247,28 @@ export function AdminDashboard() {
                             <div className="advisers-list">
                                 {dashboardData.topAdvisers && dashboardData.topAdvisers.length > 0 ? (
                                     dashboardData.topAdvisers.map((adviser, index) => (
-                                    <div key={adviser.id} className="adviser-item top-adviser">
-                                        <div className="adviser-rank">
-                                            <span className="rank-number">#{index + 1}</span>
-                                        </div>
-                                        <div className="adviser-info">
-                                            <div className="adviser-name">{adviser.name}</div>
-                                            <div className="adviser-email">{adviser.email}</div>
-                                            <div className="adviser-stats">
-                                                <span>{adviser.totalSessions} {t('dashboard.sessions')}</span>
-                                                <span>{adviser.successRate}% {t('dashboard.successRate')}</span>
+                                        <div key={adviser.id} className="adviser-item top-adviser">
+                                            <div className="adviser-rank">
+                                                <span className="rank-number">#{index + 1}</span>
                                             </div>
-                                        </div>
-                                        <div className="adviser-score">
-                                            <div
-                                                className="score-circle"
-                                                style={{ backgroundColor: getScoreColor(adviser.averageScore) }}
-                                            >
-                                                {adviser.averageScore}%
+                                            <div className="adviser-info">
+                                                <div className="adviser-name">{adviser.name}</div>
+                                                <div className="adviser-email">{adviser.email}</div>
+                                                <div className="adviser-stats">
+                                                    <span>{adviser.totalSessions} {t('dashboard.sessions')}</span>
+                                                    <span>{adviser.successRate}% {t('dashboard.successRate')}</span>
+                                                </div>
                                             </div>
+                                            <div className="adviser-score">
+                                                <div
+                                                    className="score-circle"
+                                                    style={{ backgroundColor: getScoreColor(adviser.averageScore) }}
+                                                >
+                                                    {adviser.averageScore}%
+                                                </div>
+                                            </div>
+                                            <button className="btn btn-primary view-adviser-sessions" onClick={() => navigate(`/sessions?adviser_id=${adviser.id}`)}>{t('dashboard.viewAdviserSessions')}</button>
                                         </div>
-                                        <button className="btn btn-primary view-adviser-sessions" onClick={() => navigate(`/sessions?adviser_id=${adviser.id}`)}>{t('dashboard.viewAdviserSessions')}</button>
-                                    </div>
                                     ))
                                 ) : (
                                     <div className="no-data">

@@ -41,13 +41,14 @@
 
   .reports-header {
     display: flex;
-    align-items: flex-start;
-    gap: $spacing-xxl;
+    align-items: center;
+    gap: $spacing-lg;
     margin-bottom: $spacing-xxl;
+    padding: $spacing-xl;
     background: $white-color;
-    padding: $spacing-xxl;
     border-radius: $border-radius-lg;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid $border-color;
 
     .back-button {
       display: flex;
@@ -71,51 +72,51 @@
 
     .session-info {
       flex: 1;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
 
-
-      .page-title {
+      .session-title-row {
         display: flex;
         align-items: center;
         gap: $spacing-md;
-        color: $text-primary;
-        font-size: $font-size-xxl;
-        font-weight: 600;
-        margin: 0 0 $spacing-lg 0;
-      }
+        margin-bottom: $spacing-sm;
 
-      .session-summary {
-        .session-main-info {
-          .session-title {
-            color: $text-primary;
-            font-size: $font-size-xl;
-            font-weight: 600;
-            margin: 0 0 $spacing-md 0;
-          }
+        h1 {
+          margin: 0;
+          color: $primary-color;
+          font-size: $font-size-xxl;
+          font-weight: 600;
+        }
 
-          .session-meta {
-            display: flex;
-            gap: $spacing-xxl;
-            flex-wrap: wrap;
+        .session-status-badge {
+          display: flex;
+          align-items: center;
+          gap: $spacing-xs;
+          padding: $spacing-xs $spacing-sm;
+          border-radius: $border-radius-sm;
+          font-size: $font-size-sm;
+          font-weight: 600;
 
-            .session-detail {
-              display: flex;
-              align-items: center;
-              gap: $spacing-sm;
-              color: $text-muted;
-              font-size: $font-size-sm;
-
-              .client-name {
-                font-weight: 500;
-                color: $text-primary;
-              }
-            }
+          &.completed {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
           }
         }
       }
+
+      .session-meta {
+        display: flex;
+        gap: $spacing-lg;
+        color: $text-muted;
+        font-size: $font-size-sm;
+
+        span {
+          display: flex;
+          align-items: center;
+          gap: $spacing-xs;
+        }
+      }
     }
+
   }
 
   .reports-content {
@@ -136,15 +137,68 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     border: 1px solid $border-color;
     overflow: hidden;
+    padding: $spacing-xl;
 
     .report-section-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: $spacing-xl $spacing-xxl;
-      background: $light-color;
-      border-bottom: 1px solid $border-color;
-      height: 50px;
+      margin-bottom: $spacing-lg;
+      padding-bottom: $spacing-md;
+      border-bottom: 2px solid #e1e8ed;
+
+      .report-title-section {
+        flex: 1;
+
+        h2 {
+          margin: 0 0 $spacing-xs 0;
+        }
+
+        .report-badges {
+          display: flex;
+          align-items: center;
+          gap: $spacing-sm;
+          margin-top: $spacing-xs;
+
+          .status-badge {
+            display: flex;
+            align-items: center;
+            gap: $spacing-xs;
+            padding: $spacing-xs $spacing-sm;
+            border-radius: $border-radius-sm;
+            font-size: $font-size-sm;
+            font-weight: 600;
+
+            &.approved {
+              background: #dcfce7;
+              color: #166534;
+              border: 1px solid #bbf7d0;
+            }
+          }
+
+          .version-badge {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+            padding: $spacing-xs $spacing-sm;
+            border-radius: $border-radius-sm;
+            font-size: $font-size-sm;
+            font-weight: 500;
+          }
+
+          .report-type-badge {
+            &.advisor {
+              background: #e0e7ff;
+              color: #3730a3;
+              border: 1px solid #c7d2fe;
+              padding: $spacing-xs $spacing-sm;
+              border-radius: $border-radius-sm;
+              font-size: $font-size-sm;
+              font-weight: 500;
+            }
+          }
+        }
+      }
 
       h2 {
         margin: 0;
@@ -950,6 +1004,327 @@
     }
   }
 
+  // Export Modal Styles
+  .export-modal {
+    background: $white-color;
+    border-radius: $border-radius-lg;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    width: 90vw;
+    max-width: 900px;
+    max-height: 90vh;
+    overflow: hidden;
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: $spacing-xl $spacing-xxl;
+      border-bottom: 1px solid #e1e8ed;
+
+      h2 {
+        color: $primary-color;
+        margin: 0;
+        font-size: $font-size-xl;
+        font-weight: 600;
+      }
+
+      .modal-close-button {
+        background: none;
+        border: none;
+        color: $text-muted;
+        cursor: pointer;
+        padding: $spacing-sm;
+        border-radius: $border-radius-sm;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: #f8f9fa;
+          color: $text-color;
+        }
+      }
+    }
+
+    .modal-body {
+      padding: $spacing-xxl;
+      overflow-y: auto;
+      max-height: calc(90vh - 120px);
+
+      .export-description {
+        color: $text-muted;
+        margin-bottom: $spacing-xl;
+        line-height: 1.6;
+      }
+
+      .preview-toggle {
+        display: flex;
+        gap: $spacing-sm;
+        margin-bottom: $spacing-xl;
+        border-bottom: 1px solid #e1e8ed;
+
+        .toggle-btn {
+          display: flex;
+          align-items: center;
+          gap: $spacing-sm;
+          padding: $spacing-md $spacing-lg;
+          background: none;
+          border: none;
+          color: $text-muted;
+          cursor: pointer;
+          border-bottom: 2px solid transparent;
+          transition: all 0.2s ease;
+          font-weight: 500;
+
+          &:hover {
+            color: $primary-color;
+          }
+
+          &.active {
+            color: $primary-color;
+            border-bottom-color: $primary-color;
+          }
+        }
+      }
+
+      .export-content {
+        margin-bottom: $spacing-xl;
+
+        .pdf-preview {
+          .preview-header {
+            margin-bottom: $spacing-lg;
+
+            h3 {
+              color: $primary-color;
+              margin: 0;
+              font-size: $font-size-lg;
+              font-weight: 600;
+            }
+          }
+
+          .preview-document {
+            border: 1px solid #e1e8ed;
+            border-radius: $border-radius-md;
+            background: $white-color;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+            .document-page {
+              padding: $spacing-xxl;
+              background: $white-color;
+              min-height: 400px;
+
+              .document-header {
+                border-bottom: 2px solid $primary-color;
+                padding-bottom: $spacing-lg;
+                margin-bottom: $spacing-xl;
+
+                h4 {
+                  color: $primary-color;
+                  margin: 0 0 $spacing-sm 0;
+                  font-size: $font-size-xl;
+                  font-weight: 700;
+                }
+
+                .document-meta {
+                  display: flex;
+                  gap: $spacing-xl;
+                  color: $text-muted;
+                  font-size: $font-size-sm;
+
+                  span {
+                    font-weight: 500;
+                  }
+                }
+              }
+
+              .document-content {
+                .content-section {
+                  margin-bottom: $spacing-xl;
+
+                  h5 {
+                    color: $primary-color;
+                    margin: 0 0 $spacing-md 0;
+                    font-size: $font-size-lg;
+                    font-weight: 600;
+                    border-bottom: 1px solid #e1e8ed;
+                    padding-bottom: $spacing-sm;
+                  }
+
+                  .content-preview {
+                    color: $text-color;
+                    line-height: 1.6;
+                    padding: $spacing-md 0;
+                    font-size: $font-size-md;
+
+                    .need-item, .solution-item, .actions-item {
+                      margin-bottom: $spacing-lg;
+
+                      &:last-child {
+                        margin-bottom: 0;
+                      }
+
+                      strong {
+                        color: $primary-color;
+                        display: block;
+                        margin-bottom: $spacing-sm;
+                      }
+
+                      p {
+                        margin: $spacing-sm 0;
+                      }
+                    }
+
+                    .actions-list {
+                      margin: $spacing-sm 0;
+                      padding-left: $spacing-lg;
+
+                      li {
+                        margin-bottom: $spacing-xs;
+                        line-height: 1.5;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        .export-details {
+          .details-section {
+            background: #f8f9fa;
+            border-radius: $border-radius-md;
+            padding: $spacing-xl;
+            margin-bottom: $spacing-xl;
+
+            h4 {
+              color: $primary-color;
+              margin: 0 0 $spacing-lg 0;
+              font-size: $font-size-lg;
+              font-weight: 600;
+            }
+
+            .detail-item {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              padding: $spacing-md 0;
+              border-bottom: 1px solid #e1e8ed;
+
+              &:last-child {
+                border-bottom: none;
+              }
+
+              .label {
+                font-weight: 500;
+                color: $text-muted;
+              }
+
+              .value {
+                font-weight: 600;
+                color: $text-color;
+              }
+            }
+          }
+
+          .delivery-info {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: $border-radius-md;
+            padding: $spacing-xl;
+
+            h4 {
+              color: $primary-color;
+              margin: 0 0 $spacing-md 0;
+              font-size: $font-size-lg;
+              font-weight: 600;
+            }
+
+            p {
+              color: $text-muted;
+              line-height: 1.6;
+              margin-bottom: $spacing-lg;
+            }
+
+            .client-email {
+              display: flex;
+              align-items: center;
+              gap: $spacing-md;
+
+              .label {
+                font-weight: 500;
+                color: $text-muted;
+              }
+
+              .email {
+                font-weight: 600;
+                color: $primary-color;
+                background: $white-color;
+                padding: $spacing-sm $spacing-md;
+                border-radius: $border-radius-sm;
+                border: 1px solid #bae6fd;
+              }
+            }
+          }
+        }
+      }
+
+      .modal-actions {
+        display: flex;
+        gap: $spacing-lg;
+        justify-content: flex-end;
+        padding-top: $spacing-lg;
+        border-top: 1px solid #e1e8ed;
+
+        .btn {
+          display: flex;
+          align-items: center;
+          gap: $spacing-sm;
+          padding: $spacing-md $spacing-xl;
+          border-radius: $border-radius-md;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          border: 2px solid transparent;
+
+          &.btn-secondary {
+            background: #f8f9fa;
+            color: $text-muted;
+            border-color: #e1e8ed;
+
+            &:hover:not(:disabled) {
+              background: #e9ecef;
+              color: $text-color;
+            }
+          }
+
+          &.btn-primary {
+            background: $primary-color;
+            color: $white-color;
+            border-color: $primary-color;
+
+            &:hover:not(:disabled) {
+              background: darken($primary-color, 10%);
+              border-color: darken($primary-color, 10%);
+            }
+          }
+
+          &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
+
+          .spinner-small {
+            width: 16px;
+            height: 16px;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+          }
+        }
+      }
+    }
+  }
+
   @media (max-width: 768px) {
     .modal-overlay {
       padding: $spacing-sm;
@@ -962,6 +1337,60 @@
 
       .modal-body {
         padding: $spacing-lg;
+
+        .modal-actions {
+          flex-direction: column;
+
+          .btn {
+            justify-content: center;
+          }
+        }
+      }
+    }
+
+    .export-modal {
+      width: 95vw;
+      max-width: none;
+
+      .modal-header {
+        padding: $spacing-lg;
+      }
+
+      .modal-body {
+        padding: $spacing-lg;
+
+        .preview-toggle {
+          .toggle-btn {
+            padding: $spacing-sm $spacing-md;
+            font-size: $font-size-sm;
+          }
+        }
+
+        .export-content {
+          .pdf-preview {
+            .preview-document {
+              .document-page {
+                padding: $spacing-lg;
+              }
+            }
+          }
+
+          .export-details {
+            .details-section {
+              padding: $spacing-lg;
+            }
+
+            .delivery-info {
+              padding: $spacing-lg;
+
+              .client-email {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: $spacing-sm;
+              }
+            }
+          }
+        }
 
         .modal-actions {
           flex-direction: column;

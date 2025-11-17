@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { fetchSessionsWithReports, selectAdvisers } from "../../store/sessionSlice";
-import { FileAudio, Calendar, User, Building, Clock, FileText, ChevronRight, Eye, ChevronLeft, Loader2, Search, Filter, SortAsc, SortDesc } from "lucide-react";
+import { FileAudio, Calendar, User, Building, Clock, FileText, ChevronRight, Eye, ChevronLeft, Loader2, Search, Filter, SortAsc, SortDesc, FileCheck } from "lucide-react";
 
 export function SessionsPage() {
     const { t, i18n } = useTranslation();
@@ -348,7 +348,13 @@ const SessionCard = React.memo(function SessionCard({
                 </div>
 
                 <div className={`session-status ${getStatusClass(session.status)}`}>
-                    {getStatusTranslation(session.status)}
+                    {session.status === 'completed' && (
+                        <div className="completed-badge">
+                            <FileCheck size={18} />
+                            <span className="completed-text">{getStatusTranslation(session.status)}</span>
+                        </div>
+                    )}
+                    {session.status !== 'completed' && getStatusTranslation(session.status)}
                 </div>
             </div>
 

@@ -133,6 +133,30 @@ export const regenerateClientReport = createAsyncThunk(
   }
 );
 
+export const exportClientReport = createAsyncThunk(
+  'reports/exportClientReport',
+  async ({ sessionId }, { rejectWithValue, getState }) => {
+    try {
+      // Get the client report for this session
+      const state = getState();
+      const sessionReports = state.reports.reportsBySession[sessionId] || [];
+      const clientReport = sessionReports.find(r => r.type === 'client' && r.is_current_version);
+      
+      if (!clientReport) {
+        throw new Error('No client report found for this session');
+      }
+      
+      // Call the export service with the client report ID
+      const response = await reportService.exportReport(clientReport.id);
+      return { sessionId, exportResult: response.data };
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to export client report'
+      );
+    }
+  }
+);
+
 // Initial state
 const initialState = {
   // Map of sessionId -> reports array
@@ -145,6 +169,7 @@ const initialState = {
   isLoading: false,
   isLoadingSession: {}, // Map of sessionId -> boolean
   isRegeneratingSession: {}, // Map of sessionId -> boolean (for regeneration)
+  isExportingSession: {}, // Map of sessionId -> boolean (for export)
   // Errors
   error: null,
   sessionErrors: {}, // Map of sessionId -> error message
@@ -365,6 +390,29 @@ const reportSlice = createSlice({
         state.sessionErrors[sessionId] = action.payload;
       })
 
+      // Export client report
+      .addCase(exportClientReport.pending, (state, action) => {
+        const { sessionId } = action.meta.arg;
+        state.isExportingSession[sessionId] = true;
+        delete state.sessionErrors[sessionId];
+      })
+      .addCase(exportClientReport.fulfilled, (state, action) => {
+        const { sessionId, exportResult } = action.payload;
+        state.isExportingSession[sessionId] = false;
+        
+        // Update the reports with the new status from the export result
+        if (exportResult.report) {
+          reportSlice.caseReducers.updateReportInState(state, { payload: exportResult.report });
+        }
+        
+        // TODO: Could also update session status in session slice if needed
+      })
+      .addCase(exportClientReport.rejected, (state, action) => {
+        const { sessionId } = action.meta.arg;
+        state.isExportingSession[sessionId] = false;
+        state.sessionErrors[sessionId] = action.payload;
+      })
+
       // Reset on logout
       .addCase('auth/logout', () => {
         return initialState;
@@ -399,6 +447,9 @@ export const selectIsLoadingSessionReports = (sessionId) => (state) =>
 
 export const selectIsRegeneratingSessionReports = (sessionId) => (state) => 
   state.reports.isRegeneratingSession[sessionId] || false;
+
+export const selectIsExportingSessionReports = (sessionId) => (state) => 
+  state.reports.isExportingSession[sessionId] || false;
 
 export const selectReportsError = (state) => state.reports.error;
 

@@ -137,7 +137,8 @@
     },
     "dashboard": {
         "header": "Dashboard Header",
-        "body": "Dashboard Body"
+        "body": "Dashboard Body",
+        "completed": "Completed"
     },
     "settings": {
         "header": "Settings Header",
@@ -301,6 +302,32 @@
         "keyQuotesFromConversation": "Key Quotes from Conversation",
         "professionalAssessment": "Professional Assessment",
         "regeneratingReport": "Regenerating Report",
-        "regenerationInProgress": "AI is analyzing the transcript and generating new content based on your notes..."
+        "regenerationInProgress": "AI is analyzing the transcript and generating new content based on your notes...",
+        "exportClientReport": "Export Client Report",
+        "exportAsPDF": "Export as PDF",
+        "exportDescription": "Review and export the client report as a PDF. This will finalize the report and send it to the client.",
+        "preview": "Preview",
+        "details": "Details",
+        "pdfPreview": "PDF Preview",
+        "exportDetails": "Export Details",
+        "reportType": "Report Type",
+        "sessionDate": "Session Date",
+        "reportVersion": "Report Version",
+        "format": "Format",
+        "deliveryInfo": "Delivery Information",
+        "deliveryDescription": "The PDF report will be automatically sent to the client's email address and the session status will be updated.",
+        "clientEmail": "Client Email",
+        "exportAndSend": "Export & Send",
+        "exporting": "Exporting...",
+        "executiveSummarySection": "Executive Summary",
+        "keyInsightsSection": "Key Insights",
+        "recommendations": "Recommendations",
+        "contentPreview": "Content will be displayed here...",
+        "consultationReport": "Consultation Report",
+        "date": "Date",
+        "entrepreneurNeeds": "Entrepreneur Needs",
+        "advisorSolutions": "Advisor Solutions",
+        "sessionCompleted": "Session Completed",
+        "approved": "Approved"
     }
 }

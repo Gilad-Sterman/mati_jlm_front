@@ -121,6 +121,19 @@ class ReportService {
   }
 
   /**
+   * Export a client report as PDF and send to client
+   */
+  async exportReport(reportId) {
+    try {
+      const response = await api.post(`/reports/${reportId}/export`);
+      return response.data;
+    } catch (error) {
+      console.error('Error exporting report:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Get all reports (with pagination)
    */
   async getReports(params = {}) {

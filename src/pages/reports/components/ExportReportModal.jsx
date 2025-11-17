@@ -1,0 +1,272 @@
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { X, FileText, Send, Eye } from 'lucide-react';
+
+export function ExportReportModal({ 
+    isOpen, 
+    onClose, 
+    onExport, 
+    report, 
+    session, 
+    isLoading = false 
+}) {
+    const { t } = useTranslation();
+    const [previewMode, setPreviewMode] = useState('preview'); // 'preview' or 'details'
+
+    // Parse report content
+    const getReportContent = () => {
+        if (!report?.content) return null;
+        
+        try {
+            return typeof report.content === 'string' ? JSON.parse(report.content) : report.content;
+        } catch (error) {
+            console.error('Error parsing report content:', error);
+            return null;
+        }
+    };
+
+    const content = getReportContent();
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!isLoading) {
+            onExport();
+        }
+    };
+
+    const handleClose = () => {
+        if (!isLoading) {
+            onClose();
+        }
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="modal-overlay" onClick={handleClose}>
+            <div className="modal-content export-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                    <h2>{t('reports.exportClientReport')}</h2>
+                    {!isLoading && (
+                        <button className="modal-close-button" onClick={handleClose}>
+                            <X size={20} />
+                        </button>
+                    )}
+                </div>
+
+                <div className="modal-body">
+                    <div className="export-description">
+                        <p>{t('reports.exportDescription')}</p>
+                    </div>
+
+                    {/* Preview/Details Toggle */}
+                    <div className="preview-toggle">
+                        <button
+                            className={`toggle-btn ${previewMode === 'preview' ? 'active' : ''}`}
+                            onClick={() => setPreviewMode('preview')}
+                        >
+                            <Eye size={16} />
+                            {t('reports.preview')}
+                        </button>
+                        <button
+                            className={`toggle-btn ${previewMode === 'details' ? 'active' : ''}`}
+                            onClick={() => setPreviewMode('details')}
+                        >
+                            <FileText size={16} />
+                            {t('reports.details')}
+                        </button>
+                    </div>
+
+                    {/* Content Area */}
+                    <div className="export-content">
+                        {previewMode === 'preview' ? (
+                            <div className="pdf-preview">
+                                <div className="preview-header">
+                                    <h3>{t('reports.pdfPreview')}</h3>
+                                </div>
+                                <div className="preview-document">
+                                    {/* PDF Preview Mockup */}
+                                    <div className="document-page">
+                                        <div className="document-header">
+                                            <h4>{session?.title || t('reports.consultationReport')}</h4>
+                                            <div className="document-meta">
+                                                <span>{t('reports.client')}: {session?.client?.name}</span>
+                                                <span>{t('reports.date')}: {new Date(session?.created_at).toLocaleDateString()}</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="document-content">
+                                            {/* Executive Summary */}
+                                            {content?.executive_summary && (
+                                                <div className="content-section">
+                                                    <h5>{t('reports.executiveSummarySection')}</h5>
+                                                    <div className="content-preview">
+                                                        {content.executive_summary}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            
+                                            {/* Entrepreneur Needs */}
+                                            {content?.entrepreneur_needs && (
+                                                <div className="content-section">
+                                                    <h5>{t('reports.entrepreneurNeeds')}</h5>
+                                                    <div className="content-preview">
+                                                        {Array.isArray(content.entrepreneur_needs) ? (
+                                                            content.entrepreneur_needs.map((need, index) => (
+                                                                <div key={index} className="need-item">
+                                                                    <strong>{need.need_conceptualization}</strong>
+                                                                    <p>{need.need_explanation}</p>
+                                                                </div>
+                                                            ))
+                                                        ) : (
+                                                            <div>
+                                                                {content.entrepreneur_needs.need_conceptualization && (
+                                                                    <p><strong>{content.entrepreneur_needs.need_conceptualization}</strong></p>
+                                                                )}
+                                                                {content.entrepreneur_needs.need_explanation && (
+                                                                    <p>{content.entrepreneur_needs.need_explanation}</p>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            
+                                            {/* Advisor Solutions */}
+                                            {content?.advisor_solutions && (
+                                                <div className="content-section">
+                                                    <h5>{t('reports.advisorSolutions')}</h5>
+                                                    <div className="content-preview">
+                                                        {Array.isArray(content.advisor_solutions) ? (
+                                                            content.advisor_solutions.map((solution, index) => (
+                                                                <div key={index} className="solution-item">
+                                                                    <strong>{solution.solution_conceptualization}</strong>
+                                                                    <p>{solution.solution_explanation}</p>
+                                                                </div>
+                                                            ))
+                                                        ) : (
+                                                            <div>
+                                                                {content.advisor_solutions.solution_conceptualization && (
+                                                                    <p><strong>{content.advisor_solutions.solution_conceptualization}</strong></p>
+                                                                )}
+                                                                {content.advisor_solutions.solution_explanation && (
+                                                                    <p>{content.advisor_solutions.solution_explanation}</p>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Agreed Actions */}
+                                            {content?.agreed_actions && (
+                                                (content.agreed_actions.immediate_actions && content.agreed_actions.immediate_actions.length > 0) ||
+                                                (content.agreed_actions.concrete_recommendation && typeof content.agreed_actions.concrete_recommendation === 'string' && content.agreed_actions.concrete_recommendation.trim())
+                                            ) && (
+                                                <div className="content-section">
+                                                    <h5>{t('reports.agreedActions')}</h5>
+                                                    <div className="content-preview">
+                                                        {content.agreed_actions.immediate_actions && content.agreed_actions.immediate_actions.length > 0 && (
+                                                            <div className="actions-item">
+                                                                <strong>{t('reports.immediateActions')}</strong>
+                                                                <ul className="actions-list">
+                                                                    {content.agreed_actions.immediate_actions.map((action, index) => (
+                                                                        <li key={index}>{action}</li>
+                                                                    ))}
+                                                                </ul>
+                                                            </div>
+                                                        )}
+                                                        {content.agreed_actions.concrete_recommendation && typeof content.agreed_actions.concrete_recommendation === 'string' && content.agreed_actions.concrete_recommendation.trim() && (
+                                                            <div className="actions-item">
+                                                                <strong>{t('reports.concreteRecommendation')}</strong>
+                                                                <p>{content.agreed_actions.concrete_recommendation}</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Fallback if no content */}
+                                            {!content && (
+                                                <div className="content-section">
+                                                    <div className="content-preview">
+                                                        {t('reports.contentPreview')}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="export-details">
+                                <div className="details-section">
+                                    <h4>{t('reports.exportDetails')}</h4>
+                                    <div className="detail-item">
+                                        <span className="label">{t('reports.reportType')}:</span>
+                                        <span className="value">{t('reports.clientReport')}</span>
+                                    </div>
+                                    <div className="detail-item">
+                                        <span className="label">{t('reports.client')}:</span>
+                                        <span className="value">{session?.client?.name}</span>
+                                    </div>
+                                    <div className="detail-item">
+                                        <span className="label">{t('reports.sessionDate')}:</span>
+                                        <span className="value">{new Date(session?.created_at).toLocaleDateString()}</span>
+                                    </div>
+                                    <div className="detail-item">
+                                        <span className="label">{t('reports.reportVersion')}:</span>
+                                        <span className="value">v{report?.version_number || 1}</span>
+                                    </div>
+                                    <div className="detail-item">
+                                        <span className="label">{t('reports.format')}:</span>
+                                        <span className="value">PDF</span>
+                                    </div>
+                                </div>
+
+                                <div className="delivery-info">
+                                    <h4>{t('reports.deliveryInfo')}</h4>
+                                    <p>{t('reports.deliveryDescription')}</p>
+                                    <div className="client-email">
+                                        <span className="label">{t('reports.clientEmail')}:</span>
+                                        <span className="email">{session?.client?.email}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <form onSubmit={handleSubmit}>
+                        <div className="modal-actions">
+                            <button
+                                type="button"
+                                className="btn btn-secondary"
+                                onClick={handleClose}
+                                disabled={isLoading}
+                            >
+                                {t('common.cancel')}
+                            </button>
+                            <button
+                                type="submit"
+                                className="btn btn-primary export-btn"
+                                disabled={isLoading}
+                            >
+                                {isLoading ? (
+                                    <>
+                                        <div className="spinner-small"></div>
+                                        {t('reports.exporting')}
+                                    </>
+                                ) : (
+                                    <>
+                                        <Send size={16} />
+                                        {t('reports.exportAndSend')}
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    );
+}

@@ -6,13 +6,16 @@ import { ArrowLeft, FileText, User, Calendar, Clock, ChevronDown, ChevronUp, Ref
 import {
     fetchReportsForSession,
     regenerateClientReport,
+    exportClientReport,
     regenerationStarted,
     regenerationCompleted,
     regenerationError,
-    selectIsRegeneratingSessionReports
+    selectIsRegeneratingSessionReports,
+    selectIsExportingSessionReports
 } from '../../store/reportSlice';
 import { fetchSessionById } from '../../store/sessionSlice';
 import { RegenerateModal } from './components/RegenerateModal';
+import { ExportReportModal } from './components/ExportReportModal';
 import { useAppSocket } from '../../hooks/useAppSocket';
 
 export function ReportsPage() {
@@ -23,6 +26,7 @@ export function ReportsPage() {
 
     const [loading, setLoading] = useState(true);
     const [showRegenerateModal, setShowRegenerateModal] = useState(false);
+    const [showExportModal, setShowExportModal] = useState(false);
     const [isSubmittingRegeneration, setIsSubmittingRegeneration] = useState(false);
 
     // Socket connection for regeneration events
@@ -38,6 +42,7 @@ export function ReportsPage() {
     const isLoadingReports = useSelector(state => state.reports.isLoadingSession[sessionId]);
     const isLoadingSessions = useSelector(state => state.sessions.isLoading);
     const isRegeneratingReports = useSelector(selectIsRegeneratingSessionReports(sessionId));
+    const isExportingReports = useSelector(selectIsExportingSessionReports(sessionId));
 
     // Memoize filtered reports to prevent unnecessary re-renders
     const clientReport = useMemo(() =>
@@ -160,6 +165,33 @@ export function ReportsPage() {
         }
     };
 
+    const handleExportClick = () => {
+        setShowExportModal(true);
+    };
+
+    const handleExportSubmit = async () => {
+        try {
+            await dispatch(exportClientReport({ sessionId })).unwrap();
+            
+            // Close modal and show success
+            setShowExportModal(false);
+            
+            // TODO: Show success notification/toast
+            alert('Report exported successfully! Session marked as completed.');
+            
+        } catch (error) {
+            console.error('Failed to export report:', error);
+            // TODO: Show error notification/toast
+            alert(`Export failed: ${error}`);
+        }
+    };
+
+    const handleExportModalClose = () => {
+        if (!isExportingReports) {
+            setShowExportModal(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="reports-page">
@@ -184,32 +216,22 @@ export function ReportsPage() {
                     </button>
 
                     <div className="session-info">
-                        <h1 className="page-title">
-                            <FileText size={32} />
-                            {t('reports.sessionReports')}
-                        </h1>
-
-                        {session && (
-                            <div className="session-summary">
-                                <div className="session-main-info">
-                                    <h2 className="session-title">{session.title || `${t('reports.sessionWith')} ${session.client?.name}`}</h2>
-                                    <div className="session-meta">
-                                        <div className="session-detail">
-                                            <User size={16} />
-                                            <span className="client-name">{session.client?.name}</span>
-                                        </div>
-                                        <div className="session-detail">
-                                            <Calendar size={16} />
-                                            <span>{new Date(session.created_at).toLocaleDateString('he-IL')}</span>
-                                        </div>
-                                        <div className="session-detail">
-                                            <Clock size={16} />
-                                            <span>{formatDuration(session.transcription_metadata?.duration)}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+                        <div className="session-title-row">
+                            <h1>{session?.title || t('reports.session')}</h1>
+                            {session?.status === 'completed' && (
+                                <span className="session-status-badge completed">
+                                    <FileCheck size={16} />
+                                    {t('reports.sessionCompleted')}
+                                </span>
+                            )}
+                        </div>
+                        <div className="session-meta">
+                            <span><User size={16} /> {session?.client?.name}</span>
+                            <span><Calendar size={16} /> {new Date(session?.created_at).toLocaleDateString()}</span>
+                            {session?.duration && (
+                                <span><Clock size={16} /> {formatDuration(session.duration)}</span>
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -220,26 +242,36 @@ export function ReportsPage() {
                         <div className="report-section client-section">
                             <div className="report-section-header">
                                 <div className="header-left">
-                                    <div>
+                                    <div className="report-title-section">
                                         <h2>{t('reports.clientReport')}</h2>
                                         <span className="client-report-msg">{t('reports.clientFacing')}</span>
+                                        <div className="report-badges">
+                                            {clientReport && clientReport.version_number > 1 && (
+                                                <span className="version-badge">
+                                                    {t('reports.regenerated')} v{clientReport.version_number}
+                                                </span>
+                                            )}
+                                            {clientReport && clientReport.status === 'approved' && (
+                                                <span className="status-badge approved">
+                                                    <FileCheck size={16} />
+                                                    {t('reports.approved')}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
-                                    {clientReport && clientReport.version_number > 1 && (
-                                        <span className="version-badge">
-                                            {t('reports.regenerated')} v{clientReport.version_number}
-                                        </span>
-                                    )}
-                                    {clientReport && (
+                                    {clientReport && clientReport.status !== 'approved' && (
                                         <button
                                             className="export-pdf-button"
                                             title={t('reports.exportAsPDF')}
+                                            onClick={handleExportClick}
+                                            disabled={isExportingReports}
                                         >
                                             <FileText size={16} />
                                             {t('reports.exportAsPDF')}
                                         </button>
                                     )}
                                 </div>
-                                {clientReport && (
+                                {clientReport && clientReport.status !== 'approved' && (
                                     <button
                                         className="regenerate-button"
                                         onClick={handleRegenerateClick}
@@ -275,8 +307,18 @@ export function ReportsPage() {
                         {/* Advisor Report Section */}
                         <div className="report-section advisor-section">
                             <div className="report-section-header">
-                                <h2>{t('reports.advisorReport')}</h2>
-                                <span className="report-type-badge advisor">{t('reports.internalUse')}</span>
+                                <div className="report-title-section">
+                                    <h2>{t('reports.advisorReport')}</h2>
+                                    <div className="report-badges">
+                                        <span className="report-type-badge advisor">{t('reports.internalUse')}</span>
+                                        {advisorReport && advisorReport.status === 'approved' && (
+                                            <span className="status-badge approved">
+                                                <FileCheck size={16} />
+                                                {t('reports.approved')}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
 
                             {advisorReport ? (
@@ -298,6 +340,16 @@ export function ReportsPage() {
                 onClose={handleModalClose}
                 onRegenerate={handleRegenerateSubmit}
                 isLoading={isSubmittingRegeneration}
+            />
+
+            {/* Export Modal */}
+            <ExportReportModal
+                isOpen={showExportModal}
+                onClose={handleExportModalClose}
+                onExport={handleExportSubmit}
+                report={clientReport}
+                session={session}
+                isLoading={isExportingReports}
             />
         </div>
     );

@@ -1,3 +1,13 @@
+// Keyframe animations
+@keyframes dashboardCompletedPulse {
+    0%, 100% {
+        box-shadow: 0 3px 8px rgba(34, 197, 94, 0.2);
+    }
+    50% {
+        box-shadow: 0 5px 15px rgba(34, 197, 94, 0.4);
+    }
+}
+
 .admin-dashboard {
     padding: $spacing-xl;
     max-width: 1400px;
@@ -132,6 +142,11 @@
                             background: rgba($danger-color, 0.1);
                             color: $danger-color;
                         }
+
+                        &.neutral {
+                            background: rgba($warning-color, 0.1);
+                            color: $text-muted;
+                        }
                     }
                 }
             }
@@ -231,6 +246,28 @@
                                 border-radius: $border-radius-xs;
                                 font-size: $font-size-xs;
                                 font-weight: 600;
+
+                                &.status-completed {
+                                    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+                                    color: #166534;
+                                    border: 2px solid #22c55e;
+                                    font-weight: 600;
+                                    box-shadow: 0 3px 8px rgba(34, 197, 94, 0.2);
+                                    transform: scale(1.05);
+                                    animation: dashboardCompletedPulse 2s ease-in-out infinite;
+                                    
+                                    .completed-badge {
+                                        display: flex;
+                                        align-items: center;
+                                        gap: $spacing-xs;
+                                        
+                                        .completed-text {
+                                            font-weight: 700;
+                                            text-transform: uppercase;
+                                            letter-spacing: 0.3px;
+                                        }
+                                    }
+                                }
                             }
                         }
 
