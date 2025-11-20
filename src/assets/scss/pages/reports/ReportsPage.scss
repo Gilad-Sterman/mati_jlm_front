@@ -645,7 +645,7 @@
     }
 
     .collapsible-content {
-      padding: 0 $spacing-xl $spacing-xl $spacing-xl;
+      padding: $spacing-lg $spacing-xl $spacing-xl $spacing-xl;
       animation: slideDown 0.3s ease;
       background: $white-color;
       border-top: 1px solid rgba(59, 130, 246, 0.1);
@@ -684,7 +684,6 @@
     }
     
     &:hover {
-      background: linear-gradient(135deg, darken($secondary-color, 10%) 0%, darken($primary-color, 5%) 100%);
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
       
@@ -1679,6 +1678,317 @@
             justify-content: center;
           }
         }
+      }
+    }
+  }
+
+  // NEW CLIENT REPORT STRUCTURE STYLING
+  
+  // Key Insights Grouped by Category
+  .insights-by-category {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xl;
+  }
+
+  .category-group {
+    background: $white-color;
+    border-radius: $border-radius-lg;
+    border: 1px solid rgba(59, 130, 246, 0.1);
+    overflow: hidden;
+    transition: all 0.3s ease;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .category-header {
+      display: flex;
+      align-items: center;
+      gap: $spacing-md;
+      padding: $spacing-lg $spacing-xl;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%);
+      border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+
+      .category-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, $primary-color 0%, $secondary-color 100%);
+        color: $white-color;
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+
+        svg {
+          transition: transform 0.3s ease;
+        }
+      }
+
+      .category-title {
+        flex: 1;
+        margin: 0;
+        font-size: $font-size-lg;
+        font-weight: 600;
+        color: $text-primary;
+        text-align: left;
+      }
+
+      .insights-count {
+        background: rgba(59, 130, 246, 0.1);
+        color: $primary-color;
+        padding: $spacing-xs $spacing-sm;
+        border-radius: $border-radius-md;
+        font-size: $font-size-sm;
+        font-weight: 500;
+      }
+    }
+
+    .category-insights {
+      padding: $spacing-lg $spacing-xl;
+      display: flex;
+      flex-direction: column;
+      gap: $spacing-lg;
+    }
+
+    .insight-card {
+      background: rgba(248, 250, 252, 0.8);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      border-radius: $border-radius-md;
+      padding: $spacing-lg;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: $white-color;
+        border-color: rgba(59, 130, 246, 0.2);
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+      }
+
+      .insight-content {
+        margin-bottom: $spacing-md;
+
+        p {
+          margin: 0;
+          color: $text-primary;
+          font-size: $font-size-base;
+          line-height: 1.6;
+        }
+      }
+
+      .quotes-section {
+        h5 {
+          margin: 0 0 $spacing-sm 0;
+          font-size: $font-size-sm;
+          font-weight: 600;
+          color: $text-muted;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .quotes-list {
+          margin: 0;
+          padding: 0;
+          list-style: none;
+
+          .quote-item {
+            position: relative;
+            padding: $spacing-sm $spacing-md;
+            margin-bottom: $spacing-sm;
+            background: rgba(59, 130, 246, 0.05);
+            border-left: 3px solid $primary-color;
+            border-radius: 0 $border-radius-sm $border-radius-sm 0;
+            font-style: italic;
+            color: $text-secondary;
+            font-size: $font-size-sm;
+
+            &:last-child {
+              margin-bottom: 0;
+            }
+
+            &::before {
+              content: '"';
+              position: absolute;
+              left: $spacing-xs;
+              top: 0;
+              font-size: 1.2em;
+              color: $primary-color;
+              font-weight: bold;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Action Items Cards
+  .action-items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: $spacing-lg;
+  }
+
+  .action-item-card {
+    background: $white-color;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    border-radius: $border-radius-lg;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      border-color: rgba(59, 130, 246, 0.3);
+    }
+
+    .action-card-header {
+      padding: $spacing-lg;
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, rgba(59, 130, 246, 0.05) 100%);
+      border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+      display: flex;
+      flex-direction: column;
+      gap: $spacing-md;
+
+      .action-task {
+        margin: 0;
+        font-size: $font-size-base;
+        font-weight: 600;
+        color: $text-primary;
+        line-height: 1.4;
+      }
+
+      .action-status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: $spacing-xs;
+        padding: $spacing-xs $spacing-sm;
+        border-radius: $border-radius-md;
+        font-size: $font-size-sm;
+        font-weight: 500;
+        text-transform: capitalize;
+        align-self: flex-start;
+
+        svg {
+          width: 14px;
+          height: 14px;
+        }
+
+        &.status-completed {
+          background: rgba(34, 197, 94, 0.1);
+          color: #059669;
+          border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        &.status-in-progress {
+          background: rgba(251, 191, 36, 0.1);
+          color: #d97706;
+          border: 1px solid rgba(251, 191, 36, 0.2);
+        }
+
+        &.status-open {
+          background: rgba(59, 130, 246, 0.1);
+          color: #2563eb;
+          border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        &.status-unknown {
+          background: rgba(107, 114, 128, 0.1);
+          color: #6b7280;
+          border: 1px solid rgba(107, 114, 128, 0.2);
+        }
+      }
+    }
+
+    .action-card-body {
+      padding: $spacing-lg;
+      display: flex;
+      flex-direction: column;
+      gap: $spacing-md;
+    }
+
+    .action-detail-row {
+      display: flex;
+      flex-direction: column;
+      gap: $spacing-xs;
+    }
+
+    .action-detail {
+      display: flex;
+      align-items: center;
+      gap: $spacing-sm;
+      padding: $spacing-sm;
+      background: rgba(248, 250, 252, 0.8);
+      border-radius: $border-radius-sm;
+      border: 1px solid rgba(226, 232, 240, 0.6);
+
+      svg {
+        color: $text-muted;
+        flex-shrink: 0;
+      }
+
+      .detail-label {
+        font-weight: 500;
+        color: $text-muted;
+        font-size: $font-size-sm;
+        min-width: 60px;
+      }
+
+      .detail-value {
+        color: $text-primary;
+        font-size: $font-size-sm;
+        flex: 1;
+
+        &.no-deadline {
+          color: $text-muted;
+          font-style: italic;
+        }
+      }
+    }
+  }
+
+  // Responsive adjustments for new structure
+  @media (max-width: 768px) {
+    .category-group {
+      .category-header {
+        padding: $spacing-md;
+        flex-wrap: wrap;
+
+        .category-title {
+          font-size: $font-size-base;
+        }
+
+        .insights-count {
+          font-size: $font-size-xs;
+        }
+      }
+
+      .category-insights {
+        padding: $spacing-md;
+      }
+
+      .insight-card {
+        padding: $spacing-md;
+      }
+    }
+
+    .action-items-grid {
+      grid-template-columns: 1fr;
+      gap: $spacing-md;
+    }
+
+    .action-item-card {
+      .action-card-header {
+        padding: $spacing-md;
+
+        .action-task {
+          font-size: $font-size-sm;
+        }
+      }
+
+      .action-card-body {
+        padding: $spacing-md;
       }
     }
   }

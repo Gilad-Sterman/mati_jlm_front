@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { ArrowLeft, FileText, User, Calendar, Clock, ChevronDown, ChevronUp, RefreshCw, BookOpenText, FileWarning, FileCheck, FileQuestion, Flag, ArrowDown, Download, RotateCcw, Loader2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, FileText, User, Calendar, Clock, ChevronDown, ChevronUp, RefreshCw, BookOpenText, FileWarning, FileCheck, FileQuestion, Flag, ArrowDown, Download, RotateCcw, Loader2, AlertCircle, Building2, CheckCircle, AlertTriangle, Users } from 'lucide-react';
 import {
     fetchReportsForSession,
     regenerateClientReport,
@@ -438,6 +438,133 @@ function CollapsibleSection({ title, children, defaultOpen = true, icon, forceOp
     );
 }
 
+// Helper function to get category icon
+function getCategoryIcon(category) {
+    switch (category) {
+        case 'what we learned about the clients business':
+            return <Building2 size={20} />;
+        case 'decisions made':
+            return <CheckCircle size={20} />;
+        case 'opportunities/risks or concerns that came up':
+            return <AlertTriangle size={20} />;
+        default:
+            return <BookOpenText size={20} />;
+    }
+}
+
+// Helper function to get category translation key
+function getCategoryTranslationKey(category) {
+    switch (category) {
+        case 'what we learned about the clients business':
+            return 'reports.categoryBusiness';
+        case 'decisions made':
+            return 'reports.categoryDecisions';
+        case 'opportunities/risks or concerns that came up':
+            return 'reports.categoryOpportunities';
+        default:
+            return 'reports.categoryOther';
+    }
+}
+
+// Helper function to get status icon
+function getStatusIcon(status) {
+    switch (status?.toLowerCase()) {
+        case 'completed':
+        case 'הושלם':
+            return <CheckCircle size={16} />;
+        case 'in progress':
+        case 'בתהליך':
+            return <Clock size={16} />;
+        case 'open':
+        case 'פתוח':
+            return <AlertCircle size={16} />;
+        default:
+            return <FileQuestion size={16} />;
+    }
+}
+
+// Helper function to get status translation key
+function getStatusTranslationKey(status) {
+    switch (status?.toLowerCase()) {
+        case 'completed':
+        case 'הושלם':
+            return 'reports.statusCompleted';
+        case 'in progress':
+        case 'בתהליך':
+            return 'reports.statusInProgress';
+        case 'open':
+        case 'פתוח':
+            return 'reports.statusOpen';
+        default:
+            return 'reports.statusUnknown';
+    }
+}
+
+// Helper function to get status CSS class
+function getStatusClass(status) {
+    switch (status?.toLowerCase()) {
+        case 'completed':
+        case 'הושלם':
+            return 'status-completed';
+        case 'in progress':
+        case 'בתהליך':
+            return 'status-in-progress';
+        case 'open':
+        case 'פתוח':
+            return 'status-open';
+        default:
+            return 'status-unknown';
+    }
+}
+
+// Helper function to render insights grouped by category
+function renderInsightsByCategory(insights, t) {
+    // Group insights by category
+    const groupedInsights = insights.reduce((acc, insight) => {
+        const category = insight.category;
+        if (!acc[category]) {
+            acc[category] = [];
+        }
+        acc[category].push(insight);
+        return acc;
+    }, {});
+
+    return Object.entries(groupedInsights).map(([category, categoryInsights]) => (
+        <div className="category-group" key={category}>
+            <div className="category-header">
+                <div className="category-icon">
+                    {getCategoryIcon(category)}
+                </div>
+                <h3 className="category-title">
+                    {t(getCategoryTranslationKey(category))}
+                </h3>
+                <span className="insights-count">
+                    {categoryInsights.length} {categoryInsights.length === 1 ? t('reports.insight') : t('reports.insights')}
+                </span>
+            </div>
+            <div className="category-insights">
+                {categoryInsights.map((insight, index) => (
+                    <div className="insight-card" key={index}>
+                        <div className="insight-content">
+                            <p>{insight.content}</p>
+                        </div>
+                        {insight.supporting_quotes && insight.supporting_quotes.length > 0 && (
+                            <div className="quotes-section">
+                                <h5>{t('reports.supportingQuotes')}</h5>
+                                <ul className="quotes-list">
+                                    {insight.supporting_quotes.map((quote, quoteIndex) => (
+                                        <li key={quoteIndex} className="quote-item">"{quote}"</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                    </div>
+                ))}
+            </div>
+        </div>
+    ));
+}
+
 // Client Report Display Component
 function ClientReportDisplay({ report }) {
     const { t } = useTranslation();
@@ -457,6 +584,9 @@ function ClientReportDisplay({ report }) {
         setAllExpanded(!allExpanded);
     };
 
+    // Detect if this is the new report structure (has key_insights and action_items)
+    const isNewStructure = content.key_insights && content.action_items;
+
     return (
         <div className="client-report-content">
             <button
@@ -467,165 +597,219 @@ function ClientReportDisplay({ report }) {
                 {allExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                 {allExpanded ? t('reports.collapseAll') : t('reports.expandAll')}
             </button>
-            {/* Executive Summary */}
-            {content.executive_summary && (
-                <CollapsibleSection title={t('reports.sessionSummary')} defaultOpen={true} icon={<BookOpenText size={20} />} forceOpen={allExpanded} color="blue">
-                    <p>{content.executive_summary}</p>
-                </CollapsibleSection>
-            )}
 
-            {/* Entrepreneur Needs */}
-            {content.entrepreneur_needs?.length > 0 && (
-                <CollapsibleSection title={t('reports.entrepreneurNeeds')} defaultOpen={true} icon={<FileQuestion size={20} />} forceOpen={allExpanded} color="orange">
-                    {content.entrepreneur_needs.map((need, index) => (
-                        <div className="need-item" key={index}>
-                            <h4>{t('reports.needConceptualization')}: {need.need_conceptualization}</h4>
-                            <p>{need.need_explanation}</p>
-                            {need.supporting_quotes && need.supporting_quotes.length > 0 && (
+            {isNewStructure ? (
+                // NEW REPORT STRUCTURE
+                <>
+                    {/* Key Insights Section */}
+                    {content.key_insights && content.key_insights.length > 0 && (
+                        <CollapsibleSection title={t('reports.keyInsights')} defaultOpen={true} icon={<BookOpenText size={20} />} forceOpen={allExpanded} color="blue">
+                            <div className="insights-by-category">
+                                {renderInsightsByCategory(content.key_insights, t)}
+                            </div>
+                        </CollapsibleSection>
+                    )}
+
+                    {/* Action Items Section */}
+                    {content.action_items && content.action_items.length > 0 && (
+                        <CollapsibleSection title={t('reports.actionItems')} defaultOpen={true} icon={<Flag size={20} />} forceOpen={allExpanded} color="green">
+                            <div className="action-items-grid">
+                                {content.action_items.map((item, index) => (
+                                    <div className="action-item-card" key={index}>
+                                        <div className="action-card-header">
+                                            <h4 className="action-task">{item.task}</h4>
+                                            <span className={`action-status-badge ${getStatusClass(item.status)}`}>
+                                                {getStatusIcon(item.status)}
+                                                {item.status ? t(getStatusTranslationKey(item.status)) : t('reports.statusUnknown')}
+                                            </span>
+                                        </div>
+                                        <div className="action-card-body">
+                                            <div className="action-detail-row">
+                                                <div className="action-detail">
+                                                    <Users size={16} />
+                                                    <span className="detail-label">{t('reports.owner')}:</span>
+                                                    <span className="detail-value">{item.owner || t('reports.notSpecified')}</span>
+                                                </div>
+                                            </div>
+                                            <div className="action-detail-row">
+                                                <div className="action-detail">
+                                                    <Calendar size={16} />
+                                                    <span className="detail-label">{t('reports.deadline')}:</span>
+                                                    <span className={`detail-value ${!item.deadline ? 'no-deadline' : ''}`}>
+                                                        {item.deadline || t('reports.notSpecified')}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </CollapsibleSection>
+                    )}
+                </>
+            ) : (
+                // OLD REPORT STRUCTURE (backwards compatibility)
+                <>
+                    {/* Executive Summary */}
+                    {content.executive_summary && (
+                        <CollapsibleSection title={t('reports.sessionSummary')} defaultOpen={true} icon={<BookOpenText size={20} />} forceOpen={allExpanded} color="blue">
+                            <p>{content.executive_summary}</p>
+                        </CollapsibleSection>
+                    )}
+
+                    {/* Entrepreneur Needs */}
+                    {content.entrepreneur_needs?.length > 0 && (
+                        <CollapsibleSection title={t('reports.entrepreneurNeeds')} defaultOpen={true} icon={<FileQuestion size={20} />} forceOpen={allExpanded} color="orange">
+                            {content.entrepreneur_needs.map((need, index) => (
+                                <div className="need-item" key={index}>
+                                    <h4>{t('reports.needConceptualization')}: {need.need_conceptualization}</h4>
+                                    <p>{need.need_explanation}</p>
+                                    {need.supporting_quotes && need.supporting_quotes.length > 0 && (
+                                        <div className="quotes-section">
+                                            <h5>{t('reports.supportingQuotes')}</h5>
+                                            <ul className="quotes-list">
+                                                {need.supporting_quotes.map((quote, index) => (
+                                                    <li key={index} className="quote-item">"{quote}"</li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                            {content.entrepreneur_needs.need_explanation && (
+                                <div className="need-item">
+                                    <h4>{t('reports.needExplanation')}</h4>
+                                    <p>{content.entrepreneur_needs.need_explanation}</p>
+                                </div>
+                            )}
+                            {content.entrepreneur_needs.supporting_quotes && content.entrepreneur_needs.supporting_quotes.length > 0 && (
                                 <div className="quotes-section">
-                                    <h5>{t('reports.supportingQuotes')}</h5>
+                                    <h4>{t('reports.supportingQuotes')}</h4>
                                     <ul className="quotes-list">
-                                        {need.supporting_quotes.map((quote, index) => (
+                                        {content.entrepreneur_needs.supporting_quotes.map((quote, index) => (
                                             <li key={index} className="quote-item">"{quote}"</li>
                                         ))}
                                     </ul>
                                 </div>
                             )}
-                        </div>
-                    ))}
-                    {content.entrepreneur_needs.need_explanation && (
-                        <div className="need-item">
-                            <h4>{t('reports.needExplanation')}</h4>
-                            <p>{content.entrepreneur_needs.need_explanation}</p>
-                        </div>
+                        </CollapsibleSection>
                     )}
-                    {content.entrepreneur_needs.supporting_quotes && content.entrepreneur_needs.supporting_quotes.length > 0 && (
-                        <div className="quotes-section">
-                            <h4>{t('reports.supportingQuotes')}</h4>
-                            <ul className="quotes-list">
-                                {content.entrepreneur_needs.supporting_quotes.map((quote, index) => (
-                                    <li key={index} className="quote-item">"{quote}"</li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
-                </CollapsibleSection>
-            )}
 
-            {content.entrepreneur_needs.need_conceptualization && (
-                <CollapsibleSection title={t('reports.entrepreneurNeeds')} defaultOpen={true} icon={<FileQuestion size={20} />} forceOpen={allExpanded} color="orange">
-                    {content.entrepreneur_needs.need_conceptualization && (
-                        <div className="need-item">
-                            <h4>{t('reports.needConceptualization')}</h4>
-                            <p>{content.entrepreneur_needs.need_conceptualization}</p>
-                        </div>
-                    )}
-                    {content.entrepreneur_needs.need_explanation && (
-                        <div className="need-item">
-                            <h4>{t('reports.needExplanation')}</h4>
-                            <p>{content.entrepreneur_needs.need_explanation}</p>
-                        </div>
-                    )}
-                    {content.entrepreneur_needs.supporting_quotes && content.entrepreneur_needs.supporting_quotes.length > 0 && (
-                        <div className="quotes-section">
-                            <h4>{t('reports.supportingQuotes')}</h4>
-                            <ul className="quotes-list">
-                                {content.entrepreneur_needs.supporting_quotes.map((quote, index) => (
-                                    <li key={index} className="quote-item">"{quote}"</li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
-                </CollapsibleSection>
-            )}
-
-            {/* Advisor Solutions */}
-            {content.advisor_solutions?.length > 0 && (
-                <CollapsibleSection title={t('reports.advisorSolutions')} defaultOpen={true} icon={<FileQuestion size={20} />} forceOpen={allExpanded} color="purple">
-                    {content.advisor_solutions.map((solution, index) => (
-                        <div className="need-item" key={index}>
-                            <h4>{t('reports.solutionConceptualization')}: {solution.solution_conceptualization}</h4>
-                            <p>{solution.solution_explanation}</p>
-                            {solution.supporting_quotes && solution.supporting_quotes.length > 0 && (
+                    {content.entrepreneur_needs && content.entrepreneur_needs.need_conceptualization && (
+                        <CollapsibleSection title={t('reports.entrepreneurNeeds')} defaultOpen={true} icon={<FileQuestion size={20} />} forceOpen={allExpanded} color="orange">
+                            {content.entrepreneur_needs.need_conceptualization && (
+                                <div className="need-item">
+                                    <h4>{t('reports.needConceptualization')}</h4>
+                                    <p>{content.entrepreneur_needs.need_conceptualization}</p>
+                                </div>
+                            )}
+                            {content.entrepreneur_needs.need_explanation && (
+                                <div className="need-item">
+                                    <h4>{t('reports.needExplanation')}</h4>
+                                    <p>{content.entrepreneur_needs.need_explanation}</p>
+                                </div>
+                            )}
+                            {content.entrepreneur_needs.supporting_quotes && content.entrepreneur_needs.supporting_quotes.length > 0 && (
                                 <div className="quotes-section">
-                                    <h5>{t('reports.supportingQuotes')}</h5>
+                                    <h4>{t('reports.supportingQuotes')}</h4>
                                     <ul className="quotes-list">
-                                        {solution.supporting_quotes.map((quote, index) => (
+                                        {content.entrepreneur_needs.supporting_quotes.map((quote, index) => (
                                             <li key={index} className="quote-item">"{quote}"</li>
                                         ))}
                                     </ul>
                                 </div>
                             )}
-                        </div>
-                    ))}
-                    {content.advisor_solutions.solution_explanation && (
-                        <div className="need-item">
-                            <h4>{t('reports.solutionExplanation')}</h4>
-                            <p>{content.advisor_solutions.solution_explanation}</p>
-                        </div>
+                        </CollapsibleSection>
                     )}
-                    {content.entrepreneur_needs.supporting_quotes && content.entrepreneur_needs.supporting_quotes.length > 0 && (
-                        <div className="quotes-section">
-                            <h4>{t('reports.supportingQuotes')}</h4>
-                            <ul className="quotes-list">
-                                {content.entrepreneur_needs.supporting_quotes.map((quote, index) => (
-                                    <li key={index} className="quote-item">"{quote}"</li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
-                </CollapsibleSection>
-            )}
 
-            {content.advisor_solutions.solution_conceptualization && (
-                <CollapsibleSection title={t('reports.advisorSolutions')} defaultOpen={true} icon={<FileCheck size={20} />} forceOpen={allExpanded} color="purple">
-                    {content.advisor_solutions.solution_conceptualization && (
-                        <div className="solution-item">
-                            <h4>{t('reports.solutionConceptualization')}</h4>
-                            <p>{content.advisor_solutions.solution_conceptualization}</p>
-                        </div>
+                    {/* Advisor Solutions */}
+                    {content.advisor_solutions?.length > 0 && (
+                        <CollapsibleSection title={t('reports.advisorSolutions')} defaultOpen={true} icon={<FileQuestion size={20} />} forceOpen={allExpanded} color="purple">
+                            {content.advisor_solutions.map((solution, index) => (
+                                <div className="need-item" key={index}>
+                                    <h4>{t('reports.solutionConceptualization')}: {solution.solution_conceptualization}</h4>
+                                    <p>{solution.solution_explanation}</p>
+                                    {solution.supporting_quotes && solution.supporting_quotes.length > 0 && (
+                                        <div className="quotes-section">
+                                            <h5>{t('reports.supportingQuotes')}</h5>
+                                            <ul className="quotes-list">
+                                                {solution.supporting_quotes.map((quote, index) => (
+                                                    <li key={index} className="quote-item">"{quote}"</li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                            {content.advisor_solutions.solution_explanation && (
+                                <div className="need-item">
+                                    <h4>{t('reports.solutionExplanation')}</h4>
+                                    <p>{content.advisor_solutions.solution_explanation}</p>
+                                </div>
+                            )}
+                            {content.entrepreneur_needs.supporting_quotes && content.entrepreneur_needs.supporting_quotes.length > 0 && (
+                                <div className="quotes-section">
+                                    <h4>{t('reports.supportingQuotes')}</h4>
+                                    <ul className="quotes-list">
+                                        {content.entrepreneur_needs.supporting_quotes.map((quote, index) => (
+                                            <li key={index} className="quote-item">"{quote}"</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </CollapsibleSection>
                     )}
-                    {content.advisor_solutions.solution_explanation && (
-                        <div className="solution-item">
-                            <h4>{t('reports.solutionExplanation')}</h4>
-                            <p>{content.advisor_solutions.solution_explanation}</p>
-                        </div>
-                    )}
-                    {content.advisor_solutions.supporting_quotes && content.advisor_solutions.supporting_quotes.length > 0 && (
-                        <div className="quotes-section">
-                            <h4>{t('reports.supportingQuotes')}</h4>
-                            <ul className="quotes-list">
-                                {content.advisor_solutions.supporting_quotes.map((quote, index) => (
-                                    <li key={index} className="quote-item">"{quote}"</li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
-                </CollapsibleSection>
-            )}
 
-            {/* Agreed Actions */}
-            {content.agreed_actions && (
-                <CollapsibleSection title={t('reports.keyInsights')} defaultOpen={true} icon={<Flag size={20} />} forceOpen={allExpanded} color="green">
-                    {content.agreed_actions.immediate_actions && content.agreed_actions.immediate_actions.length > 0 && (
-                        <div className="actions-item">
-                            <h4>{t('reports.immediateActions')}</h4>
-                            <ul className="actions-list">
-                                {content.agreed_actions.immediate_actions.map((action, index) => (
-                                    <li key={index}>{action}</li>
-                                ))}
-                            </ul>
-                        </div>
+                    {content.advisor_solutions && content.advisor_solutions.solution_conceptualization && (
+                        <CollapsibleSection title={t('reports.advisorSolutions')} defaultOpen={true} icon={<FileCheck size={20} />} forceOpen={allExpanded} color="purple">
+                            {content.advisor_solutions.solution_conceptualization && (
+                                <div className="solution-item">
+                                    <h4>{t('reports.solutionConceptualization')}</h4>
+                                    <p>{content.advisor_solutions.solution_conceptualization}</p>
+                                </div>
+                            )}
+                            {content.advisor_solutions.solution_explanation && (
+                                <div className="solution-item">
+                                    <h4>{t('reports.solutionExplanation')}</h4>
+                                    <p>{content.advisor_solutions.solution_explanation}</p>
+                                </div>
+                            )}
+                            {content.advisor_solutions.supporting_quotes && content.advisor_solutions.supporting_quotes.length > 0 && (
+                                <div className="quotes-section">
+                                    <h4>{t('reports.supportingQuotes')}</h4>
+                                    <ul className="quotes-list">
+                                        {content.advisor_solutions.supporting_quotes.map((quote, index) => (
+                                            <li key={index} className="quote-item">"{quote}"</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </CollapsibleSection>
                     )}
-                    {content.agreed_actions.concrete_recommendation && (
-                        <div className="actions-item">
-                            <h4>{t('reports.concreteRecommendation')}</h4>
-                            <p>{content.agreed_actions.concrete_recommendation}</p>
-                        </div>
-                    )}
-                </CollapsibleSection>
-            )}
 
+                    {/* Agreed Actions */}
+                    {content.agreed_actions && (
+                        <CollapsibleSection title={t('reports.agreedActions')} defaultOpen={true} icon={<Flag size={20} />} forceOpen={allExpanded} color="green">
+                            {content.agreed_actions.immediate_actions && content.agreed_actions.immediate_actions.length > 0 && (
+                                <div className="actions-item">
+                                    <h4>{t('reports.immediateActions')}</h4>
+                                    <ul className="actions-list">
+                                        {content.agreed_actions.immediate_actions.map((action, index) => (
+                                            <li key={index}>{action}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                            {content.agreed_actions.concrete_recommendation && (
+                                <div className="actions-item">
+                                    <h4>{t('reports.concreteRecommendation')}</h4>
+                                    <p>{content.agreed_actions.concrete_recommendation}</p>
+                                </div>
+                            )}
+                        </CollapsibleSection>
+                    )}
+                </>
+            )}
         </div>
     );
 }
