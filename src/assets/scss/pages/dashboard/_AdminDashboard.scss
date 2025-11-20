@@ -1,8 +1,11 @@
 // Keyframe animations
 @keyframes dashboardCompletedPulse {
-    0%, 100% {
+
+    0%,
+    100% {
         box-shadow: 0 3px 8px rgba(34, 197, 94, 0.2);
     }
+
     50% {
         box-shadow: 0 5px 15px rgba(34, 197, 94, 0.4);
     }
@@ -22,9 +25,14 @@
         border-bottom: 1px solid $border-color;
 
         .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: $spacing-md;
+            margin-bottom: $spacing-sm;
+
             h1 {
                 color: $primary-color;
-                margin-bottom: $spacing-sm;
                 font-size: $font-size-xxl;
                 font-weight: 700;
             }
@@ -255,12 +263,12 @@
                                     box-shadow: 0 3px 8px rgba(34, 197, 94, 0.2);
                                     transform: scale(1.05);
                                     animation: dashboardCompletedPulse 2s ease-in-out infinite;
-                                    
+
                                     .completed-badge {
                                         display: flex;
                                         align-items: center;
                                         gap: $spacing-xs;
-                                        
+
                                         .completed-text {
                                             font-weight: 700;
                                             text-transform: uppercase;

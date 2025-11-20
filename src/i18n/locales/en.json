@@ -188,6 +188,8 @@
         "approving": "Approving...",
         "approveAndSend": "Approve & Send",
         "regenerate": "Regenerate",
+        "expandAll": "Expand All",
+        "collapseAll": "Collapse All",
         "regenerateFullReport": "Regenerate Full Report",
         "regenerating": "Regenerating...",
         "confirmFullRegeneration": "Are you sure you want to regenerate the full report? This will overwrite both the current structure display and insights sections with new AI-generated content.",
@@ -328,6 +330,9 @@
         "entrepreneurNeeds": "Entrepreneur Needs",
         "advisorSolutions": "Advisor Solutions",
         "sessionCompleted": "Session Completed",
-        "approved": "Approved"
+        "approved": "Approved",
+        "viewOriginalTranscript": "View Original Transcript",
+        "originalTranscript": "Original Transcript",
+        "noTranscriptAvailable": "No transcript available for this session"
     }
 }

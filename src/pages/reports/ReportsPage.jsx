@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { ArrowLeft, FileText, User, Calendar, Clock, ChevronDown, ChevronUp, RefreshCw, BookOpenText, FileWarning, FileCheck, FileQuestion, Flag } from 'lucide-react';
+import { ArrowLeft, FileText, User, Calendar, Clock, ChevronDown, ChevronUp, RefreshCw, BookOpenText, FileWarning, FileCheck, FileQuestion, Flag, ArrowDown, Download, RotateCcw, Loader2, AlertCircle } from 'lucide-react';
 import {
     fetchReportsForSession,
     regenerateClientReport,
@@ -16,6 +16,7 @@ import {
 import { fetchSessionById } from '../../store/sessionSlice';
 import { RegenerateModal } from './components/RegenerateModal';
 import { ExportReportModal } from './components/ExportReportModal';
+import { OriginalTranscriptModal } from './components/OriginalTranscriptModal';
 import { useAppSocket } from '../../hooks/useAppSocket';
 
 export function ReportsPage() {
@@ -27,6 +28,7 @@ export function ReportsPage() {
     const [loading, setLoading] = useState(true);
     const [showRegenerateModal, setShowRegenerateModal] = useState(false);
     const [showExportModal, setShowExportModal] = useState(false);
+    const [showTranscriptModal, setShowTranscriptModal] = useState(false);
     const [isSubmittingRegeneration, setIsSubmittingRegeneration] = useState(false);
 
     // Socket connection for regeneration events
@@ -172,13 +174,13 @@ export function ReportsPage() {
     const handleExportSubmit = async () => {
         try {
             await dispatch(exportClientReport({ sessionId })).unwrap();
-            
+
             // Close modal and show success
             setShowExportModal(false);
-            
+
             // TODO: Show success notification/toast
             alert('Report exported successfully! Session marked as completed.');
-            
+
         } catch (error) {
             console.error('Failed to export report:', error);
             // TODO: Show error notification/toast
@@ -191,6 +193,15 @@ export function ReportsPage() {
             setShowExportModal(false);
         }
     };
+
+    const handleViewTranscriptClick = () => {
+        setShowTranscriptModal(true);
+    };
+
+    const handleTranscriptModalClose = () => {
+        setShowTranscriptModal(false);
+    };
+
 
     if (loading) {
         return (
@@ -244,7 +255,20 @@ export function ReportsPage() {
                                 <div className="header-left">
                                     <div className="report-title-section">
                                         <h2>{t('reports.clientReport')}</h2>
-                                        <span className="client-report-msg">{t('reports.clientFacing')}</span>
+                                        {clientReport?.status !== 'approved' && <span className="client-report-msg">{t('reports.clientFacing')}</span>}
+                                        {!!session && <div className='client-report-client-row'>
+                                            <span className="client-report-client">
+                                                {t('reports.adviser')}: {session?.adviser?.name}
+                                            </span>
+                                            <span className="client-report-date">
+                                                <Calendar size={16} />
+                                                {new Date(session?.created_at).toLocaleDateString()}
+                                            </span>
+                                            {session?.transcription_metadata?.duration && <span className="client-report-duration">
+                                                <Clock size={16} />
+                                                {formatDuration(session.transcription_metadata?.duration)}
+                                            </span>}
+                                        </div>}
                                         <div className="report-badges">
                                             {clientReport && clientReport.version_number > 1 && (
                                                 <span className="version-badge">
@@ -270,18 +294,19 @@ export function ReportsPage() {
                                             {t('reports.exportAsPDF')}
                                         </button>
                                     )}
+
+                                    {clientReport && clientReport.status !== 'approved' && (
+                                        <button
+                                            className="regenerate-button"
+                                            onClick={handleRegenerateClick}
+                                            title={t('reports.regenerateReport')}
+                                            disabled={isLoadingReports || isRegeneratingReports}
+                                        >
+                                            <RefreshCw size={16} />
+                                            {t('reports.regenerate')}
+                                        </button>
+                                    )}
                                 </div>
-                                {clientReport && clientReport.status !== 'approved' && (
-                                    <button
-                                        className="regenerate-button"
-                                        onClick={handleRegenerateClick}
-                                        title={t('reports.regenerateReport')}
-                                        disabled={isLoadingReports || isRegeneratingReports}
-                                    >
-                                        <RefreshCw size={16} />
-                                        {t('reports.regenerate')}
-                                    </button>
-                                )}
                             </div>
 
                             {isLoadingReports ? (
@@ -307,18 +332,30 @@ export function ReportsPage() {
                         {/* Advisor Report Section */}
                         <div className="report-section advisor-section">
                             <div className="report-section-header">
-                                <div className="report-title-section">
-                                    <h2>{t('reports.advisorReport')}</h2>
-                                    <div className="report-badges">
-                                        <span className="report-type-badge advisor">{t('reports.internalUse')}</span>
-                                        {advisorReport && advisorReport.status === 'approved' && (
-                                            <span className="status-badge approved">
-                                                <FileCheck size={16} />
-                                                {t('reports.approved')}
-                                            </span>
-                                        )}
+                                <div className="header-left">
+                                    <div className="report-title-section">
+                                        <h2>{t('reports.advisorReport')}</h2>
+                                        <div className="report-badges">
+                                            <span className="report-type-badge advisor">{t('reports.internalUse')}</span>
+                                            {advisorReport && advisorReport.status === 'approved' && (
+                                                <span className="status-badge approved">
+                                                    <FileCheck size={16} />
+                                                    {t('reports.approved')}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
+                                {session?.transcription_text && (
+                                    <button
+                                        className="view-transcript-button"
+                                        onClick={handleViewTranscriptClick}
+                                        title={t('reports.viewOriginalTranscript')}
+                                    >
+                                        <FileText size={16} />
+                                        {t('reports.viewOriginalTranscript')}
+                                    </button>
+                                )}
                             </div>
 
                             {advisorReport ? (
@@ -351,22 +388,46 @@ export function ReportsPage() {
                 session={session}
                 isLoading={isExportingReports}
             />
+
+            {/* Original Transcript Modal */}
+            <OriginalTranscriptModal
+                isOpen={showTranscriptModal}
+                onClose={handleTranscriptModalClose}
+                transcript={session?.transcription_text}
+                session={session}
+            />
         </div>
     );
 }
 
 // Collapsible Section Component
-function CollapsibleSection({ title, children, defaultOpen = true, icon }) {
+function CollapsibleSection({ title, children, defaultOpen = true, icon, forceOpen = null, color = 'primary' }) {
     const [isOpen, setIsOpen] = useState(defaultOpen);
 
+    // Sync internal state when forceOpen changes
+    useEffect(() => {
+        if (forceOpen !== null) {
+            setIsOpen(forceOpen);
+        }
+    }, [forceOpen]);
+
+    const handleToggle = () => {
+        setIsOpen(!isOpen);
+    };
+
     return (
-        <div className="collapsible-section">
+        <div className={`collapsible-section ${isOpen ? 'section-open' : 'section-closed'} section-color-${color}`}>
             <button
                 className="collapsible-header"
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={handleToggle}
             >
-                <h3> {icon} {title}</h3>
-                {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                <div className="header-content">
+                    <span className="header-icon">{icon}</span>
+                    <h3>{title}</h3>
+                </div>
+                <div className={`chevron-icon ${isOpen ? 'chevron-open' : 'chevron-closed'}`}>
+                    {isOpen ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+                </div>
             </button>
             {isOpen && (
                 <div className="collapsible-content">
@@ -380,6 +441,7 @@ function CollapsibleSection({ title, children, defaultOpen = true, icon }) {
 // Client Report Display Component
 function ClientReportDisplay({ report }) {
     const { t } = useTranslation();
+    const [allExpanded, setAllExpanded] = useState(true); // Default to expanded since sections default to open
 
     if (!report.content) return null;
 
@@ -391,18 +453,30 @@ function ClientReportDisplay({ report }) {
         return <div className="error-message">{t('reports.errorParsingReport')}</div>;
     }
 
+    const handleExpandAllClick = () => {
+        setAllExpanded(!allExpanded);
+    };
+
     return (
         <div className="client-report-content">
+            <button
+                className="expand-all-button"
+                title={allExpanded ? t('reports.collapseAll') : t('reports.expandAll')}
+                onClick={handleExpandAllClick}
+            >
+                {allExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                {allExpanded ? t('reports.collapseAll') : t('reports.expandAll')}
+            </button>
             {/* Executive Summary */}
             {content.executive_summary && (
-                <CollapsibleSection title={t('reports.executiveSummary')} defaultOpen={true} icon={<BookOpenText size={20} />}>
+                <CollapsibleSection title={t('reports.sessionSummary')} defaultOpen={true} icon={<BookOpenText size={20} />} forceOpen={allExpanded} color="blue">
                     <p>{content.executive_summary}</p>
                 </CollapsibleSection>
             )}
 
             {/* Entrepreneur Needs */}
             {content.entrepreneur_needs?.length > 0 && (
-                <CollapsibleSection title={t('reports.entrepreneurNeeds')} defaultOpen={true} icon={<FileQuestion size={20} />}>
+                <CollapsibleSection title={t('reports.entrepreneurNeeds')} defaultOpen={true} icon={<FileQuestion size={20} />} forceOpen={allExpanded} color="orange">
                     {content.entrepreneur_needs.map((need, index) => (
                         <div className="need-item" key={index}>
                             <h4>{t('reports.needConceptualization')}: {need.need_conceptualization}</h4>
@@ -439,7 +513,7 @@ function ClientReportDisplay({ report }) {
             )}
 
             {content.entrepreneur_needs.need_conceptualization && (
-                <CollapsibleSection title={t('reports.entrepreneurNeeds')} defaultOpen={true} icon={<FileQuestion size={20} />}>
+                <CollapsibleSection title={t('reports.entrepreneurNeeds')} defaultOpen={true} icon={<FileQuestion size={20} />} forceOpen={allExpanded} color="orange">
                     {content.entrepreneur_needs.need_conceptualization && (
                         <div className="need-item">
                             <h4>{t('reports.needConceptualization')}</h4>
@@ -467,7 +541,7 @@ function ClientReportDisplay({ report }) {
 
             {/* Advisor Solutions */}
             {content.advisor_solutions?.length > 0 && (
-                <CollapsibleSection title={t('reports.advisorSolutions')} defaultOpen={true} icon={<FileQuestion size={20} />}>
+                <CollapsibleSection title={t('reports.advisorSolutions')} defaultOpen={true} icon={<FileQuestion size={20} />} forceOpen={allExpanded} color="purple">
                     {content.advisor_solutions.map((solution, index) => (
                         <div className="need-item" key={index}>
                             <h4>{t('reports.solutionConceptualization')}: {solution.solution_conceptualization}</h4>
@@ -504,7 +578,7 @@ function ClientReportDisplay({ report }) {
             )}
 
             {content.advisor_solutions.solution_conceptualization && (
-                <CollapsibleSection title={t('reports.advisorSolutions')} defaultOpen={true} icon={<FileCheck size={20} />}>
+                <CollapsibleSection title={t('reports.advisorSolutions')} defaultOpen={true} icon={<FileCheck size={20} />} forceOpen={allExpanded} color="purple">
                     {content.advisor_solutions.solution_conceptualization && (
                         <div className="solution-item">
                             <h4>{t('reports.solutionConceptualization')}</h4>
@@ -532,7 +606,7 @@ function ClientReportDisplay({ report }) {
 
             {/* Agreed Actions */}
             {content.agreed_actions && (
-                <CollapsibleSection title={t('reports.agreedActions')} defaultOpen={true} icon={<Flag size={20} />}>
+                <CollapsibleSection title={t('reports.keyInsights')} defaultOpen={true} icon={<Flag size={20} />} forceOpen={allExpanded} color="green">
                     {content.agreed_actions.immediate_actions && content.agreed_actions.immediate_actions.length > 0 && (
                         <div className="actions-item">
                             <h4>{t('reports.immediateActions')}</h4>
@@ -569,6 +643,7 @@ function getScoreInfo(score) {
 // Advisor Report Display Component
 function AdvisorReportDisplay({ report }) {
     const { t } = useTranslation();
+    const [allExpanded, setAllExpanded] = useState(true); // Default to expanded since sections default to open
 
     if (!report.content) return null;
 
@@ -580,10 +655,22 @@ function AdvisorReportDisplay({ report }) {
         return <div className="error-message">{t('reports.errorParsingReport')}</div>;
     }
 
+    const handleExpandAllClick = () => {
+        setAllExpanded(!allExpanded);
+    };
+
     return (
         <div className="advisor-report-content">
+            <button
+                className="expand-all-button"
+                title={allExpanded ? t('reports.collapseAll') : t('reports.expandAll')}
+                onClick={handleExpandAllClick}
+            >
+                {allExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                {allExpanded ? t('reports.collapseAll') : t('reports.expandAll')}
+            </button>
             {/* Speaking Time Analysis */}
-            <CollapsibleSection title={t('reports.speakingTimeAnalysis')} defaultOpen={true}>
+            <CollapsibleSection title={t('reports.speakingTimeAnalysis')} defaultOpen={true} forceOpen={allExpanded} color="purple">
                 <div className="speaking-time-visual">
                     <div className="duration-info">
                         <h4>{t('reports.duration')}: {content.conversation_duration.split('.')[0]} דקות</h4>
@@ -619,7 +706,7 @@ function AdvisorReportDisplay({ report }) {
 
             {/* Main Topics */}
             {content.main_topics && content.main_topics.length > 0 && (
-                <CollapsibleSection title={t('reports.mainTopics')} defaultOpen={true}>
+                <CollapsibleSection title={t('reports.level2Insights')} defaultOpen={true} forceOpen={allExpanded} color="teal">
                     <div className="topics-tags">
                         {content.main_topics.map((topic, index) => (
                             <span key={index} className="topic-tag">{topic}</span>
@@ -629,7 +716,7 @@ function AdvisorReportDisplay({ report }) {
             )}
 
             {/* Performance Scores */}
-            <CollapsibleSection title={t('reports.performanceScores')} defaultOpen={true}>
+            <CollapsibleSection title={t('reports.level3Recommendations')} defaultOpen={true} forceOpen={allExpanded} color="pink">
                 <div className="performance-cards">
                     <div className="performance-card" style={{
                         backgroundColor: getScoreInfo(content.entrepreneur_readiness_score).bgColor,
@@ -703,7 +790,7 @@ function AdvisorReportDisplay({ report }) {
             </CollapsibleSection>
 
             {/* Feedback Section */}
-            <CollapsibleSection title={t('reports.feedback')} defaultOpen={true}>
+            <CollapsibleSection title={t('reports.level1Structure')} defaultOpen={true} forceOpen={allExpanded} color="indigo">
                 {/* Points to Preserve */}
                 {content.points_to_preserve?.length > 0 && (
                     <div className="feedback-section">

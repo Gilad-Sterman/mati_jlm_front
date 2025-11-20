@@ -4,11 +4,14 @@
     margin: 0 auto;
 
     .page-header {
-        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: $spacing-md;
+        margin-bottom: $spacing-sm;
 
         h1 {
             color: $primary-color;
-            margin-bottom: $spacing-sm;
             font-size: $font-size-xxl;
             font-weight: 700;
         }

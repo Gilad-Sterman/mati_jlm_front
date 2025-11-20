@@ -136,6 +136,7 @@ export function AdminDashboard() {
         <section className="admin-dashboard">
             <div className="dashboard-header">
                 <div className="header-content">
+                    <BarChart3 size={24} /> 
                     <h1>{t('common.dashboard')}</h1>
                 </div>
             </div>

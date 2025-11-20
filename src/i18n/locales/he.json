@@ -319,6 +319,8 @@
         "approving": "מאשר...",
         "approveAndSend": "אישור ושליחה",
         "regenerate": "יצירה מחדש",
+        "expandAll": "פתיחה",
+        "collapseAll": "סגירה",
         "regenerateFullReport": "יצירת דוח מלא מחדש",
         "regenerating": "יוצר מחדש...",
         "confirmFullRegeneration": "האם אתה בטוח שברצונך ליצור את הדוח המלא מחדש? פעולה זו תחליף את התוכן הנוכחי בחלק התצוגה המובנית ובחלק התובנות בתוכן חדש שנוצר על ידי הבינה המלאכותית.",
@@ -329,7 +331,6 @@
         "notesPlaceholder": "הוסף הוראות ספציפיות או הקשר עבור הבינה המלאכותית לקחת בחשבון בעת יצירת הדוח מחדש...",
         "downloadPDF": "הורדת PDF",
         "emailSummary": "שליחת דוח במייל",
-        "originalTranscript": "תמליל מקורי",
         "rawReportContent": "תוכן דוח גולמי",
         "transcriptionLength": "אורך תמליל",
         "sessionDuration": "משך הפגישה",
@@ -500,7 +501,10 @@
         "contentPreview": "התוכן יוצג כאן...",
         "consultationReport": "דוח ייעוץ",
         "date": "תאריך",
-        "sessionCompleted": "פגישה הושלמה",
-        "approved": "אושר"
+        "sessionCompleted": "הפגישה הושלמה",
+        "approved": "מאושר",
+        "viewOriginalTranscript": "צפייה בתמליל מקורי",
+        "originalTranscript": "תמליל מקורי",
+        "noTranscriptAvailable": "אין תמליל זמין עבור פגישה זו"
     }
 }

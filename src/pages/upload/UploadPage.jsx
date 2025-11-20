@@ -185,8 +185,8 @@ export function UploadPage() {
         }
 
         if (clientMode === 'new') {
-            if (!newClient.name.trim() || !newClient.email.trim()) {
-                alert(t('upload.errors.clientNameRequired') + ' / ' + t('upload.errors.clientEmailRequired'));
+            if (!newClient.name.trim() || !newClient.email.trim() || !newClient.business_number.trim()) {
+                alert(t('upload.errors.clientNameRequired') + ' / ' + t('upload.errors.clientEmailRequired') + ' / ' + t('upload.errors.clientBusinessNumberRequired'));
                 return;
             }
         }
@@ -400,7 +400,9 @@ export function UploadPage() {
                     <div className="upload-card">
                         {/* File Upload Section */}
                         <div className="upload-area">
-                            <h2>{t('upload.fileUpload')}</h2>
+                            <h2>
+                                {t('upload.fileUpload')}
+                            </h2>
 
                             {!selectedFile ? (
                                 <div
@@ -519,6 +521,16 @@ export function UploadPage() {
                                     <h3>{t('upload.newClientDetails')}</h3>
                                     <div className="form-row">
                                         <div className="form-group">
+                                            <label>{t('upload.businessNumber')} *</label>
+                                            <input
+                                                type="text"
+                                                value={newClient.business_number}
+                                                onChange={(e) => handleNewClientChange('business_number', e.target.value)}
+                                                placeholder={t('upload.businessNumberPlaceholder')}
+                                                disabled={isUploading}
+                                            />
+                                        </div>
+                                        <div className="form-group">
                                             <label>{t('upload.clientName')} *</label>
                                             <input
                                                 type="text"
@@ -547,16 +559,6 @@ export function UploadPage() {
                                                 value={newClient.business_domain}
                                                 onChange={(e) => handleNewClientChange('business_domain', e.target.value)}
                                                 placeholder={t('upload.businessDomainPlaceholder')}
-                                                disabled={isUploading}
-                                            />
-                                        </div>
-                                        <div className="form-group">
-                                            <label>{t('upload.businessNumber')}</label>
-                                            <input
-                                                type="text"
-                                                value={newClient.business_number}
-                                                onChange={(e) => handleNewClientChange('business_number', e.target.value)}
-                                                placeholder={t('upload.businessNumberPlaceholder')}
                                                 disabled={isUploading}
                                             />
                                         </div>
@@ -664,6 +666,7 @@ export function UploadPage() {
     return (
         <div className="upload-page">
             <div className="page-header">
+                <Upload className="upload-icon" />
                 <h1>{t('upload.title')}</h1>
             </div>
 

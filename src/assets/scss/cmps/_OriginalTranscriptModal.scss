@@ -1,0 +1,362 @@
+.original-transcript-modal {
+    max-width: 1000px;
+    max-height: 90vh;
+    width: 95vw;
+    display: flex;
+    flex-direction: column;
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        border-bottom: 1px solid #e5e7eb;
+        background: #f9fafb;
+
+        .modal-title-section {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+
+            svg {
+                color: #3b82f6;
+            }
+
+            h2 {
+                margin: 0;
+                font-size: 1.5rem;
+                font-weight: 600;
+                color: #1f2937;
+            }
+        }
+
+        .modal-close-button {
+            background: none;
+            border: none;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            color: #6b7280;
+            transition: all 0.2s;
+
+            &:hover {
+                background: #e5e7eb;
+                color: #374151;
+            }
+        }
+    }
+
+    .transcript-info {
+        padding: 1rem 1.5rem;
+        background: #f8fafc;
+        border-bottom: 1px solid #e5e7eb;
+
+        .session-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+
+            .session-title-item {
+                align-items: center;
+                gap: 0.75rem;
+                flex: 1;
+                min-width: 200px;
+
+                .info-label {
+                    font-weight: 600;
+                    color: #374151;
+                    white-space: nowrap;
+                }
+
+                .info-value {
+                    color: #6b7280;
+                    font-weight: 500;
+                }
+            }
+
+            .session-meta-items {
+                display: flex;
+                align-items: center;
+                gap: 1.5rem;
+                flex-shrink: 0;
+
+                .meta-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    font-size: 0.875rem;
+                    color: #6b7280;
+                    white-space: nowrap;
+
+                    svg {
+                        color: #6b7280;
+                        flex-shrink: 0;
+                    }
+                }
+            }
+
+            @media (max-width: 768px) {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+
+                .session-title-item {
+                    width: 100%;
+                    min-width: auto;
+                }
+
+                .session-meta-items {
+                    width: 100%;
+                    justify-content: flex-start;
+                }
+            }
+        }
+    }
+
+    .modal-body {
+        flex: 1;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+
+        .transcript-content {
+            flex: 1;
+            overflow: auto;
+
+            .transcript-text {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+                font-size: 1rem;
+                line-height: 1.8;
+                color: #374151;
+                background: #ffffff;
+                padding: 2rem;
+                border: 1px solid #e5e7eb;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+                word-break: break-word;
+                margin: 0;
+                max-height: none;
+                text-align: start;
+                direction: ltr;
+                box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);                
+                
+                // Better paragraph spacing
+                p {
+                    margin-bottom: 1.5rem;
+                    
+                    &:last-child {
+                        margin-bottom: 0;
+                    }
+                }
+                
+                // Handle long text better
+                overflow-wrap: break-word;
+                hyphens: auto;
+            }
+
+            .no-transcript {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 3rem;
+                text-align: center;
+                color: #6b7280;
+
+                svg {
+                    margin-bottom: 1rem;
+                    opacity: 0.5;
+                }
+
+                p {
+                    margin: 0;
+                    font-size: 1rem;
+                }
+            }
+        }
+    }
+}
+
+// Desktop enhancements
+@media (min-width: 1024px) {
+    .original-transcript-modal {
+        max-width: 1000px;
+        
+        .transcript-info {
+            .session-header-row {
+                .session-meta-items {
+                    gap: 2rem;
+                }
+            }
+        }
+        
+        .modal-body {
+            .transcript-content {
+                .transcript-text {
+                    font-size: 1.1rem;
+                    line-height: 1.9;
+                    padding: 2.5rem;
+                    
+                    
+                    // Single column for short text
+                    &.single-column {
+                        columns: 1;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Tablet design
+@media (min-width: 768px) and (max-width: 1023px) {
+    .original-transcript-modal {
+        width: 90vw;
+        max-width: 900px;
+        
+        .transcript-info {
+            .session-header-row {
+                .session-meta-items {
+                    gap: 1.5rem;
+                }
+            }
+        }
+        
+        .modal-body {
+            .transcript-content {
+                .transcript-text {
+                    font-size: 1rem;
+                    line-height: 1.8;
+                    padding: 2rem;
+                }
+            }
+        }
+    }
+}
+
+// Mobile design
+@media (max-width: 767px) {
+    .original-transcript-modal {
+        width: 95vw;
+        max-height: 95vh;
+
+        .modal-header {
+            padding: 1rem;
+
+            .modal-title-section {
+                h2 {
+                    font-size: 1.25rem;
+                }
+            }
+        }
+
+        .transcript-info {
+            padding: 0.75rem 1rem;
+
+            .session-header-row {
+                .session-meta-items {
+                    gap: 1rem;
+                    
+                    .meta-item {
+                        font-size: 0.8rem;
+                    }
+                }
+            }
+        }
+
+        .modal-body {
+            .transcript-content {
+                padding: 1rem;
+
+                .transcript-text {
+                    font-size: 0.95rem;
+                    line-height: 1.7;
+                    padding: 1.5rem;
+                }
+            }
+        }
+    }
+}
+
+// Language-specific styling for transcript content
+.original-transcript-modal {
+    // Hebrew transcript content styling
+    &[data-lang="he"] {
+        .transcript-text {
+            direction: rtl;
+            text-align: right;
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+            
+            // Override RTL interface styling for Hebrew content
+            @media (min-width: 1024px) {
+                &:not(.single-column) {
+                    direction: rtl !important;
+                    text-align: right !important;
+                }
+            }
+        }
+    }
+    
+    // English transcript content styling
+    &[data-lang="en"] {
+        .transcript-text {
+            direction: ltr;
+            text-align: left;
+            
+            // Override RTL interface styling for English content
+            @media (min-width: 1024px) {
+                &:not(.single-column) {
+                    direction: ltr !important;
+                    text-align: left !important;
+                }
+            }
+        }
+    }
+}
+
+// RTL support for Hebrew interface
+[dir="rtl"] {
+    .original-transcript-modal {
+        .modal-header {
+            .modal-title-section {
+                flex-direction: row-reverse;
+            }
+        }
+
+        .transcript-info {
+            .session-header-row {
+                .session-title-item {
+                    .info-label {
+                        order: 2;
+                    }
+                    
+                    .info-value {
+                        order: 1;
+                        text-align: right;
+                    }
+                }
+                
+                .session-meta-items {
+                    .meta-item {
+                        flex-direction: row-reverse;
+                    }
+                }
+            }
+        }
+        
+        // For desktop columns in RTL - Hebrew interface should show columns right-to-left
+        @media (min-width: 1024px) {
+            .transcript-text {
+                &:not(.single-column) {
+                    column-fill: auto;
+                    // Hebrew interface: columns flow right-to-left
+                    writing-mode: horizontal-tb;
+                    direction: rtl;
+                    text-align: right;
+                }
+            }
+        }
+    }
+}
