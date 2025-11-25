@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { ArrowLeft, FileText, User, Calendar, Clock, ChevronDown, ChevronUp, RefreshCw, BookOpenText, FileWarning, FileCheck, FileQuestion, Flag, ArrowDown, Download, RotateCcw, Loader2, AlertCircle, Building2, CheckCircle, AlertTriangle, Users } from 'lucide-react';
+import { ArrowLeft, FileText, User, Calendar, Clock, ChevronDown, ChevronUp, RefreshCw, BookOpenText, FileWarning, FileCheck, FileQuestion, Flag, ArrowDown, Download, RotateCcw, Loader2, AlertCircle, Building2, CheckCircle, AlertTriangle, Users, ArrowRight } from 'lucide-react';
 import {
     fetchReportsForSession,
     regenerateClientReport,
@@ -22,7 +22,7 @@ import { useAppSocket } from '../../hooks/useAppSocket';
 export function ReportsPage() {
     const { sessionId } = useParams();
     const navigate = useNavigate();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const dispatch = useDispatch();
 
     const [loading, setLoading] = useState(true);
@@ -222,7 +222,7 @@ export function ReportsPage() {
                 {/* Header */}
                 <div className="reports-header">
                     <button className="back-button" onClick={handleBack}>
-                        <ArrowLeft size={16} />
+                        {i18n.language === 'he' ? <ArrowRight size={16} /> : <ArrowLeft size={16} />}
                         {t('common.back')}
                     </button>
 

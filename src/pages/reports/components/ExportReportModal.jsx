@@ -10,7 +10,7 @@ export function ExportReportModal({
     session, 
     isLoading = false 
 }) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [previewMode, setPreviewMode] = useState('preview'); // 'preview' or 'details'
 
     // Parse report content
@@ -26,6 +26,36 @@ export function ExportReportModal({
     };
 
     const content = getReportContent();
+
+    // Function to translate categories from English to current language
+    const translateCategory = (category) => {
+        const categoryMap = {
+            'what we learned about the clients business': t('reports.categoryBusiness'),
+            'decisions made': t('reports.categoryDecisions'),
+            'opportunities/risks or concerns that came up': t('reports.categoryOpportunities')
+        };
+        return categoryMap[category] || category;
+    };
+
+    // Function to translate owner values
+    const translateOwner = (owner) => {
+        const ownerMap = {
+            'client': t('reports.ownerClient'),
+            'adviser': t('reports.ownerAdviser'),
+            'advisor': t('reports.ownerAdviser') // Handle both spellings
+        };
+        return ownerMap[owner?.toLowerCase()] || owner;
+    };
+
+    // Function to translate status values
+    const translateStatus = (status) => {
+        const statusMap = {
+            'open': t('reports.statusOpen'),
+            'in progress': t('reports.statusInProgress'),
+            'completed': t('reports.statusCompleted')
+        };
+        return statusMap[status?.toLowerCase()] || status;
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -96,8 +126,62 @@ export function ExportReportModal({
                                         </div>
                                         
                                         <div className="document-content">
-                                            {/* Executive Summary */}
-                                            {content?.executive_summary && (
+                                            {/* NEW STRUCTURE: Key Insights */}
+                                            {content?.key_insights && Array.isArray(content.key_insights) && content.key_insights.length > 0 && (
+                                                <div className="content-section">
+                                                    <h5>{t('reports.keyInsights')}</h5>
+                                                    <div className="content-preview">
+                                                        {content.key_insights.map((insight, index) => (
+                                                            <div key={index} className="insight-item">
+                                                                <div className="insight-category">
+                                                                    <strong>{translateCategory(insight.category)}</strong>
+                                                                </div>
+                                                                <div className="insight-content">
+                                                                    <p>{insight.content}</p>
+                                                                </div>
+                                                                {insight.supporting_quotes && insight.supporting_quotes.length > 0 && (
+                                                                    <div className="supporting-quotes">
+                                                                        <strong>{t('reports.supportingQuotes')}:</strong>
+                                                                        <ul>
+                                                                            {insight.supporting_quotes.map((quote, qIndex) => (
+                                                                                <li key={qIndex}>"{quote}"</li>
+                                                                            ))}
+                                                                        </ul>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* NEW STRUCTURE: Action Items */}
+                                            {content?.action_items && Array.isArray(content.action_items) && content.action_items.length > 0 && (
+                                                <div className="content-section">
+                                                    <h5>{t('reports.actionItems')}</h5>
+                                                    <div className="content-preview">
+                                                        {content.action_items.map((item, index) => (
+                                                            <div key={index} className="action-item">
+                                                                <div className="action-task">
+                                                                    <strong>{item.task}</strong>
+                                                                </div>
+                                                                <div className="action-details">
+                                                                    <div className="action-owner">{t('reports.owner')}: {translateOwner(item.owner)}</div>
+                                                                    {item.deadline && (
+                                                                        <div className="action-deadline">{t('reports.deadline')}: {item.deadline}</div>
+                                                                    )}
+                                                                    <div className={`action-status status-${item.status?.replace(/\s+/g, '-').toLowerCase()}`}>
+                                                                        {t('reports.status')}: {translateStatus(item.status)}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* LEGACY STRUCTURE: Executive Summary */}
+                                            {!content?.key_insights && content?.executive_summary && (
                                                 <div className="content-section">
                                                     <h5>{t('reports.executiveSummarySection')}</h5>
                                                     <div className="content-preview">
@@ -106,8 +190,8 @@ export function ExportReportModal({
                                                 </div>
                                             )}
                                             
-                                            {/* Entrepreneur Needs */}
-                                            {content?.entrepreneur_needs && (
+                                            {/* LEGACY STRUCTURE: Entrepreneur Needs */}
+                                            {!content?.key_insights && content?.entrepreneur_needs && (
                                                 <div className="content-section">
                                                     <h5>{t('reports.entrepreneurNeeds')}</h5>
                                                     <div className="content-preview">
@@ -132,8 +216,8 @@ export function ExportReportModal({
                                                 </div>
                                             )}
                                             
-                                            {/* Advisor Solutions */}
-                                            {content?.advisor_solutions && (
+                                            {/* LEGACY STRUCTURE: Advisor Solutions */}
+                                            {!content?.key_insights && content?.advisor_solutions && (
                                                 <div className="content-section">
                                                     <h5>{t('reports.advisorSolutions')}</h5>
                                                     <div className="content-preview">
@@ -158,8 +242,8 @@ export function ExportReportModal({
                                                 </div>
                                             )}
 
-                                            {/* Agreed Actions */}
-                                            {content?.agreed_actions && (
+                                            {/* LEGACY STRUCTURE: Agreed Actions */}
+                                            {!content?.action_items && content?.agreed_actions && (
                                                 (content.agreed_actions.immediate_actions && content.agreed_actions.immediate_actions.length > 0) ||
                                                 (content.agreed_actions.concrete_recommendation && typeof content.agreed_actions.concrete_recommendation === 'string' && content.agreed_actions.concrete_recommendation.trim())
                                             ) && (

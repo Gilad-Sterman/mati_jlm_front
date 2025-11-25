@@ -402,16 +402,28 @@ const SessionCard = React.memo(function SessionCard({
                                     return { class: 'score-very-poor', text: t('sessions.scoreVeryPoor') };
                                 };
 
+                                // Extract client/entrepreneur readiness score - handle both structures
+                                let clientScore = null;
+                                
+                                // NEW STRUCTURE: client_readiness_score
+                                if (content.client_readiness_score) {
+                                    clientScore = parseFloat(content.client_readiness_score);
+                                }
+                                // LEGACY STRUCTURE: entrepreneur_readiness_score
+                                else if (content.entrepreneur_readiness_score) {
+                                    clientScore = parseFloat(content.entrepreneur_readiness_score);
+                                }
+
                                 return (
                                     <>
-                                        {content.entrepreneur_readiness_score && (
+                                        {clientScore && !isNaN(clientScore) && (
                                             <div className="score-item">
-                                                <div className={`score-circle ${getScoreInfo(content.entrepreneur_readiness_score).class}`}>
-                                                    {content.entrepreneur_readiness_score}%
+                                                <div className={`score-circle ${getScoreInfo(clientScore).class}`}>
+                                                    {Math.round(clientScore)}%
                                                 </div>
                                                 <div className="score-details">
                                                     <div className="score-label">{t('sessions.entrepreneurReadiness')}</div>
-                                                    <div className="score-text">{getScoreInfo(content.entrepreneur_readiness_score).text}</div>
+                                                    <div className="score-text">{getScoreInfo(clientScore).text}</div>
                                                 </div>
                                             </div>
                                         )}
@@ -459,16 +471,35 @@ const SessionCard = React.memo(function SessionCard({
                                         return { class: 'score-very-poor', text: t('sessions.scoreVeryPoor') };
                                     };
 
+                                    // Extract advisor performance score - handle both structures
+                                    let advisorScore = null;
+                                    
+                                    // NEW STRUCTURE: Calculate average from listening, clarity, continuation scores (0-5 scale)
+                                    if (content.listening?.score && content.clarity?.score && content.continuation?.score) {
+                                        const listeningScore = parseFloat(content.listening.score);
+                                        const clarityScore = parseFloat(content.clarity.score);
+                                        const continuationScore = parseFloat(content.continuation.score);
+                                        
+                                        if (!isNaN(listeningScore) && !isNaN(clarityScore) && !isNaN(continuationScore)) {
+                                            // Convert from 0-5 scale to 0-100 scale
+                                            advisorScore = ((listeningScore + clarityScore + continuationScore) / 3) * 20;
+                                        }
+                                    }
+                                    // LEGACY STRUCTURE: Direct advisor_performance_score
+                                    else if (content.advisor_performance_score) {
+                                        advisorScore = parseFloat(content.advisor_performance_score);
+                                    }
+
                                     return (
                                         <>
-                                            {content.advisor_performance_score && (
+                                            {advisorScore && !isNaN(advisorScore) && (
                                                 <div className="score-item">
-                                                    <div className={`score-circle ${getScoreInfo(content.advisor_performance_score).class}`}>
-                                                        {content.advisor_performance_score}%
+                                                    <div className={`score-circle ${getScoreInfo(advisorScore).class}`}>
+                                                        {Math.round(advisorScore)}%
                                                     </div>
                                                     <div className="score-details">
                                                         <div className="score-label">{t('sessions.advisorPerformance')}</div>
-                                                        <div className="score-text">{getScoreInfo(content.advisor_performance_score).text}</div>
+                                                        <div className="score-text">{getScoreInfo(advisorScore).text}</div>
                                                     </div>
                                                 </div>
                                             )}

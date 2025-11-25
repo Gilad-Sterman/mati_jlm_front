@@ -160,7 +160,7 @@
         "qualityMetrics": "ביצועי יועץ",
         "listening": "הקשבה",
         "continuation": "המשכיות",
-        "clarity": "בהירות:",
+        "clarity": "בהירות",
         "preparingUpload": "מכין העלאה...",
         "dropzone": {
             "title": "גרור את קובץ השמע לכאן",
@@ -460,7 +460,6 @@
         "entrepreneurNeeds": "צרכי היזם",
         "needConceptualization": "הגדרת הצורך",
         "needExplanation": "הסבר הצורך",
-        "supportingQuotes": "ציטוטים תומכים",
         "advisorSolutions": "פתרונות היועץ",
         "solutionConceptualization": "הגדרת הפתרון",
         "solutionExplanation": "הסבר הפתרון",
@@ -518,9 +517,6 @@
         "deadline": "מועד יעד",
         "notSpecified": "לא צוין",
         "statusUnknown": "לא ידוע",
-        "statusOpen": "פתוח",
-        "statusCompleted": "הושלם",
-        "statusInProgress": "בתהליך",
         "level2Insights": "insights",
         "level1Structure": "Key Points",
         "level3Recommendations": "המלצות",
@@ -537,6 +533,12 @@
         "listening": "הקשבה",
         "continuation": "המשכיות",
         "thingsToPreserve": "נקודות לשימור", 
-        "needsImprovement": "נקודות לשיפור"
+        "needsImprovement": "נקודות לשיפור",
+        "supportingQuotes": "ציטוטים תומכים",
+        "ownerClient": "יזם",
+        "ownerAdviser": "יועץ",
+        "statusOpen": "פתוח",
+        "statusInProgress": "בתהליך",
+        "statusCompleted": "הושלם"
     }
 }
