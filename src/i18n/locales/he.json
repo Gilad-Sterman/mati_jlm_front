@@ -157,6 +157,10 @@
         "backToUpload": "חזור להעלאה",
         "uploadFailed": "ההעלאה נכשלה",
         "tryAgain": "נסה שוב",
+        "qualityMetrics": "ביצועי יועץ",
+        "listening": "הקשבה",
+        "continuation": "המשכיות",
+        "clarity": "בהירות:",
         "preparingUpload": "מכין העלאה...",
         "dropzone": {
             "title": "גרור את קובץ השמע לכאן",
@@ -520,6 +524,19 @@
         "level2Insights": "insights",
         "level1Structure": "Key Points",
         "level3Recommendations": "המלצות",
-        "sessionSummary": "סיכום הפגישה"
+        "sessionSummary": "סיכום הפגישה",
+        "generalPerformance": "הערכה כללית",
+        "topicsCovered": "מבנה השיחה לפי נושאים",
+        "introducingAdvisor": "הצגת היועץ",
+        "introducingMati": "הצגת מט״י",
+        "opening": "פתיחה",
+        "collectingInfo": "איסוף מידע",
+        "actualContent": "תוכן",
+        "clientReadiness": "מוכנות היזם",
+        "advisorQualityMetrics": "מדדי איכות היועץ",
+        "listening": "הקשבה",
+        "continuation": "המשכיות",
+        "thingsToPreserve": "נקודות לשימור", 
+        "needsImprovement": "נקודות לשיפור"
     }
 }

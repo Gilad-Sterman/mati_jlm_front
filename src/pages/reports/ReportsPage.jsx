@@ -827,7 +827,7 @@ function getScoreInfo(score) {
 // Advisor Report Display Component
 function AdvisorReportDisplay({ report }) {
     const { t } = useTranslation();
-    const [allExpanded, setAllExpanded] = useState(true); // Default to expanded since sections default to open
+    const [allExpanded, setAllExpanded] = useState(true);
 
     if (!report.content) return null;
 
@@ -843,6 +843,15 @@ function AdvisorReportDisplay({ report }) {
         setAllExpanded(!allExpanded);
     };
 
+    // Detect if this is new structure or legacy structure
+    const isNewStructure = content.client_readiness_score !== undefined && content.listening !== undefined;
+
+    // Helper function to render star rating
+    const renderStars = (score) => {
+        const numScore = Number(score);
+        return '⭐'.repeat(numScore) + '☆'.repeat(5 - numScore);
+    };
+
     return (
         <div className="advisor-report-content">
             <button
@@ -853,225 +862,456 @@ function AdvisorReportDisplay({ report }) {
                 {allExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                 {allExpanded ? t('reports.collapseAll') : t('reports.expandAll')}
             </button>
-            {/* Speaking Time Analysis */}
-            <CollapsibleSection title={t('reports.speakingTimeAnalysis')} defaultOpen={true} forceOpen={allExpanded} color="purple">
-                <div className="speaking-time-visual">
-                    <div className="duration-info">
-                        <h4>{t('reports.duration')}: {content.conversation_duration.split('.')[0]} דקות</h4>
-                    </div>
-                    <div className="speaking-comparison">
-                        <div className="speaker-section advisor-section">
-                            <div className="speaker-info">
-                                <span className="speaker-label">{t('reports.advisorSpeaking')}</span>
-                                <span className="speaker-percentage">{content.advisor_speaking_percentage}%</span>
-                            </div>
-                            <div className="speaker-bar">
-                                <div
-                                    className="speaker-fill advisor-fill"
-                                    style={{ width: `${content.advisor_speaking_percentage}%` }}
-                                ></div>
-                            </div>
-                        </div>
-                        <div className="speaker-section entrepreneur-section">
-                            <div className="speaker-info">
-                                <span className="speaker-label">{t('reports.entrepreneurSpeaking')}</span>
-                                <span className="speaker-percentage">{content.entrepreneur_speaking_percentage}%</span>
-                            </div>
-                            <div className="speaker-bar">
-                                <div
-                                    className="speaker-fill entrepreneur-fill"
-                                    style={{ width: `${content.entrepreneur_speaking_percentage}%` }}
-                                ></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </CollapsibleSection>
 
-            {/* Main Topics */}
-            {content.main_topics && content.main_topics.length > 0 && (
-                <CollapsibleSection title={t('reports.level2Insights')} defaultOpen={true} forceOpen={allExpanded} color="teal">
-                    <div className="topics-tags">
-                        {content.main_topics.map((topic, index) => (
-                            <span key={index} className="topic-tag">{topic}</span>
-                        ))}
-                    </div>
-                </CollapsibleSection>
-            )}
-
-            {/* Performance Scores */}
-            <CollapsibleSection title={t('reports.level3Recommendations')} defaultOpen={true} forceOpen={allExpanded} color="pink">
-                <div className="performance-cards">
-                    <div className="performance-card" style={{
-                        backgroundColor: getScoreInfo(content.entrepreneur_readiness_score).bgColor,
-                        borderLeft: `4px solid ${getScoreInfo(content.entrepreneur_readiness_score).color}`
-                    }}>
-                        <div className="card-header">
-                            <h4>{t('reports.entrepreneurReadiness')}</h4>
-                        </div>
-                        <div className="card-content">
-                            <div className="score-display">
-                                <span className="score-number" style={{ color: getScoreInfo(content.entrepreneur_readiness_score).color }}>
-                                    {content.entrepreneur_readiness_score}%
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="performance-card" style={{
-                        backgroundColor: getScoreInfo(content.advisor_performance_score).bgColor,
-                        borderLeft: `4px solid ${getScoreInfo(content.advisor_performance_score).color}`
-                    }}>
-                        <div className="card-header">
-                            <h4>{t('reports.advisorPerformance')}</h4>
-                        </div>
-                        <div className="card-content">
-                            <div className="score-display">
-                                <span className="score-number" style={{ color: getScoreInfo(content.advisor_performance_score).color }}>
-                                    {content.advisor_performance_score}%
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div className="score-breakdown">
-                    <h4>{t('reports.scoreBreakdown')}</h4>
-                    <div className="score-breakdown-content adviser">
-                        <h5>{t('reports.advisorPerformance')}</h5>
-                        <ul>
-                            <li>
-                                <span>{t('reports.adviserBreakdown1')}: 25%</span>
-                            </li>
-                            <li>
-                                <span>{t('reports.adviserBreakdown2')}: 25%</span>
-                            </li>
-                            <li>
-                                <span>{t('reports.adviserBreakdown3')}: 25%</span>
-                            </li>
-                            <li>
-                                <span>{t('reports.adviserBreakdown4')}: 25%</span>
-                            </li>
-                        </ul>
-                    </div>
-                    <div className="score-breakdown-content entrepreneur">
-                        <h5>{t('reports.entrepreneurReadiness')}</h5>
-                        <ul>
-                            <li>
-                                <span>{t('reports.entrepreneurBreakdown1')}: 25%</span>
-                            </li>
-                            <li>
-                                <span>{t('reports.entrepreneurBreakdown2')}: 25%</span>
-                            </li>
-                            <li>
-                                <span>{t('reports.entrepreneurBreakdown3')}: 25%</span>
-                            </li>
-                            <li>
-                                <span>{t('reports.entrepreneurBreakdown4')}: 25%</span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </CollapsibleSection>
-
-            {/* Feedback Section */}
-            <CollapsibleSection title={t('reports.level1Structure')} defaultOpen={true} forceOpen={allExpanded} color="indigo">
-                {/* Points to Preserve */}
-                {content.points_to_preserve?.length > 0 && (
-                    <div className="feedback-section">
-                        <h4>{t('reports.pointsToPreserve')}</h4>
-                        <div className="points-content positive">
-                            {content.points_to_preserve.map((point, index) => (
-                                <div className="points-item" key={index}>
-                                    <ul>
-                                        <li>
-                                            <span className="title">{point.title}:</span>
-                                            <span>{point.description}</span>
-                                        </li>
-                                    </ul>
+            {isNewStructure ? (
+                // NEW STRUCTURE
+                <>
+                    {/* Section 1: General Performance */}
+                    <CollapsibleSection
+                        title={t('reports.generalPerformance')}
+                        defaultOpen={true}
+                        forceOpen={allExpanded}
+                        color="purple"
+                    >
+                        {/* Topics Covered Breakdown */}
+                        {content.topics_covered && (
+                            <div className="topics-breakdown">
+                                <h4>{t('reports.topicsCovered')}</h4>
+                                <div className="topics-bar-container">
+                                    <div className="topics-bar-visual">
+                                        {Number(content.topics_covered.introducing_advisor_percentage) > 0 && (
+                                            <div
+                                                className="topic-segment advisor-intro"
+                                                style={{ width: `${content.topics_covered.introducing_advisor_percentage}%` }}
+                                                title={`${t('reports.introducingAdvisor')}: ${content.topics_covered.introducing_advisor_percentage}%`}
+                                            >
+                                                {Number(content.topics_covered.introducing_advisor_percentage) >= 10 && (
+                                                    <span className="segment-label">{content.topics_covered.introducing_advisor_percentage}%</span>
+                                                )}
+                                            </div>
+                                        )}
+                                        {Number(content.topics_covered.introducing_mati_percentage) > 0 && (
+                                            <div
+                                                className="topic-segment mati-intro"
+                                                style={{ width: `${content.topics_covered.introducing_mati_percentage}%` }}
+                                                title={`${t('reports.introducingMati')}: ${content.topics_covered.introducing_mati_percentage}%`}
+                                            >
+                                                {Number(content.topics_covered.introducing_mati_percentage) >= 10 && (
+                                                    <span className="segment-label">{content.topics_covered.introducing_mati_percentage}%</span>
+                                                )}
+                                            </div>
+                                        )}
+                                        {Number(content.topics_covered.opening_percentage) > 0 && (
+                                            <div
+                                                className="topic-segment opening"
+                                                style={{ width: `${content.topics_covered.opening_percentage}%` }}
+                                                title={`${t('reports.opening')}: ${content.topics_covered.opening_percentage}%`}
+                                            >
+                                                {Number(content.topics_covered.opening_percentage) >= 10 && (
+                                                    <span className="segment-label">{content.topics_covered.opening_percentage}%</span>
+                                                )}
+                                            </div>
+                                        )}
+                                        {Number(content.topics_covered.collecting_info_percentage) > 0 && (
+                                            <div
+                                                className="topic-segment collecting"
+                                                style={{ width: `${content.topics_covered.collecting_info_percentage}%` }}
+                                                title={`${t('reports.collectingInfo')}: ${content.topics_covered.collecting_info_percentage}%`}
+                                            >
+                                                {Number(content.topics_covered.collecting_info_percentage) >= 10 && (
+                                                    <span className="segment-label">{content.topics_covered.collecting_info_percentage}%</span>
+                                                )}
+                                            </div>
+                                        )}
+                                        {Number(content.topics_covered.actual_content_percentage) > 0 && (
+                                            <div
+                                                className="topic-segment content"
+                                                style={{ width: `${content.topics_covered.actual_content_percentage}%` }}
+                                                title={`${t('reports.actualContent')}: ${content.topics_covered.actual_content_percentage}%`}
+                                            >
+                                                {Number(content.topics_covered.actual_content_percentage) >= 10 && (
+                                                    <span className="segment-label">{content.topics_covered.actual_content_percentage}%</span>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="topics-legend">
+                                        <div className="legend-item">
+                                            <span className="legend-dot advisor-intro"></span>
+                                            <span>{t('reports.introducingAdvisor')} ({content.topics_covered.introducing_advisor_percentage}%)</span>
+                                        </div>
+                                        <div className="legend-item">
+                                            <span className="legend-dot mati-intro"></span>
+                                            <span>{t('reports.introducingMati')} ({content.topics_covered.introducing_mati_percentage}%)</span>
+                                        </div>
+                                        <div className="legend-item">
+                                            <span className="legend-dot opening"></span>
+                                            <span>{t('reports.opening')} ({content.topics_covered.opening_percentage}%)</span>
+                                        </div>
+                                        <div className="legend-item">
+                                            <span className="legend-dot collecting"></span>
+                                            <span>{t('reports.collectingInfo')} ({content.topics_covered.collecting_info_percentage}%)</span>
+                                        </div>
+                                        <div className="legend-item">
+                                            <span className="legend-dot content"></span>
+                                            <span>{t('reports.actualContent')} ({content.topics_covered.actual_content_percentage}%)</span>
+                                        </div>
+                                    </div>
                                 </div>
-                            ))}
-                            {content.points_to_preserve.supporting_quotes && content.points_to_preserve.supporting_quotes.length > 0 && (
-                                <div className="quotes-section">
-                                    <h5>{t('reports.supportingQuotes')}</h5>
-                                    <ul className="quotes-list">
-                                        {content.points_to_preserve.supporting_quotes.map((quote, index) => (
-                                            <li key={index} className="quote-item">"{quote}"</li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
+                            </div>
+                        )}
 
-                {typeof content.points_to_preserve === 'object' && content.points_to_preserve.demonstrations && (
-                    <div className="feedback-section">
-                        <h4>{t('reports.pointsToPreserve')}</h4>
-                        <div className="points-content positive">
-                            <div className="points-item">
+                        {/* Client Readiness Score */}
+                        <div className="performance-card" style={{
+                            backgroundColor: getScoreInfo(content.client_readiness_score).bgColor,
+                            borderLeft: `4px solid ${getScoreInfo(content.client_readiness_score).color}`
+                        }}>
+                            <div className="card-header">
+                                <h4>{t('reports.clientReadiness')}</h4>
+                            </div>
+                            <div className="card-content">
+                                <div className="score-display">
+                                    <span className="score-number" style={{ color: getScoreInfo(content.client_readiness_score).color }}>
+                                        {content.client_readiness_score}%
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Score Breakdown */}
+                        <div className="score-breakdown">
+                            <h4>{t('reports.scoreBreakdown')}</h4>
+                            <div className="score-breakdown-content entrepreneur">
                                 <ul>
-                                    {content.points_to_preserve.demonstrations.map((point, index) => (
-                                        <li key={index}>
-                                            <span>{point}</span>
-                                        </li>
-                                    ))}
+                                    <li>
+                                        <span>{t('reports.entrepreneurBreakdown1')}: 25%</span>
+                                    </li>
+                                    <li>
+                                        <span>{t('reports.entrepreneurBreakdown2')}: 25%</span>
+                                    </li>
+                                    <li>
+                                        <span>{t('reports.entrepreneurBreakdown3')}: 25%</span>
+                                    </li>
+                                    <li>
+                                        <span>{t('reports.entrepreneurBreakdown4')}: 25%</span>
+                                    </li>
                                 </ul>
                             </div>
-                            {/* {content.points_to_preserve.supporting_quotes && content.points_to_preserve.supporting_quotes.length > 0 && (
-                                <div className="quotes-section">
-                                    <h5>{t('reports.supportingQuotes')}</h5>
-                                    <ul className="quotes-list">
-                                        {content.points_to_preserve.supporting_quotes.map((quote, index) => (
-                                            <li key={index} className="quote-item">"{quote}"</li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )} */}
                         </div>
-                    </div>
-                )}
+                    </CollapsibleSection>
 
-
-
-                {/* Points for Improvement */}
-                {content.points_for_improvement && (
-                    <div className="feedback-section">
-                        <h4>{t('reports.pointsForImprovement')}</h4>
-                        <div className="points-content improvement">
-                            {content.points_for_improvement.recommendations && content.points_for_improvement.recommendations.length > 0 && (
-                                <div className="points-item">
-                                    <h5>{t('reports.recommendations')}</h5>
-                                    <ul>
-                                        {content.points_for_improvement.recommendations.map((rec, index) => (
-                                            <li key={index}>{rec}</li>
-                                        ))}
-                                    </ul>
+                    {/* Section 2: Advisor Quality Metrics */}
+                    <CollapsibleSection
+                        title={t('reports.advisorQualityMetrics')}
+                        defaultOpen={true}
+                        forceOpen={allExpanded}
+                        color="teal"
+                    >
+                        <div className="quality-metrics-grid">
+                            {/* Listening */}
+                            {content.listening && (
+                                <div className="quality-metric-card">
+                                    <div className="metric-header">
+                                        <h4>{t('reports.listening')}</h4>
+                                        <div className="metric-score">
+                                            <span className="stars">{renderStars(content.listening.score)}</span>
+                                            <span className="score-text">{content.listening.score}/5</span>
+                                        </div>
+                                    </div>
+                                    <div className="metric-description">
+                                        <p>{content.listening.description}</p>
+                                    </div>
+                                    {content.listening.supporting_quote && (
+                                        <div className="metric-quote">
+                                            <span className="quote-icon">💬</span>
+                                            <p>"{content.listening.supporting_quote}"</p>
+                                        </div>
+                                    )}
                                 </div>
                             )}
-                            {content.points_for_improvement.missed_opportunities && content.points_for_improvement.missed_opportunities.length > 0 && (
-                                <div className="points-item">
-                                    <h5>{t('reports.missedOpportunities')}</h5>
-                                    <ul>
-                                        {content.points_for_improvement.missed_opportunities.map((opp, index) => (
-                                            <li key={index}>{opp}</li>
-                                        ))}
-                                    </ul>
+
+                            {/* Clarity */}
+                            {content.clarity && (
+                                <div className="quality-metric-card">
+                                    <div className="metric-header">
+                                        <h4>{t('reports.clarity')}</h4>
+                                        <div className="metric-score">
+                                            <span className="stars">{renderStars(content.clarity.score)}</span>
+                                            <span className="score-text">{content.clarity.score}/5</span>
+                                        </div>
+                                    </div>
+                                    <div className="metric-description">
+                                        <p>{content.clarity.description}</p>
+                                    </div>
+                                    {content.clarity.supporting_quote && (
+                                        <div className="metric-quote">
+                                            <span className="quote-icon">💬</span>
+                                            <p>"{content.clarity.supporting_quote}"</p>
+                                        </div>
+                                    )}
                                 </div>
                             )}
-                            {/* {content.points_for_improvement.supporting_quotes && content.points_for_improvement.supporting_quotes.length > 0 && (
-                                <div className="quotes-section">
-                                    <h5>{t('reports.supportingQuotes')}</h5>
-                                    <ul className="quotes-list">
-                                        {content.points_for_improvement.supporting_quotes.map((quote, index) => (
-                                            <li key={index} className="quote-item">"{quote}"</li>
-                                        ))}
-                                    </ul>
+
+                            {/* Continuation */}
+                            {content.continuation && (
+                                <div className="quality-metric-card">
+                                    <div className="metric-header">
+                                        <h4>{t('reports.continuation')}</h4>
+                                        <div className="metric-score">
+                                            <span className="stars">{renderStars(content.continuation.score)}</span>
+                                            <span className="score-text">{content.continuation.score}/5</span>
+                                        </div>
+                                    </div>
+                                    <div className="metric-description">
+                                        <p>{content.continuation.description}</p>
+                                    </div>
+                                    {content.continuation.supporting_quote && (
+                                        <div className="metric-quote">
+                                            <span className="quote-icon">💬</span>
+                                            <p>"{content.continuation.supporting_quote}"</p>
+                                        </div>
+                                    )}
                                 </div>
-                            )} */}
+                            )}
                         </div>
-                    </div>
-                )}
-            </CollapsibleSection>
+                    </CollapsibleSection>
+
+                    {/* Section 3: Things to Preserve */}
+                    {content.things_to_preserve && content.things_to_preserve.length > 0 && (
+                        <CollapsibleSection
+                            title={t('reports.thingsToPreserve')}
+                            defaultOpen={true}
+                            forceOpen={allExpanded}
+                            color="green"
+                        >
+                            <div className="feedback-section positive">
+                                {content.things_to_preserve.map((item, index) => (
+                                    <div className="feedback-item" key={index}>
+                                        <div className="feedback-header">
+                                            <span className="feedback-icon">✅</span>
+                                            <h5>{item.title}</h5>
+                                        </div>
+                                        <p className="feedback-description">{item.description}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </CollapsibleSection>
+                    )}
+
+                    {/* Section 4: Needs Improvement */}
+                    {content.needs_improvement && content.needs_improvement.length > 0 && (
+                        <CollapsibleSection
+                            title={t('reports.needsImprovement')}
+                            defaultOpen={true}
+                            forceOpen={allExpanded}
+                            color="orange"
+                        >
+                            <div className="feedback-section improvement">
+                                {content.needs_improvement.map((item, index) => (
+                                    <div className="feedback-item" key={index}>
+                                        <div className="feedback-header">
+                                            <span className="feedback-icon">💡</span>
+                                            <h5>{item.title}</h5>
+                                        </div>
+                                        <p className="feedback-description">{item.description}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </CollapsibleSection>
+                    )}
+                </>
+            ) : (
+                // LEGACY STRUCTURE
+                <>
+                    {/* Speaking Time Analysis */}
+                    <CollapsibleSection title={t('reports.speakingTimeAnalysis')} defaultOpen={true} forceOpen={allExpanded} color="purple">
+                        <div className="speaking-time-visual">
+                            <div className="duration-info">
+                                <h4>{t('reports.duration')}: {content.conversation_duration.split('.')[0]} דקות</h4>
+                            </div>
+                            <div className="speaking-comparison">
+                                <div className="speaker-section advisor-section">
+                                    <div className="speaker-info">
+                                        <span className="speaker-label">{t('reports.advisorSpeaking')}</span>
+                                        <span className="speaker-percentage">{content.advisor_speaking_percentage}%</span>
+                                    </div>
+                                    <div className="speaker-bar">
+                                        <div
+                                            className="speaker-fill advisor-fill"
+                                            style={{ width: `${content.advisor_speaking_percentage}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
+                                <div className="speaker-section entrepreneur-section">
+                                    <div className="speaker-info">
+                                        <span className="speaker-label">{t('reports.entrepreneurSpeaking')}</span>
+                                        <span className="speaker-percentage">{content.entrepreneur_speaking_percentage}%</span>
+                                    </div>
+                                    <div className="speaker-bar">
+                                        <div
+                                            className="speaker-fill entrepreneur-fill"
+                                            style={{ width: `${content.entrepreneur_speaking_percentage}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </CollapsibleSection>
+
+                    {/* Main Topics */}
+                    {content.main_topics && content.main_topics.length > 0 && (
+                        <CollapsibleSection title={t('reports.level2Insights')} defaultOpen={true} forceOpen={allExpanded} color="teal">
+                            <div className="topics-tags">
+                                {content.main_topics.map((topic, index) => (
+                                    <span key={index} className="topic-tag">{topic}</span>
+                                ))}
+                            </div>
+                        </CollapsibleSection>
+                    )}
+
+                    {/* Performance Scores */}
+                    <CollapsibleSection title={t('reports.level3Recommendations')} defaultOpen={true} forceOpen={allExpanded} color="pink">
+                        <div className="performance-cards">
+                            <div className="performance-card" style={{
+                                backgroundColor: getScoreInfo(content.entrepreneur_readiness_score).bgColor,
+                                borderLeft: `4px solid ${getScoreInfo(content.entrepreneur_readiness_score).color}`
+                            }}>
+                                <div className="card-header">
+                                    <h4>{t('reports.entrepreneurReadiness')}</h4>
+                                </div>
+                                <div className="card-content">
+                                    <div className="score-display">
+                                        <span className="score-number" style={{ color: getScoreInfo(content.entrepreneur_readiness_score).color }}>
+                                            {content.entrepreneur_readiness_score}%
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="performance-card" style={{
+                                backgroundColor: getScoreInfo(content.advisor_performance_score).bgColor,
+                                borderLeft: `4px solid ${getScoreInfo(content.advisor_performance_score).color}`
+                            }}>
+                                <div className="card-header">
+                                    <h4>{t('reports.advisorPerformance')}</h4>
+                                </div>
+                                <div className="card-content">
+                                    <div className="score-display">
+                                        <span className="score-number" style={{ color: getScoreInfo(content.advisor_performance_score).color }}>
+                                            {content.advisor_performance_score}%
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="score-breakdown">
+                            <h4>{t('reports.scoreBreakdown')}</h4>
+                            <div className="score-breakdown-content adviser">
+                                <h5>{t('reports.advisorPerformance')}</h5>
+                                <ul>
+                                    <li>
+                                        <span>{t('reports.adviserBreakdown1')}: 25%</span>
+                                    </li>
+                                    <li>
+                                        <span>{t('reports.adviserBreakdown2')}: 25%</span>
+                                    </li>
+                                    <li>
+                                        <span>{t('reports.adviserBreakdown3')}: 25%</span>
+                                    </li>
+                                    <li>
+                                        <span>{t('reports.adviserBreakdown4')}: 25%</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div className="score-breakdown-content entrepreneur">
+                                <h5>{t('reports.entrepreneurReadiness')}</h5>
+                                <ul>
+                                    <li>
+                                        <span>{t('reports.entrepreneurBreakdown1')}: 25%</span>
+                                    </li>
+                                    <li>
+                                        <span>{t('reports.entrepreneurBreakdown2')}: 25%</span>
+                                    </li>
+                                    <li>
+                                        <span>{t('reports.entrepreneurBreakdown3')}: 25%</span>
+                                    </li>
+                                    <li>
+                                        <span>{t('reports.entrepreneurBreakdown4')}: 25%</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </CollapsibleSection>
+
+                    {/* Feedback Section */}
+                    <CollapsibleSection title={t('reports.level1Structure')} defaultOpen={true} forceOpen={allExpanded} color="indigo">
+                        {/* Points to Preserve */}
+                        {content.points_to_preserve?.length > 0 && (
+                            <div className="feedback-section">
+                                <h4>{t('reports.pointsToPreserve')}</h4>
+                                <div className="points-content positive">
+                                    {content.points_to_preserve.map((point, index) => (
+                                        <div className="points-item" key={index}>
+                                            <ul>
+                                                <li>
+                                                    <span className="title">{point.title}:</span>
+                                                    <span>{point.description}</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {typeof content.points_to_preserve === 'object' && content.points_to_preserve.demonstrations && (
+                            <div className="feedback-section">
+                                <h4>{t('reports.pointsToPreserve')}</h4>
+                                <div className="points-content positive">
+                                    <div className="points-item">
+                                        <ul>
+                                            {content.points_to_preserve.demonstrations.map((point, index) => (
+                                                <li key={index}>
+                                                    <span>{point}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Points for Improvement */}
+                        {content.points_for_improvement && (
+                            <div className="feedback-section">
+                                <h4>{t('reports.pointsForImprovement')}</h4>
+                                <div className="points-content improvement">
+                                    {content.points_for_improvement.recommendations && content.points_for_improvement.recommendations.length > 0 && (
+                                        <div className="points-item">
+                                            <h5>{t('reports.recommendations')}</h5>
+                                            <ul>
+                                                {content.points_for_improvement.recommendations.map((rec, index) => (
+                                                    <li key={index}>{rec}</li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+                                    {content.points_for_improvement.missed_opportunities && content.points_for_improvement.missed_opportunities.length > 0 && (
+                                        <div className="points-item">
+                                            <h5>{t('reports.missedOpportunities')}</h5>
+                                            <ul>
+                                                {content.points_for_improvement.missed_opportunities.map((opp, index) => (
+                                                    <li key={index}>{opp}</li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </CollapsibleSection>
+                </>
+            )}
         </div>
     );
 }

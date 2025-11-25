@@ -100,7 +100,7 @@ export function UploadPage() {
         const file = files[0];
         if (file) {
             // Validate file type (audio files)
-            const allowedTypes = ['audio/mpeg', 'audio/wav', 'audio/mp3', 'audio/m4a', 'audio/aac', 'audio/ogg'];
+            const allowedTypes = ['audio/mpeg', 'audio/wav', 'audio/mp3', 'audio/m4a', 'audio/mp4', 'audio/x-m4a', 'audio/aac', 'audio/ogg'];
             if (!allowedTypes.includes(file.type)) {
                 alert(t('upload.errors.invalidFileType'));
                 return;
@@ -283,6 +283,128 @@ export function UploadPage() {
                 );
 
             case 'report_ready':
+                return (
+                    <div className="report-ready">
+                        <div className="success-content">
+                            <Check className="success-icon" />
+                            <h3>{t('upload.advisorReportReady')}</h3>
+
+                            {currentReport && (
+                                <div className="report-preview">
+                                    <h4>{t('upload.reportPreview')}</h4>
+                                    <div className="report-content">
+                                        {/* Check if new structure exists */}
+                                        {currentReport.content.client_readiness_score !== undefined ? (
+                                            // New Structure
+                                            <>
+                                                {/* Client Readiness Score */}
+                                                <div className='entrepreneur-score'>
+                                                    <span className='title'>{t('upload.entrepreneurScore')}</span>
+                                                    <span>{currentReport.content.client_readiness_score}%</span>
+                                                </div>
+
+                                                {/* Quality Metrics Overview */}
+                                                <div className='quality-metrics'>
+                                                    <span className='title'>{t('upload.qualityMetrics')}</span>
+                                                    <div className='metrics-grid'>
+                                                        <div className='metric-item'>
+                                                            <span className='metric-label'>{t('upload.listening')}</span>
+                                                            <span className='metric-score'>
+                                                                {'⭐'.repeat(Number(currentReport.content.listening?.score || 0))}
+                                                                {' '}
+                                                                {currentReport.content.listening?.score || 0}/5
+                                                            </span>
+                                                        </div>
+                                                        <div className='metric-item'>
+                                                            <span className='metric-label'>{t('upload.clarity')}</span>
+                                                            <span className='metric-score'>
+                                                                {'⭐'.repeat(Number(currentReport.content.clarity?.score || 0))}
+                                                                {' '}
+                                                                {currentReport.content.clarity?.score || 0}/5
+                                                            </span>
+                                                        </div>
+                                                        <div className='metric-item'>
+                                                            <span className='metric-label'>{t('upload.continuation')}</span>
+                                                            <span className='metric-score'>
+                                                                {'⭐'.repeat(Number(currentReport.content.continuation?.score || 0))}
+                                                                {' '}
+                                                                {currentReport.content.continuation?.score || 0}/5
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            // Legacy Structure
+                                            <>
+                                                <div className='adviser-score'>
+                                                    <span className='title'>{t('upload.adviserScore')}</span>
+                                                    <span>{currentReport.content.advisor_performance_score}%</span>
+                                                </div>
+                                                <div className='entrepreneur-score'>
+                                                    <span className='title'>{t('upload.entrepreneurScore')}</span>
+                                                    <span>{currentReport.content.entrepreneur_readiness_score}%</span>
+                                                </div>
+                                                <div className='advisor-speaking'>
+                                                    <span className='title'>{t('upload.speakingPercentages')}</span>
+
+                                                    {/* Visual bar */}
+                                                    <div className='speaking-bar'>
+                                                        <div
+                                                            className='advisor-segment'
+                                                            style={{ width: `${currentReport.content.advisor_speaking_percentage}%` }}
+                                                        >
+                                                            <span className='percentage'>{currentReport.content.advisor_speaking_percentage}%</span>
+                                                        </div>
+                                                        <div
+                                                            className='entrepreneur-segment'
+                                                            style={{ width: `${currentReport.content.entrepreneur_speaking_percentage}%` }}
+                                                        >
+                                                            <span className='percentage'>{currentReport.content.entrepreneur_speaking_percentage}%</span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Legend */}
+                                                    <div className='speaking-legend'>
+                                                        <div className='legend-item'>
+                                                            <span className='advisor-dot'></span>
+                                                            <span>{t('upload.advisorSpeakingPercentage')}</span>
+                                                        </div>
+                                                        <div className='legend-item'>
+                                                            <span className='entrepreneur-dot'></span>
+                                                            <span>{t('upload.entrepreneurSpeakingPercentage')}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="action-buttons">
+                                <button
+                                    className="primary-button"
+                                    onClick={() => {
+                                        navigate(`/reports/${currentUploadSession.id}`);
+                                    }}
+                                >
+                                    {t('upload.ViewEditReport')}
+                                </button>
+
+                                <button
+                                    className="secondary-button"
+                                    onClick={() => {
+                                        dispatch(resetProcessingState());
+                                        dispatch(resetUploadState());
+                                    }}
+                                >
+                                    {t('upload.uploadAnother')}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
                 return (
                     <div className="report-ready">
                         <div className="success-content">
