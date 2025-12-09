@@ -428,6 +428,13 @@ const sessionSlice = createSlice({
       state.advisorReportGenerated = false;
       state.currentReport = null;
       state.uiState = 'upload';
+    },
+
+    // Restore active session for socket events
+    restoreActiveSession: (state, action) => {
+      const { sessionId } = action.payload;
+      state.activeSessionId = sessionId;
+      console.log(`🔄 Active session restored: ${sessionId}`);
     }
   },
   extraReducers: (builder) => {
@@ -549,7 +556,8 @@ export const {
   handleReportGenerationStarted,
   handleAdvisorReportGenerated,
   handleProcessingError,
-  resetProcessingState
+  resetProcessingState,
+  restoreActiveSession
 } = sessionSlice.actions;
 
 // Selectors
@@ -562,6 +570,7 @@ export const selectUploadProgress = (state) => state.sessions.uploadProgress;
 export const selectUploadStatus = (state) => state.sessions.uploadStatus;
 export const selectUploadMessage = (state) => state.sessions.uploadMessage;
 export const selectCurrentUploadSession = (state) => state.sessions.currentUploadSession;
+export const selectActiveSessionId = (state) => state.sessions.activeSessionId;
 export const selectUiState = (state) => state.sessions.uiState;
 export const selectError = (state) => state.sessions.error;
 

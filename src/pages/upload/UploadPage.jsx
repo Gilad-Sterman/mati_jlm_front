@@ -11,6 +11,7 @@ import {
     selectUploadStatus,
     selectUploadMessage,
     selectCurrentUploadSession,
+    selectActiveSessionId,
     selectUiState,
     selectError as selectSessionError,
     clearError as clearSessionError,
@@ -21,7 +22,8 @@ import {
     selectTranscriptionComplete,
     selectAdvisorReportGenerated,
     selectCurrentReport,
-    resetProcessingState
+    resetProcessingState,
+    restoreActiveSession
 } from '../../store/sessionSlice';
 import { fetchClientsForSelection, quickCreateClient, selectSelectionClients, selectIsCreating, selectError as selectClientError, clearError as clearClientError } from '../../store/clientSlice';
 import { selectUser } from '../../store/authSlice';
@@ -47,6 +49,7 @@ export function UploadPage() {
     const uploadStatus = useSelector(selectUploadStatus);
     const uploadMessage = useSelector(selectUploadMessage);
     const currentUploadSession = useSelector(selectCurrentUploadSession);
+    const activeSessionId = useSelector(selectActiveSessionId);
     const uiState = useSelector(selectUiState);
     // const uiState = 'transcribing'
     const sessionError = useSelector(selectSessionError);
@@ -79,6 +82,22 @@ export function UploadPage() {
     useEffect(() => {
         dispatch(fetchClientsForSelection());
     }, [dispatch]);
+
+    // Restore active session when returning to upload page during processing
+    useEffect(() => {
+        // If we have a processing UI state but no activeSessionId, restore it
+        if ((uiState === 'uploading' || uiState === 'transcribing' || uiState === 'generating_report' || uiState === 'processing') && 
+            currentUploadSession && 
+            !activeSessionId) {
+            
+            const sessionId = currentUploadSession.id || currentUploadSession.sessionId;
+            if (sessionId) {
+                console.log(`🔄 Restoring active session: ${sessionId}`);
+                // Restore the activeSessionId to re-enable socket events
+                dispatch(restoreActiveSession({ sessionId }));
+            }
+        }
+    }, [uiState, currentUploadSession, activeSessionId, dispatch]);
 
     // Reset form when returning to upload state
     useEffect(() => {
