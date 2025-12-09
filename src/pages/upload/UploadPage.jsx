@@ -77,6 +77,13 @@ export function UploadPage() {
         business_domain: '',
         business_number: ''
     });
+    const [validationErrors, setValidationErrors] = useState({});
+
+    // Email validation function
+    const isValidEmail = (email) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    };
 
     // Load clients on component mount
     useEffect(() => {
@@ -107,6 +114,7 @@ export function UploadPage() {
             setSessionTitle('');
             setClientMode('existing');
             setNewClient({ name: '', email: '', business_domain: '', business_number: '' });
+            setValidationErrors({}); // Clear validation errors
             if (fileInputRef.current) {
                 fileInputRef.current.value = '';
             }
@@ -177,6 +185,7 @@ export function UploadPage() {
         if (mode === 'existing') {
             // Reset new client form when switching to existing
             setNewClient({ name: '', email: '', business_domain: '', business_number: '' });
+            setValidationErrors({}); // Clear validation errors
         } else {
             // Clear selected client when switching to new
             setSelectedClientId('');
@@ -188,6 +197,24 @@ export function UploadPage() {
             ...prev,
             [field]: value
         }));
+
+        // Clear validation error when user starts typing
+        if (validationErrors[field]) {
+            setValidationErrors(prev => ({
+                ...prev,
+                [field]: null
+            }));
+        }
+
+        // Validate email field in real-time
+        if (field === 'email' && value.trim()) {
+            if (!isValidEmail(value.trim())) {
+                setValidationErrors(prev => ({
+                    ...prev,
+                    email: 'Please enter a valid email address'
+                }));
+            }
+        }
     };
 
     // Session upload
@@ -699,7 +726,11 @@ export function UploadPage() {
                                                 onChange={(e) => handleNewClientChange('email', e.target.value)}
                                                 placeholder={t('upload.clientEmailPlaceholder')}
                                                 disabled={isUploading}
+                                                className={validationErrors.email ? 'error' : ''}
                                             />
+                                            {validationErrors.email && (
+                                                <span className="error-message">{validationErrors.email}</span>
+                                            )}
                                         </div>
                                     </div>
                                     <div className="form-row">
@@ -782,7 +813,7 @@ export function UploadPage() {
                                 onClick={handleUpload}
                                 disabled={!selectedFile ||
                                     (clientMode === 'existing' && !selectedClientId) ||
-                                    (clientMode === 'new' && (!newClient.name.trim() || !newClient.email.trim())) ||
+                                    (clientMode === 'new' && (!newClient.name.trim() || !newClient.email.trim() || !isValidEmail(newClient.email.trim()))) ||
                                     isUploading ||
                                     uploadStatus === 'uploading'}
                             >
