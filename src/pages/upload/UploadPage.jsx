@@ -210,7 +210,7 @@ export function UploadPage() {
 
         // Set current upload session info immediately for UI
         dispatch(handleUploadStarted({
-            sessionId: 'temp-' + Date.now(), // Temporary ID until real one comes from backend
+            // sessionId: 'temp-' + Date.now(), // Temporary ID until real one comes from backend
             fileName: selectedFile.name,
             message: 'Preparing upload...'
         }));

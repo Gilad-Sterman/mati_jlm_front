@@ -15,14 +15,9 @@ class SocketService {
    */
   connect(token) {
     // Safety check - prevent multiple connections
-    if (this.socket && this.socket.connected) {
-      console.log('🔌 Socket already connected, skipping...');
-      return this.socket;
-    }
-    
     if (this.socket) {
-      console.log('🔌 Cleaning up existing socket...');
-      this.disconnect();
+      console.log('🔌 Socket already connected or connecting, skipping...');
+      return this.socket;
     }
 
     if (!token) {
@@ -43,14 +38,15 @@ class SocketService {
         transports: ['websocket', 'polling'],
         timeout: 10000,
         forceNew: true,
-        autoConnect: false // Important: don't auto-connect
+        // autoConnect: false // Important: don't auto-connect
+        autoConnect: true 
       });
 
       // Setup basic event listeners
       this.setupEventListeners();
 
       // Manually connect
-      this.socket.connect();
+      // this.socket.connect();
 
       return this.socket;
     } catch (error) {

@@ -21,10 +21,10 @@ export const fetchSessionsWithReports = createAsyncThunk(
   async (params = {}, { rejectWithValue }) => {
     try {
       const response = await sessionService.getSessionsWithReports(params);
-      
+
       // Return the sessions with reports already attached
       const sessions = response.data.sessions || [];
-      
+
       return {
         ...response.data,
         sessions: sessions
@@ -87,7 +87,7 @@ export const fetchSessions = createAsyncThunk(
 
       // Add example session to the beginning of the list
       const sessions = response.data.sessions || [];
-      
+
       return {
         ...response.data,
         sessions: sessions
@@ -168,19 +168,19 @@ const initialState = {
   currentUploadSession: null, // Session being uploaded
   activeSessionId: null, // Session ID that should affect UI state (null means no active session for UI)
   uiState: 'upload', // 'upload', 'uploading', 'transcribing', 'generating_report', 'report_ready', 'processing', 'error'
-  
+
   // AI Processing state
   processingStage: null, // 'transcribing', 'generating_report', 'completed'
   processingMessage: '',
   transcriptionComplete: false,
   advisorReportGenerated: false,
   currentReport: null, // Generated advisor report data
-  
+
   // Dashboard stats
   dashboardStats: null,
   isDashboardLoading: false,
   dashboardError: null,
-  
+
   error: null,
   pagination: {
     page: 1,
@@ -213,7 +213,7 @@ const sessionSlice = createSlice({
       state.activeSessionId = null; // Clear active session
       state.uiState = 'upload';
       state.error = null;
-      
+
       // Also reset AI processing state
       state.processingStage = null;
       state.processingMessage = '';
@@ -229,7 +229,7 @@ const sessionSlice = createSlice({
       state.currentUploadSession = null;
       state.activeSessionId = null; // Clear active session so socket events don't affect UI
       state.error = null;
-      
+
       // Reset processing state for clean UI
       state.processingStage = null;
       state.processingMessage = '';
@@ -239,17 +239,26 @@ const sessionSlice = createSlice({
     },
     // Socket event handlers
     handleUploadStarted: (state, action) => {
-      const { sessionId, fileName, message } = action.payload;
+      const { fileName, message } = action.payload;
       state.uploadStatus = 'started';
       state.uploadMessage = message;
-      state.currentUploadSession = { id: sessionId, fileName };
-      state.activeSessionId = sessionId; // Set this session as active for UI updates
+      state.currentUploadSession = { fileName };
+      // state.currentUploadSession = { id: sessionId, fileName };
+      // state.activeSessionId = sessionId; // Set this session as active for UI updates
       state.uploadProgress = 5;
       state.uiState = 'uploading'; // Switch to uploading UI
     },
     handleUploadProgress: (state, action) => {
       const { sessionId, progress, message } = action.payload;
-      
+
+      if (!state.activeSessionId && sessionId) {
+        state.activeSessionId = sessionId;
+        state.currentUploadSession = {
+          ...state.currentUploadSession,
+          sessionId
+        };
+      }
+
       // Only update UI state if this is the active session
       if (state.activeSessionId === sessionId) {
         state.uploadStatus = 'uploading';
@@ -259,7 +268,15 @@ const sessionSlice = createSlice({
     },
     handleUploadComplete: (state, action) => {
       const { sessionId, message, fileUrl, duration } = action.payload;
-      
+
+      if (!state.activeSessionId && sessionId) {
+        state.activeSessionId = sessionId;
+        state.currentUploadSession = {
+          ...state.currentUploadSession,
+          sessionId
+        };
+      }
+
       // Only update UI state if this is the active session
       if (state.activeSessionId === sessionId) {
         state.uploadStatus = 'complete';
@@ -272,12 +289,12 @@ const sessionSlice = createSlice({
           fileUrl,
           duration
         };
-        
+
         // Transition to processing state - wait for transcription_started event
         state.uiState = 'processing';
         state.processingMessage = 'Upload complete, preparing transcription...';
       }
-      
+
       // Always update session in sessions array (for data consistency)
       const sessionIndex = state.sessions.findIndex(s => s.id === sessionId);
       if (sessionIndex !== -1) {
@@ -291,7 +308,7 @@ const sessionSlice = createSlice({
     },
     handleUploadError: (state, action) => {
       const { sessionId, message, error } = action.payload;
-      
+
       // Show errors even if not the active session (as requested by user)
       // But only change UI state if it's the active session
       if (state.activeSessionId === sessionId) {
@@ -310,7 +327,7 @@ const sessionSlice = createSlice({
     // AI Processing event handlers
     handleTranscriptionStarted: (state, action) => {
       const { sessionId, message } = action.payload;
-      
+
       // Only update UI state if this is the active session
       if (state.activeSessionId === sessionId) {
         state.processingStage = 'transcribing';
@@ -322,14 +339,14 @@ const sessionSlice = createSlice({
 
     handleTranscriptionComplete: (state, action) => {
       const { sessionId, transcript, message } = action.payload;
-      
+
       // Only update UI state if this is the active session
       if (state.activeSessionId === sessionId) {
         state.processingStage = 'transcribed';
         state.processingMessage = message || 'Transcription completed';
         state.transcriptionComplete = true;
       }
-      
+
       // Always update session in sessions array (for data consistency)
       const sessionIndex = state.sessions.findIndex(s => s.id === sessionId);
       if (sessionIndex !== -1) {
@@ -343,7 +360,7 @@ const sessionSlice = createSlice({
 
     handleReportGenerationStarted: (state, action) => {
       const { sessionId, message } = action.payload;
-      
+
       // Only update UI state if this is the active session
       if (state.activeSessionId === sessionId) {
         state.processingStage = 'generating_report';
@@ -355,7 +372,7 @@ const sessionSlice = createSlice({
 
     handleAdvisorReportGenerated: (state, action) => {
       const { sessionId, report, message } = action.payload;
-      
+
       // Only update UI state if this is the active session
       if (state.activeSessionId === sessionId) {
         state.processingStage = 'completed';
@@ -364,7 +381,7 @@ const sessionSlice = createSlice({
         state.advisorReportGenerated = true;
         state.currentReport = report;
       }
-      
+
       // Always update session in sessions array (for data consistency)
       const sessionIndex = state.sessions.findIndex(s => s.id === sessionId);
       if (sessionIndex !== -1) {
@@ -377,7 +394,7 @@ const sessionSlice = createSlice({
 
     handleProcessingError: (state, action) => {
       const { sessionId, message, error, stage } = action.payload;
-      
+
       // Show errors even if not the active session (as requested by user)
       // But only change UI state if it's the active session
       if (state.activeSessionId === sessionId) {
@@ -389,7 +406,7 @@ const sessionSlice = createSlice({
         // For non-active sessions, just set a general error that can be shown as a toast/notification
         state.error = `Background processing failed for ${sessionId}: ${message || error}`;
       }
-      
+
       // Always update session status to failed (for data consistency)
       const sessionIndex = state.sessions.findIndex(s => s.id === sessionId);
       if (sessionIndex !== -1) {
@@ -465,7 +482,7 @@ const sessionSlice = createSlice({
         state.advisers = action.payload.advisers || []; // Store advisers data
         state.pagination = action.payload.pagination || state.pagination;
         state.error = null;
-        
+
         // No need to fetch reports separately - they're already attached to sessions
       })
       .addCase(fetchSessionsWithReports.rejected, (state, action) => {
@@ -512,10 +529,10 @@ const sessionSlice = createSlice({
 });
 
 // Actions
-export const { 
-  clearError, 
-  clearCurrentSession, 
-  setUploadProgress, 
+export const {
+  clearError,
+  clearCurrentSession,
+  setUploadProgress,
   resetUploadState,
   returnToUpload,
   handleUploadStarted,
