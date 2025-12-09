@@ -439,6 +439,8 @@ const sessionSlice = createSlice({
         state.uiState = 'uploading'; // Immediately switch to uploading UI
         state.uploadMessage = 'Preparing upload...';
         state.error = null;
+        state.activeSessionId = null; // Clear any previous active session
+        state.currentUploadSession = null; // Clear previous upload session
       })
       .addCase(createSession.fulfilled, (state, action) => {
         // Don't set isUploading to false yet - socket events will handle that
