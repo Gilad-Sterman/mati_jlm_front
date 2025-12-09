@@ -255,6 +255,7 @@ const sessionSlice = createSlice({
         state.activeSessionId = sessionId;
         state.currentUploadSession = {
           ...state.currentUploadSession,
+          id: sessionId,
           sessionId
         };
       }
@@ -273,6 +274,7 @@ const sessionSlice = createSlice({
         state.activeSessionId = sessionId;
         state.currentUploadSession = {
           ...state.currentUploadSession,
+          id: sessionId,
           sessionId
         };
       }
@@ -285,6 +287,7 @@ const sessionSlice = createSlice({
         state.isUploading = false;
         state.currentUploadSession = {
           ...state.currentUploadSession,
+          id: sessionId,
           sessionId,
           fileUrl,
           duration

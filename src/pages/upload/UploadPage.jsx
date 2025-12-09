@@ -386,7 +386,12 @@ export function UploadPage() {
                                 <button
                                     className="primary-button"
                                     onClick={() => {
-                                        navigate(`/reports/${currentUploadSession.id}`);
+                                        const sessionId = currentUploadSession?.id || currentUploadSession?.sessionId;
+                                        if (sessionId) {
+                                            navigate(`/reports/${sessionId}`);
+                                        } else {
+                                            console.error('No session ID available for navigation');
+                                        }
                                     }}
                                 >
                                     {t('upload.ViewEditReport')}
@@ -462,7 +467,12 @@ export function UploadPage() {
                                 <button
                                     className="primary-button"
                                     onClick={() => {
-                                        navigate(`/reports/${currentUploadSession.id}`);
+                                        const sessionId = currentUploadSession?.id || currentUploadSession?.sessionId;
+                                        if (sessionId) {
+                                            navigate(`/reports/${sessionId}`);
+                                        } else {
+                                            console.error('No session ID available for navigation');
+                                        }
                                     }}
                                 >
                                     {t('upload.ViewEditReport')}
