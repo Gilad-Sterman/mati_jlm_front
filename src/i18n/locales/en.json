@@ -15,7 +15,10 @@
             "emailRequired": "Email is required",
             "emailInvalid": "Please enter a valid email",
             "passwordRequired": "Password is required",
-            "passwordMinLength": "Password must contain at least 6 characters"
+            "passwordMinLength": "Password must contain at least 6 characters",
+            "accountInactive": "Your account is inactive and awaiting admin approval. Please contact an administrator.",
+            "accountSuspended": "Your account has been suspended. Please contact an administrator.",
+            "accountNotActive": "Your account is not active. Please contact an administrator."
         }
     },
     "register": {
@@ -25,6 +28,8 @@
         "namePlaceholder": "Enter your full name",
         "email": "Email",
         "emailPlaceholder": "Enter your email",
+        "phone": "Phone Number",
+        "phonePlaceholder": "Enter your phone number",
         "password": "Password",
         "passwordPlaceholder": "Enter a password",
         "confirmPassword": "Confirm Password",
@@ -50,6 +55,8 @@
             "nameMinLength": "Name must contain at least 2 characters",
             "emailRequired": "Email is required",
             "emailInvalid": "Please enter a valid email",
+            "phoneRequired": "Phone number is required",
+            "phoneInvalid": "Please enter a valid phone number",
             "passwordRequired": "Password is required",
             "passwordMinLength": "Password must contain at least 6 characters",
             "passwordUppercase": "Password must contain at least one uppercase letter",
@@ -100,6 +107,8 @@
         "clientNamePlaceholder": "Enter entrepreneur name",
         "clientEmail": "Email",
         "clientEmailPlaceholder": "Enter entrepreneur email",
+        "clientPhone": "Phone Number",
+        "clientPhonePlaceholder": "Enter entrepreneur phone number",
         "businessDomain": "Business Domain",
         "businessDomainPlaceholder": "Example: Technology, Health",
         "businessNumber": "Business Number",
@@ -173,7 +182,8 @@
             "noFileSelected": "Please select a file to upload",
             "noClientSelected": "Please select a client",
             "clientNameRequired": "Client name is required",
-            "clientEmailRequired": "Client email is required"
+            "clientEmailRequired": "Client email is required",
+            "clientPhoneRequired": "Client phone number is required"
         }
     },
     "dashboard": {
@@ -231,10 +241,14 @@
     },
     "sessions": {
         "title": "All Sessions",
+        "sessions": "Sessions",
         "sessionsCount": "{{count}} sessions",
         "searchPlaceholder": "Search session",
         "filterStatus": "Filter by status",
         "filterAdviser": "Filter by advisor",
+        "filterDateRange": "Date range",
+        "dateFrom": "From date",
+        "dateTo": "To date",
         "filterAllAdvisers": "All advisors",
         "filterAllStatuses": "All statuses",
         "avgAdviserScore": "Average Advisor Score",

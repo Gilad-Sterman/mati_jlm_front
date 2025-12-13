@@ -74,6 +74,7 @@ export function UploadPage() {
     const [newClient, setNewClient] = useState({
         name: '',
         email: '',
+        phone: '',
         business_domain: '',
         business_number: ''
     });
@@ -83,6 +84,12 @@ export function UploadPage() {
     const isValidEmail = (email) => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
+    };
+
+    // Phone validation function
+    const isValidPhone = (phone) => {
+        const phoneRegex = /^[\+]?[0-9\s\-\(\)]{10,}$/;
+        return phoneRegex.test(phone.trim());
     };
 
     // Load clients on component mount
@@ -113,7 +120,7 @@ export function UploadPage() {
             setSelectedClientId('');
             setSessionTitle('');
             setClientMode('existing');
-            setNewClient({ name: '', email: '', business_domain: '', business_number: '' });
+            setNewClient({ name: '', email: '', phone: '', business_domain: '', business_number: '' });
             setValidationErrors({}); // Clear validation errors
             if (fileInputRef.current) {
                 fileInputRef.current.value = '';
@@ -184,7 +191,7 @@ export function UploadPage() {
         setClientMode(mode);
         if (mode === 'existing') {
             // Reset new client form when switching to existing
-            setNewClient({ name: '', email: '', business_domain: '', business_number: '' });
+            setNewClient({ name: '', email: '', phone: '', business_domain: '', business_number: '' });
             setValidationErrors({}); // Clear validation errors
         } else {
             // Clear selected client when switching to new
@@ -215,6 +222,16 @@ export function UploadPage() {
                 }));
             }
         }
+
+        // Validate phone field in real-time
+        if (field === 'phone' && value.trim()) {
+            if (!isValidPhone(value.trim())) {
+                setValidationErrors(prev => ({
+                    ...prev,
+                    phone: 'Please enter a valid phone number'
+                }));
+            }
+        }
     };
 
     // Session upload
@@ -231,8 +248,8 @@ export function UploadPage() {
         }
 
         if (clientMode === 'new') {
-            if (!newClient.name.trim() || !newClient.email.trim() || !newClient.business_number.trim()) {
-                alert(t('upload.errors.clientNameRequired') + ' / ' + t('upload.errors.clientEmailRequired') + ' / ' + t('upload.errors.clientBusinessNumberRequired'));
+            if (!newClient.name.trim() || !newClient.email.trim() || !newClient.phone.trim() || !newClient.business_number.trim()) {
+                alert(t('upload.errors.clientNameRequired') + ' / ' + t('upload.errors.clientEmailRequired') + ' / ' + t('upload.errors.clientPhoneRequired') + ' / ' + t('upload.errors.clientBusinessNumberRequired'));
                 return;
             }
         }
@@ -249,6 +266,7 @@ export function UploadPage() {
             sessionData.newClient = {
                 name: newClient.name.trim(),
                 email: newClient.email.trim(),
+                phone: newClient.phone.trim(),
                 business_domain: newClient.business_domain.trim() || null,
                 business_number: newClient.business_number.trim() || null
             };
@@ -732,6 +750,20 @@ export function UploadPage() {
                                                 <span className="error-message">{validationErrors.email}</span>
                                             )}
                                         </div>
+                                        <div className="form-group">
+                                            <label>{t('upload.clientPhone')} *</label>
+                                            <input
+                                                type="tel"
+                                                value={newClient.phone}
+                                                onChange={(e) => handleNewClientChange('phone', e.target.value)}
+                                                placeholder={t('upload.clientPhonePlaceholder')}
+                                                disabled={isUploading}
+                                                className={validationErrors.phone ? 'error' : ''}
+                                            />
+                                            {validationErrors.phone && (
+                                                <span className="error-message">{validationErrors.phone}</span>
+                                            )}
+                                        </div>
                                     </div>
                                     <div className="form-row">
                                         <div className="form-group">
@@ -813,7 +845,7 @@ export function UploadPage() {
                                 onClick={handleUpload}
                                 disabled={!selectedFile ||
                                     (clientMode === 'existing' && !selectedClientId) ||
-                                    (clientMode === 'new' && (!newClient.name.trim() || !newClient.email.trim() || !isValidEmail(newClient.email.trim()))) ||
+                                    (clientMode === 'new' && (!newClient.name.trim() || !newClient.email.trim() || !newClient.phone.trim() || !isValidEmail(newClient.email.trim()) || !isValidPhone(newClient.phone.trim()))) ||
                                     isUploading ||
                                     uploadStatus === 'uploading'}
                             >

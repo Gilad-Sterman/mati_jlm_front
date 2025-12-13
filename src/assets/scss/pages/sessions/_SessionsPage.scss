@@ -36,6 +36,13 @@
             margin: 0;
         }
 
+        .sessions-stats {
+            display: flex;
+            align-items: center;
+            gap: $spacing-lg;
+            flex-wrap: wrap;
+        }
+
         .sessions-count {
             background: $light-color;
             border-radius: $border-radius-lg;
@@ -53,6 +60,82 @@
             .count-label {
                 color: $text-muted;
                 font-size: $font-size-sm;
+            }
+        }
+
+        .average-scores {
+            display: flex;
+            gap: $spacing-md;
+            flex-wrap: wrap;
+
+            .avg-score-item {
+                border-radius: $border-radius-md;
+                padding: $spacing-sm $spacing-md;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: $spacing-xs;
+                min-width: 120px;
+                transition: all 0.2s ease;
+
+                .avg-score-label {
+                    font-size: $font-size-xs;
+                    color: $text-muted;
+                    font-weight: 500;
+                    text-align: center;
+                    line-height: 1.2;
+                }
+
+                .avg-score-value {
+                    font-size: $font-size-lg;
+                    font-weight: 700;
+                }
+
+                // Score color variations
+                &.score-excellent {
+                    background: rgba(#10b981, 0.1);
+                    border: 1px solid rgba(#10b981, 0.2);
+                    
+                    .avg-score-value {
+                        color: #10b981;
+                    }
+                }
+
+                &.score-good {
+                    background: rgba(#3b82f6, 0.1);
+                    border: 1px solid rgba(#3b82f6, 0.2);
+                    
+                    .avg-score-value {
+                        color: #3b82f6;
+                    }
+                }
+
+                &.score-average {
+                    background: rgba(#f59e0b, 0.1);
+                    border: 1px solid rgba(#f59e0b, 0.2);
+                    
+                    .avg-score-value {
+                        color: #f59e0b;
+                    }
+                }
+
+                &.score-poor {
+                    background: rgba(#ef4444, 0.1);
+                    border: 1px solid rgba(#ef4444, 0.2);
+                    
+                    .avg-score-value {
+                        color: #ef4444;
+                    }
+                }
+
+                &.score-very-poor {
+                    background: rgba(#dc2626, 0.1);
+                    border: 1px solid rgba(#dc2626, 0.2);
+                    
+                    .avg-score-value {
+                        color: #dc2626;
+                    }
+                }
             }
         }
     }
@@ -181,6 +264,55 @@
                     &:focus {
                         outline: none;
                         border-color: $primary-color;
+                    }
+                }
+
+                &.date-range {
+                    .date-inputs {
+                        display: flex;
+                        align-items: end;
+                        gap: $spacing-md;
+                        
+                        .date-input-wrapper {
+                            display: flex;
+                            flex-direction: column;
+                            gap: $spacing-xs;
+                            
+                            .date-label {
+                                font-size: $font-size-xs;
+                                color: $text-muted;
+                                font-weight: 500;
+                                margin: 0;
+                            }
+                            
+                            input[type="date"] {
+                                padding: $spacing-sm $spacing-md;
+                                border: 1px solid $border-color;
+                                border-radius: $border-radius-sm;
+                                background-color: $white-color;
+                                font-size: $font-size-sm;
+                                min-width: 140px;
+                                
+                                &:focus {
+                                    outline: none;
+                                    border-color: $primary-color;
+                                }
+
+                                // RTL support for date inputs
+                                [dir="rtl"] & {
+                                    text-align: right;
+                                    direction: rtl;
+                                }
+                            }
+                        }
+                        
+                        .date-separator {
+                            color: $primary-color;
+                            font-weight: 600;
+                            font-size: $font-size-lg;
+                            padding: 0 $spacing-xs;
+                            margin-bottom: $spacing-sm;
+                        }
                     }
                 }
             }
@@ -473,6 +605,13 @@
                         font-size: $font-size-sm;
                         color: $text-muted;
                         margin-bottom: $spacing-xs;
+                    }
+
+                    .participant-phone {
+                        font-size: $font-size-sm;
+                        color: $text-muted;
+                        margin-bottom: $spacing-xs;
+                        font-family: monospace; // Better for phone numbers
                     }
                     
                     .participant-detail {

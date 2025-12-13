@@ -30,51 +30,9 @@ export const fetchSessionsWithReports = createAsyncThunk(
         sessions: sessions
       };
     } catch (error) {
-      // If API fails, still return the example session with reports
-      const exampleSession = {
-        id: 'session-123',
-        title: 'דוגמה - ייעוץ עסקי לחברת תיירות',
-        status: 'completed',
-        created_at: new Date('2024-12-01T10:30:00Z').toISOString(),
-        file_name: 'business_consultation_demo.mp3',
-        file_size: 15728640, // 15MB
-        duration: 1800, // 30 minutes
-        file_url: 'https://example.com/demo-audio.mp3',
-        client: {
-          id: 'client-demo',
-          name: 'דוד כהן',
-          email: 'david.cohen@example.com',
-          metadata: {
-            business_domain: 'תיירות וסיורים',
-            business_number: '123456789'
-          }
-        },
-        // Reports already attached to the session
-        reports: {
-          adviser: {
-            id: 'report-adviser-123',
-            type: 'adviser',
-            status: 'approved',
-            created_at: new Date('2024-12-01T11:30:00Z').toISOString()
-          },
-          client: {
-            id: 'report-client-123',
-            type: 'client',
-            status: 'approved',
-            created_at: new Date('2024-12-01T12:00:00Z').toISOString()
-          }
-        }
-      };
-
-      return {
-        sessions: [exampleSession],
-        pagination: {
-          page: 1,
-          limit: 10,
-          total: 1,
-          totalPages: 1
-        }
-      };
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to fetch sessions'
+      );
     }
   }
 );
@@ -85,7 +43,6 @@ export const fetchSessions = createAsyncThunk(
     try {
       const response = await sessionService.getSessions(params);
 
-      // Add example session to the beginning of the list
       const sessions = response.data.sessions || [];
 
       return {
@@ -93,36 +50,9 @@ export const fetchSessions = createAsyncThunk(
         sessions: sessions
       };
     } catch (error) {
-      // If API fails, still return the example session
-      const exampleSession = {
-        id: 'session-123',
-        title: 'דוגמה - ייעוץ עסקי לחברת תיירות',
-        status: 'completed',
-        created_at: new Date('2024-12-01T10:30:00Z').toISOString(),
-        file_name: 'business_consultation_demo.mp3',
-        file_size: 15728640, // 15MB
-        duration: 1800, // 30 minutes
-        file_url: 'https://example.com/demo-audio.mp3',
-        client: {
-          id: 'client-demo',
-          name: 'דוד כהן',
-          email: 'david.cohen@example.com',
-          metadata: {
-            business_domain: 'תיירות וסיורים',
-            business_number: '123456789'
-          }
-        }
-      };
-
-      return {
-        sessions: [exampleSession],
-        pagination: {
-          page: 1,
-          limit: 10,
-          total: 1,
-          totalPages: 1
-        }
-      };
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to fetch sessions'
+      );
     }
   }
 );

@@ -23,6 +23,8 @@ export function SessionsPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [adviserFilter, setAdviserFilter] = useState(searchParams.get('adviser_id') || '');
+    const [dateFrom, setDateFrom] = useState('');
+    const [dateTo, setDateTo] = useState('');
     const [sortBy, setSortBy] = useState('created_at');
     const [sortDirection, setSortDirection] = useState('desc');
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
@@ -43,11 +45,13 @@ export function SessionsPage() {
         if (debouncedSearchTerm) params.search_term = debouncedSearchTerm;
         if (statusFilter) params.status = statusFilter;
         if (isAdmin && adviserFilter) params.adviser_id = adviserFilter;
+        if (dateFrom) params.date_from = dateFrom;
+        if (dateTo) params.date_to = dateTo;
         if (sortBy) params.sort_by = sortBy;
         if (sortDirection) params.sort_direction = sortDirection;
 
         dispatch(fetchSessionsWithReports(params));
-    }, [dispatch, debouncedSearchTerm, statusFilter, adviserFilter, sortBy, sortDirection, isAdmin]);
+    }, [dispatch, debouncedSearchTerm, statusFilter, adviserFilter, dateFrom, dateTo, sortBy, sortDirection, isAdmin]);
 
     // Handle URL parameter changes (e.g., when navigating from dashboard)
     useEffect(() => {
@@ -69,6 +73,106 @@ export function SessionsPage() {
 
     // Data is loaded when not loading (sessions can be empty due to filters)
     const dataLoaded = !isLoading;
+
+    // Helper function to extract client score from adviser report
+    const extractClientScore = (session) => {
+        try {
+            // Handle both array structure and object structure
+            let adviserReport = null;
+            if (Array.isArray(session.reports)) {
+                adviserReport = session.reports.find(r => r.type === 'adviser' && r.is_current_version);
+            } else if (session.reports?.adviser) {
+                adviserReport = session.reports.adviser;
+            }
+            
+            if (!adviserReport?.content) return null;
+
+            let content = adviserReport.content;
+            if (typeof content === 'string') {
+                content = JSON.parse(content);
+            }
+
+            // NEW STRUCTURE: client_readiness_score
+            if (content.client_readiness_score) {
+                return parseFloat(content.client_readiness_score);
+            }
+            // LEGACY STRUCTURE: entrepreneur_readiness_score
+            else if (content.entrepreneur_readiness_score) {
+                return parseFloat(content.entrepreneur_readiness_score);
+            }
+            return null;
+        } catch (error) {
+            return null;
+        }
+    };
+
+    // Helper function to extract adviser score from adviser report
+    const extractAdviserScore = (session) => {
+        try {
+            // Handle both array structure and object structure
+            let adviserReport = null;
+            if (Array.isArray(session.reports)) {
+                adviserReport = session.reports.find(r => r.type === 'adviser' && r.is_current_version);
+            } else if (session.reports?.adviser) {
+                adviserReport = session.reports.adviser;
+            }
+            
+            if (!adviserReport?.content) return null;
+
+            let content = adviserReport.content;
+            if (typeof content === 'string') {
+                content = JSON.parse(content);
+            }
+
+            // NEW STRUCTURE: Calculate average from listening, clarity, continuation scores (0-5 scale)
+            if (content.listening?.score && content.clarity?.score && content.continuation?.score) {
+                const listeningScore = parseFloat(content.listening.score);
+                const clarityScore = parseFloat(content.clarity.score);
+                const continuationScore = parseFloat(content.continuation.score);
+                
+                if (!isNaN(listeningScore) && !isNaN(clarityScore) && !isNaN(continuationScore)) {
+                    // Convert from 0-5 scale to 0-100 scale
+                    return ((listeningScore + clarityScore + continuationScore) / 3) * 20;
+                }
+            }
+            // LEGACY STRUCTURE: advisor_performance_score
+            else if (content.advisor_performance_score) {
+                return parseFloat(content.advisor_performance_score);
+            }
+            return null;
+        } catch (error) {
+            return null;
+        }
+    };
+
+    // Calculate average scores
+    const calculateAverageScores = () => {
+        if (!sessions.length) return { avgClientScore: null, avgAdviserScore: null };
+
+        const clientScores = sessions.map(extractClientScore).filter(score => score !== null && !isNaN(score));
+        const adviserScores = sessions.map(extractAdviserScore).filter(score => score !== null && !isNaN(score));
+
+        const avgClientScore = clientScores.length > 0 
+            ? clientScores.reduce((sum, score) => sum + score, 0) / clientScores.length 
+            : null;
+        
+        const avgAdviserScore = adviserScores.length > 0 
+            ? adviserScores.reduce((sum, score) => sum + score, 0) / adviserScores.length 
+            : null;
+
+        return { avgClientScore, avgAdviserScore };
+    };
+
+    const { avgClientScore, avgAdviserScore } = calculateAverageScores();
+
+    // Helper function to get score color class
+    const getScoreColorClass = (score) => {
+        if (score >= 90) return 'score-excellent';
+        if (score >= 75) return 'score-good';
+        if (score >= 60) return 'score-average';
+        if (score >= 40) return 'score-poor';
+        return 'score-very-poor';
+    };
 
     // Helper function to format date
     const formatDate = (dateString) => {
@@ -148,6 +252,8 @@ export function SessionsPage() {
         setSearchTerm('');
         setStatusFilter('');
         setAdviserFilter('');
+        setDateFrom('');
+        setDateTo('');
         setSortBy('created_at');
         setSortDirection('desc');
         
@@ -159,9 +265,27 @@ export function SessionsPage() {
         <section className="sessions-page">
             <div className="sessions-header">
                 <h1>{t('sessions.title')}</h1>
-                <div className="sessions-count">
-                    <span className="count-number">{sessions.length}</span>
-                    <span className="count-label">{t('sessions.sessionsCount', { count: sessions.length })}</span>
+                <div className="sessions-stats">
+                    <div className="sessions-count">
+                        <span className="count-number">{sessions.length}</span>
+                        <span className="count-label">{t('sessions.sessions')}</span>
+                    </div>
+                    {sessions.length > 0 && (avgClientScore !== null || avgAdviserScore !== null) && (
+                        <div className="average-scores">
+                            {avgClientScore !== null && (
+                                <div className={`avg-score-item ${getScoreColorClass(avgClientScore)}`}>
+                                    <span className="avg-score-label">{t('sessions.avgEntrepreneurScore')}</span>
+                                    <span className="avg-score-value">{Math.round(avgClientScore)}%</span>
+                                </div>
+                            )}
+                            {avgAdviserScore !== null && (
+                                <div className={`avg-score-item ${getScoreColorClass(avgAdviserScore)}`}>
+                                    <span className="avg-score-label">{t('sessions.avgAdviserScore')}</span>
+                                    <span className="avg-score-value">{Math.round(avgAdviserScore)}%</span>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -225,6 +349,35 @@ export function SessionsPage() {
                         </div>
                     )}
 
+                    <div className="filter-item date-range">
+                        <label>{t('sessions.filterDateRange')}</label>
+                        <div className="date-inputs">
+                            <div className="date-input-wrapper">
+                                <label className="date-label">{t('sessions.dateFrom')}</label>
+                                <input
+                                    type="date"
+                                    value={dateFrom}
+                                    onChange={(e) => setDateFrom(e.target.value)}
+                                    placeholder={t('sessions.dateFrom')}
+                                    title={t('sessions.dateFrom')}
+                                />
+                            </div>
+                            <span className="date-separator">
+                                {i18n.language === 'he' ? '←' : '→'}
+                            </span>
+                            <div className="date-input-wrapper">
+                                <label className="date-label">{t('sessions.dateTo')}</label>
+                                <input
+                                    type="date"
+                                    value={dateTo}
+                                    onChange={(e) => setDateTo(e.target.value)}
+                                    placeholder={t('sessions.dateTo')}
+                                    title={t('sessions.dateTo')}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="sort-controls">
                         <button
                             className={`sort-button ${sortBy === 'created_at' ? 'active' : ''}`}
@@ -245,7 +398,7 @@ export function SessionsPage() {
                         </button>
                     </div>
 
-                    {(searchTerm || statusFilter || adviserFilter || sortBy !== 'created_at' || sortDirection !== 'desc') && (
+                    {(searchTerm || statusFilter || adviserFilter || dateFrom || dateTo || sortBy !== 'created_at' || sortDirection !== 'desc') && (
                         <button className="reset-filters" onClick={resetFilters}>
                             {t('sessions.filterReset')}
                         </button>
@@ -371,6 +524,9 @@ const SessionCard = React.memo(function SessionCard({
                         {session.client?.email && (
                             <div className="participant-email">{session.client.email}</div>
                         )}
+                        {session.client?.phone && (
+                            <div className="participant-phone">{session.client.phone}</div>
+                        )}
                         {session.client?.metadata?.business_domain && (
                             <div className="participant-detail">
                                 <Building size={14} />
@@ -445,6 +601,9 @@ const SessionCard = React.memo(function SessionCard({
                             <div className="participant-name">{session.adviser.name || session.adviser.email}</div>
                             {session.adviser.email && session.adviser.name && (
                                 <div className="participant-email">{session.adviser.email}</div>
+                            )}
+                            {session.adviser.phone && (
+                                <div className="participant-phone">{session.adviser.phone}</div>
                             )}
                         </div>
 

@@ -74,6 +74,21 @@
                 background-color: #f8f9fa;
                 box-sizing: border-box;
 
+                // RTL support for all input types including tel
+                [dir="rtl"] & {
+                    text-align: right;
+                    direction: rtl;
+                }
+
+                // Specific handling for tel inputs in RTL
+                &[type="tel"] {
+                    [dir="rtl"] & {
+                        text-align: right;
+                        direction: rtl;
+                        unicode-bidi: plaintext;
+                    }
+                }
+
                 &:focus {
                     outline: none;
                     border-color: $secondary-color;

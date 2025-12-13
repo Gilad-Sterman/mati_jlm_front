@@ -13,6 +13,7 @@ export function Register() {
     const [formData, setFormData] = useState({
         email: '',
         name: '',
+        phone: '',
         password: '',
         confirmPassword: ''
     });
@@ -50,6 +51,13 @@ export function Register() {
             errors.email = t('register.errors.emailRequired');
         } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
             errors.email = t('register.errors.emailInvalid');
+        }
+
+        // Phone validation
+        if (!formData.phone.trim()) {
+            errors.phone = t('register.errors.phoneRequired');
+        } else if (!/^[\+]?[0-9\s\-\(\)]{10,}$/.test(formData.phone.trim())) {
+            errors.phone = t('register.errors.phoneInvalid');
         }
 
         // Password validation - match backend requirements
@@ -126,6 +134,7 @@ export function Register() {
             await dispatch(registerUser({
                 email: formData.email,
                 name: formData.name,
+                phone: formData.phone,
                 password: formData.password
             })).unwrap();
             
@@ -203,6 +212,24 @@ export function Register() {
                         />
                         {formErrors.email && (
                             <span className="error-message">{formErrors.email}</span>
+                        )}
+                    </div>
+
+                    <div className="form-group">
+                        <label htmlFor="phone">{t('register.phone')}</label>
+                        <input
+                            type="tel"
+                            id="phone"
+                            name="phone"
+                            value={formData.phone}
+                            onChange={handleInputChange}
+                            onKeyPress={handleKeyPress}
+                            placeholder={t('register.phonePlaceholder')}
+                            className={formErrors.phone ? 'error' : ''}
+                            disabled={isLoading}
+                        />
+                        {formErrors.phone && (
+                            <span className="error-message">{formErrors.phone}</span>
                         )}
                     </div>
 

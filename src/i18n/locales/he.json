@@ -15,7 +15,10 @@
             "emailRequired": "אימייל נדרש",
             "emailInvalid": "אנא הזן אימייל תקין",
             "passwordRequired": "סיסמה נדרשת",
-            "passwordMinLength": "הסיסמה חייבת להכיל לפחות 6 תווים"
+            "passwordMinLength": "הסיסמה חייבת להכיל לפחות 6 תווים",
+            "accountInactive": "החשבון שלך לא פעיל וממתין לאישור מנהל. אנא פנה למנהל המערכת.",
+            "accountSuspended": "החשבון שלך הושעה. אנא פנה למנהל המערכת.",
+            "accountNotActive": "החשבון שלך לא פעיל. אנא פנה למנהל המערכת."
         }
     },
     "register": {
@@ -25,6 +28,8 @@
         "namePlaceholder": "הזן את השם המלא שלך",
         "email": "אימייל",
         "emailPlaceholder": "הזן את האימייל שלך",
+        "phone": "מספר טלפון",
+        "phonePlaceholder": "הזן את מספר הטלפון שלך",
         "password": "סיסמה",
         "passwordPlaceholder": "הזן סיסמה",
         "confirmPassword": "אישור סיסמה",
@@ -50,6 +55,8 @@
             "nameMinLength": "השם חייב להכיל לפחות 2 תווים",
             "emailRequired": "אימייל נדרש",
             "emailInvalid": "אנא הזן אימייל תקין",
+            "phoneRequired": "מספר טלפון נדרש",
+            "phoneInvalid": "אנא הזן מספר טלפון תקין",
             "passwordRequired": "סיסמה נדרשת",
             "passwordMinLength": "הסיסמה חייבת להכיל לפחות 6 תווים",
             "passwordUppercase": "הסיסמה חייבת להכיל לפחות אות גדולה אחת",
@@ -100,6 +107,8 @@
         "clientNamePlaceholder": "הזן שם יזם",
         "clientEmail": "אימייל",
         "clientEmailPlaceholder": "הזן אימייל יזם",
+        "clientPhone": "מספר טלפון",
+        "clientPhonePlaceholder": "הזן מספר טלפון יזם",
         "businessDomain": "תחום עסקי",
         "businessDomainPlaceholder": "לדוגמה: טכנולוגיה, בריאות",
         "businessNumber": "מספר עסק",
@@ -173,7 +182,8 @@
             "noFileSelected": "אנא בחר קובץ להעלאה",
             "noClientSelected": "אנא בחר לקוח",
             "clientNameRequired": "שם הלקוח נדרש",
-            "clientEmailRequired": "אימייל הלקוח נדרש"
+            "clientEmailRequired": "אימייל הלקוח נדרש",
+            "clientPhoneRequired": "מספר טלפון הלקוח נדרש"
         }
     },
     "dashboard": {
@@ -232,10 +242,14 @@
     },
     "sessions": {
         "title": "כל הסשנים",
+        "sessions": "סשנים",
         "sessionsCount": "{{count}} סשנים",
         "searchPlaceholder": "חיפוש סשן",
         "filterStatus": "סינון לפי סטטוס",
         "filterAdviser": "סינון לפי יועץ",
+        "filterDateRange": "טווח תאריכים",
+        "dateFrom": "מתאריך",
+        "dateTo": "עד תאריך",
         "filterAllAdvisers": "כל היועצים",
         "filterAllStatuses": "כל סטטוס",
         "avgAdviserScore": "ציון יועץ ממוצע",
