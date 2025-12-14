@@ -233,7 +233,24 @@
         "Database": "בסיס נתונים",
         "Security": "אבטחה",
         "Notifications": "התראות",
-        "Integrations": "אינטגרציות"
+        "Integrations": "אינטגרציות",
+        "userManagement": "ניהול משתמשים",
+        "totalUsers": "סה״כ משתמשים",
+        "activeUsers": "משתמשים פעילים",
+        "inactiveUsers": "משתמשים לא פעילים",
+        "allUsers": "כל המשתמשים",
+        "noUsersFound": "לא נמצאו משתמשים",
+        "registered": "נרשם",
+        "activate": "הפעל",
+        "deactivate": "השבת",
+        "role": {
+            "admin": "מנהל",
+            "adviser": "יועץ"
+        },
+        "status": {
+            "active": "פעיל",
+            "inactive": "לא פעיל"
+        }
     },
     "sidebar": {
         "upload": "העלאת סשן",
@@ -553,6 +570,9 @@
         "ownerAdviser": "יועץ",
         "statusOpen": "פתוח",
         "statusInProgress": "בתהליך",
-        "statusCompleted": "הושלם"
+        "statusCompleted": "הושלם",
+        "generalSummary": "סיכום כללי",
+        "targetSummary": "סיכום ממוקד",
+        "conversationTopics": "נושאי השיחה"
     }
 }

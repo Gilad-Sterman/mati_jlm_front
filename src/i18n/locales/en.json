@@ -232,7 +232,24 @@
         "Database": "Database",
         "Security": "Security",
         "Notifications": "Notifications",
-        "Integrations": "Integrations"
+        "Integrations": "Integrations",
+        "userManagement": "User Management",
+        "totalUsers": "Total Users",
+        "activeUsers": "Active Users",
+        "inactiveUsers": "Inactive Users",
+        "allUsers": "All Users",
+        "noUsersFound": "No users found",
+        "registered": "Registered",
+        "activate": "Activate",
+        "deactivate": "Deactivate",
+        "role": {
+            "admin": "Administrator",
+            "adviser": "Adviser"
+        },
+        "status": {
+            "active": "Active",
+            "inactive": "Inactive"
+        }
     },
     "sidebar": {
         "upload": "Upload Session",
@@ -418,6 +435,9 @@
         "ownerAdviser": "Adviser",
         "statusOpen": "Open",
         "statusInProgress": "In Progress",
-        "statusCompleted": "Completed"
+        "statusCompleted": "Completed",
+        "generalSummary": "General Summary",
+        "targetSummary": "Target Summary",
+        "conversationTopics": "Conversation Topics"
     }
 }

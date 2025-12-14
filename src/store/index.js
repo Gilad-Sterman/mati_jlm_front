@@ -3,6 +3,7 @@ import authReducer from './authSlice';
 import sessionReducer from './sessionSlice';
 import clientReducer from './clientSlice';
 import reportReducer from './reportSlice';
+import userReducer from './userSlice';
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     sessions: sessionReducer,
     clients: clientReducer,
     reports: reportReducer,
+    users: userReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

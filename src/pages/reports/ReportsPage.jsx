@@ -254,7 +254,7 @@ export function ReportsPage() {
                             <div className="report-section-header">
                                 <div className="header-left">
                                     <div className="report-title-section">
-                                        <h2>{t('reports.clientReport')}</h2>
+                                        <h2>{session?.client?.name ? `${t('reports.clientReport')}: ${session.client.name}` : t('reports.clientReport')}</h2>
                                         {clientReport?.status !== 'approved' && <span className="client-report-msg">{t('reports.clientFacing')}</span>}
                                         {!!session && <div className='client-report-client-row'>
                                             <span className="client-report-client">
@@ -290,7 +290,7 @@ export function ReportsPage() {
                                             onClick={handleExportClick}
                                             disabled={isExportingReports}
                                         >
-                                            <FileText size={16} />
+                                            {/* <FileText size={16} /> */}
                                             {t('reports.exportAsPDF')}
                                         </button>
                                     )}
@@ -302,7 +302,7 @@ export function ReportsPage() {
                                             title={t('reports.regenerateReport')}
                                             disabled={isLoadingReports || isRegeneratingReports}
                                         >
-                                            <RefreshCw size={16} />
+                                            {/* <RefreshCw size={16} /> */}
                                             {t('reports.regenerate')}
                                         </button>
                                     )}
@@ -601,6 +601,15 @@ function ClientReportDisplay({ report }) {
             {isNewStructure ? (
                 // NEW REPORT STRUCTURE
                 <>
+                    {/* General Summary Section - At the beginning */}
+                    {content.general_summary && (
+                        <CollapsibleSection title={t('reports.generalSummary')} defaultOpen={true} icon={<FileText size={20} />} forceOpen={allExpanded} color="purple">
+                            <div className="general-summary-content">
+                                <p>{content.general_summary}</p>
+                            </div>
+                        </CollapsibleSection>
+                    )}
+
                     {/* Key Insights Section */}
                     {content.key_insights && content.key_insights.length > 0 && (
                         <CollapsibleSection title={t('reports.keyInsights')} defaultOpen={true} icon={<BookOpenText size={20} />} forceOpen={allExpanded} color="blue">
@@ -643,6 +652,15 @@ function ClientReportDisplay({ report }) {
                                         </div>
                                     </div>
                                 ))}
+                            </div>
+                        </CollapsibleSection>
+                    )}
+
+                    {/* Target Summary Section - At the end */}
+                    {content.target_summary && (
+                        <CollapsibleSection title={t('reports.targetSummary')} defaultOpen={true} icon={<ArrowRight size={20} />} forceOpen={allExpanded} color="teal">
+                            <div className="target-summary-content">
+                                <p>{content.target_summary}</p>
                             </div>
                         </CollapsibleSection>
                     )}
@@ -957,6 +975,34 @@ function AdvisorReportDisplay({ report }) {
                                             <span>{t('reports.actualContent')} ({content.topics_covered.actual_content_percentage}%)</span>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Topics Section - New field after conversation breakdown */}
+                        {content.topics && content.topics.length > 0 && (
+                            <div className="topics-section">
+                                <h4>{t('reports.conversationTopics')}</h4>
+                                <div className="topics-grid">
+                                    {content.topics.map((topic, index) => (
+                                        <div className="topic-card" key={index}>
+                                            <div className="topic-header">
+                                                <h5 className="topic-title">{topic.topic}</h5>
+                                                <span className="topic-percentage">{topic.time_percentage}%</span>
+                                            </div>
+                                            {topic.sub_topics && topic.sub_topics.length > 0 && (
+                                                <div className="sub-topics">
+                                                    <div className="sub-topics-list">
+                                                        {topic.sub_topics.map((subTopic, subIndex) => (
+                                                            <span className="sub-topic-tag" key={subIndex}>
+                                                                {subTopic}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         )}

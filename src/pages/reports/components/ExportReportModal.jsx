@@ -118,14 +118,24 @@ export function ExportReportModal({
                                     {/* PDF Preview Mockup */}
                                     <div className="document-page">
                                         <div className="document-header">
-                                            <h4>{session?.title || t('reports.consultationReport')}</h4>
+                                            <h4>{session?.client?.name ? `${t('reports.clientReport')}: ${session.client.name}` : t('reports.clientReport')}</h4>
                                             <div className="document-meta">
-                                                <span>{t('reports.client')}: {session?.client?.name}</span>
+                                                <span>{t('reports.adviser')}: {session?.adviser?.name}</span>
                                                 <span>{t('reports.date')}: {new Date(session?.created_at).toLocaleDateString()}</span>
                                             </div>
                                         </div>
                                         
                                         <div className="document-content">
+                                            {/* NEW STRUCTURE: General Summary */}
+                                            {content?.general_summary && (
+                                                <div className="content-section">
+                                                    <h5>{t('reports.generalSummary')}</h5>
+                                                    <div className="content-preview">
+                                                        <p>{content.general_summary}</p>
+                                                    </div>
+                                                </div>
+                                            )}
+
                                             {/* NEW STRUCTURE: Key Insights */}
                                             {content?.key_insights && Array.isArray(content.key_insights) && content.key_insights.length > 0 && (
                                                 <div className="content-section">
@@ -176,6 +186,16 @@ export function ExportReportModal({
                                                                 </div>
                                                             </div>
                                                         ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* NEW STRUCTURE: Target Summary */}
+                                            {content?.target_summary && (
+                                                <div className="content-section">
+                                                    <h5>{t('reports.targetSummary')}</h5>
+                                                    <div className="content-preview">
+                                                        <p>{content.target_summary}</p>
                                                     </div>
                                                 </div>
                                             )}

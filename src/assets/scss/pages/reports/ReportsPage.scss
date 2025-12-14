@@ -1060,18 +1060,26 @@
       }
 
       .score-breakdown-content {
-        background: $light-color;
-        padding: $spacing-lg;
+        // background: $light-color;
+        // padding: $spacing-lg;
         border-radius: $border-radius-sm;
 
         ul {
           list-style: disc;
           padding-left: $spacing-xl;
+          padding-right: $spacing-lg; // Add right padding for RTL support
+          margin: 0;
 
           li {
             margin-bottom: $spacing-sm;
             font-size: $font-size-md;
             color: $text-muted;
+            padding-right: $spacing-sm; // Add right padding for Hebrew text
+            
+            span {
+              display: block;
+              line-height: 1.5;
+            }
           }
         }
 
@@ -2245,6 +2253,114 @@
     }
   }
 
+  /* -----------------------------
+     New Summary Sections Styling
+  ------------------------------ */
+  .general-summary-content,
+  .target-summary-content {
+    padding: $spacing-lg;
+    background: rgba(248, 250, 252, 0.5);
+    border-radius: $border-radius-sm;
+    border: 1px solid rgba(226, 232, 240, 0.6);
+
+    p {
+      margin: 0;
+      line-height: 1.6;
+      color: $text-primary;
+      font-size: $font-size-base;
+    }
+  }
+
+  /* -----------------------------
+     Topics Section Styling (Adviser Reports)
+  ------------------------------ */
+  .topics-section {
+    margin-top: $spacing-lg;
+
+    h4 {
+      margin-bottom: $spacing-md;
+      color: $text-primary;
+      font-weight: 600;
+    }
+
+    .topics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: $spacing-lg;
+      margin-top: $spacing-md;
+
+      @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+        gap: $spacing-md;
+      }
+    }
+
+    .topic-card {
+      background: $white-color;
+      border: 1px solid $border-color;
+      border-radius: $border-radius-sm;
+      padding: $spacing-lg;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      transition: box-shadow 0.2s ease;
+
+      &:hover {
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+      }
+
+      .topic-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: $spacing-md;
+        padding-bottom: $spacing-sm;
+        border-bottom: 1px solid $border-color;
+
+        .topic-title {
+          margin: 0;
+          color: $text-primary;
+          font-weight: 600;
+          font-size: $font-size-base;
+          flex: 1;
+        }
+
+        .topic-percentage {
+          background: $primary-color;
+          color: $white-color;
+          padding: $spacing-xs $spacing-sm;
+          border-radius: $border-radius-sm;
+          font-size: $font-size-sm;
+          font-weight: 600;
+          min-width: 50px;
+          text-align: center;
+        }
+      }
+
+      .sub-topics {
+        .sub-topics-list {
+          display: flex;
+          flex-wrap: wrap;
+          gap: $spacing-sm;
+
+          .sub-topic-tag {
+            background: rgba(52, 152, 219, 0.1);
+            color: $secondary-color;
+            padding: $spacing-xs $spacing-sm;
+            border-radius: $border-radius-sm;
+            font-size: $font-size-xs;
+            font-weight: 500;
+            border: 1px solid rgba(52, 152, 219, 0.2);
+            transition: all 0.2s ease;
+
+            &:hover {
+              background: rgba(52, 152, 219, 0.15);
+              border-color: rgba(52, 152, 219, 0.3);
+            }
+          }
+        }
+      }
+    }
+  }
+
   // Responsive adjustments for new structure
   @media (max-width: 768px) {
     .category-group {
@@ -2286,6 +2402,28 @@
 
       .action-card-body {
         padding: $spacing-md;
+      }
+    }
+
+    // Mobile adjustments for new sections
+    .general-summary-content,
+    .target-summary-content {
+      padding: $spacing-md;
+    }
+
+    .topics-section {
+      .topic-card {
+        padding: $spacing-md;
+
+        .topic-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: $spacing-sm;
+
+          .topic-percentage {
+            align-self: flex-end;
+          }
+        }
       }
     }
   }
