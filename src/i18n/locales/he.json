@@ -67,6 +67,8 @@
         }
     },
     "common": {
+        "appName": "מט״י",
+        "appName2": "ירושלים",
         "pageNotFound": "עמוד לא נמצא",
         "back": "חזור",
         "backToSessions": "חזור לסשנים",

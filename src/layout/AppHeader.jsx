@@ -2,6 +2,7 @@ import { useSelector } from 'react-redux';
 import { LangSelect } from "../cmps/common/LangSelect";
 import { selectIsAuthenticated } from '../store/authSlice';
 import socketService from '../services/socketService';
+import logo1 from '../../src/assets/logo1.png';
     
 export function AppHeader() {
     const isAuthenticated = useSelector(selectIsAuthenticated);
@@ -10,8 +11,7 @@ export function AppHeader() {
     return (
         <header className="app-header">
             <div className="header-left">
-                <h1>מט"י ירושלים</h1>
-                <h3>מרכז טיפוח יזמות</h3>
+                <img className='logo' src={logo1} alt="" />
             </div>
             <div className="header-right">
                 <LangSelect />

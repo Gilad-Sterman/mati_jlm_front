@@ -20,15 +20,22 @@
     }
 
     .sidebar-logo {
-        padding: $spacing-xxl $spacing-xl;
+        display: flex;
+        align-items: center;
+        gap: $spacing-sm;
+        padding: $spacing-xl $spacing-lg;
         text-align: center;
         border-bottom: 1px solid rgba($white-color, 0.1);
-        margin-bottom: $spacing-lg;
+        margin-bottom: $spacing-md;
+
+        h2 {
+            text-align: start;
+        }
 
         img {
             width: 100%;
-            max-width: 120px;
-            filter: brightness(0) invert(1); // Make logo white
+            max-width: 40px;
+            // filter: brightness(0) invert(1); // Make logo white
         }
     }
 
