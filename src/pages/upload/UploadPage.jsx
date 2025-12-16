@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
-import { Upload, FileAudio, User, Plus, X, Check, AlertCircle } from 'lucide-react';
+import { Upload, FileAudio, User, Plus, X, Check, AlertCircle, Search } from 'lucide-react';
 
 // Redux imports
 import {
@@ -30,6 +30,9 @@ import { selectUser } from '../../store/authSlice';
 import { useNavigate } from 'react-router-dom';
 // Custom hooks
 import { useUploadSocket } from '../../hooks/useUploadSocket';
+
+// Services
+import { salesforceService } from '../../services/salesforceService';
 
 // Components
 import { AIProcessing } from './components/AIProcessing';
@@ -79,6 +82,8 @@ export function UploadPage() {
         business_number: ''
     });
     const [validationErrors, setValidationErrors] = useState({});
+    const [isFetchingSalesforce, setIsFetchingSalesforce] = useState(false);
+    const [salesforceError, setSalesforceError] = useState('');
 
     // Email validation function
     const isValidEmail = (email) => {
@@ -231,6 +236,43 @@ export function UploadPage() {
                     phone: 'Please enter a valid phone number'
                 }));
             }
+        }
+    };
+
+    // Fetch client data from Salesforce
+    const handleFetchFromSalesforce = async () => {
+        if (!newClient.business_number.trim()) {
+            setSalesforceError('Please enter a business number first');
+            return;
+        }
+
+        setIsFetchingSalesforce(true);
+        setSalesforceError('');
+
+        try {
+            const result = await salesforceService.lookupClientData(newClient.business_number.trim());
+            
+            if (result.success && result.data) {
+                // Auto-fill form fields with Salesforce data
+                setNewClient(prev => ({
+                    ...prev,
+                    name: result.data.contact_name || prev.name,
+                    email: result.data.email || prev.email,
+                    phone: result.data.phone || prev.phone,
+                    business_domain: result.data.company_name || prev.business_domain
+                }));
+                
+                // Clear any validation errors for auto-filled fields
+                setValidationErrors({});
+                setSalesforceError('');
+            } else {
+                setSalesforceError(result.error || 'No client data found for this business number');
+            }
+        } catch (error) {
+            console.error('Salesforce fetch error:', error);
+            setSalesforceError('Failed to fetch client data. Please try again.');
+        } finally {
+            setIsFetchingSalesforce(false);
         }
     };
 
@@ -718,13 +760,31 @@ export function UploadPage() {
                                     <div className="form-row">
                                         <div className="form-group">
                                             <label>{t('upload.businessNumber')} *</label>
-                                            <input
-                                                type="text"
-                                                value={newClient.business_number}
-                                                onChange={(e) => handleNewClientChange('business_number', e.target.value)}
-                                                placeholder={t('upload.businessNumberPlaceholder')}
-                                                disabled={isUploading}
-                                            />
+                                            <div className="input-with-button">
+                                                <input
+                                                    type="text"
+                                                    value={newClient.business_number}
+                                                    onChange={(e) => handleNewClientChange('business_number', e.target.value)}
+                                                    placeholder={t('upload.businessNumberPlaceholder')}
+                                                    disabled={isUploading}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    className="fetch-salesforce-btn"
+                                                    onClick={handleFetchFromSalesforce}
+                                                    disabled={isUploading || isFetchingSalesforce || !newClient.business_number.trim()}
+                                                    title="Fetch client data from Salesforce"
+                                                >
+                                                    {isFetchingSalesforce ? (
+                                                        <div className="loading-spinner"></div>
+                                                    ) : (
+                                                        <Search size={16} />
+                                                    )}
+                                                </button>
+                                            </div>
+                                            {salesforceError && (
+                                                <div className="error-message">{salesforceError}</div>
+                                            )}
                                         </div>
                                         <div className="form-group">
                                             <label>{t('upload.clientName')} *</label>
