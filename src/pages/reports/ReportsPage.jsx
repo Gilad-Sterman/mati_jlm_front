@@ -171,9 +171,9 @@ export function ReportsPage() {
         setShowExportModal(true);
     };
 
-    const handleExportSubmit = async () => {
+    const handleExportSubmit = async (pdfFormData) => {
         try {
-            await dispatch(exportClientReport({ sessionId })).unwrap();
+            await dispatch(exportClientReport({ sessionId, pdfFormData })).unwrap();
 
             // Close modal and show success
             setShowExportModal(false);

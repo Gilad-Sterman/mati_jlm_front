@@ -135,7 +135,7 @@ export const regenerateClientReport = createAsyncThunk(
 
 export const exportClientReport = createAsyncThunk(
   'reports/exportClientReport',
-  async ({ sessionId }, { rejectWithValue, getState }) => {
+  async ({ sessionId, pdfFormData }, { rejectWithValue, getState }) => {
     try {
       // Get the client report for this session
       const state = getState();
@@ -146,8 +146,8 @@ export const exportClientReport = createAsyncThunk(
         throw new Error('No client report found for this session');
       }
       
-      // Call the export service with the client report ID
-      const response = await reportService.exportReport(clientReport.id);
+      // Call the export service with the client report ID and PDF file
+      const response = await reportService.exportReport(clientReport.id, pdfFormData);
       return { sessionId, exportResult: response.data };
     } catch (error) {
       return rejectWithValue(

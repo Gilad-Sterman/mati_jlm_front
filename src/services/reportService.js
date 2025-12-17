@@ -123,10 +123,21 @@ class ReportService {
   /**
    * Export a client report as PDF and send to client
    */
-  async exportReport(reportId) {
+  async exportReport(reportId, pdfFormData = null) {
     try {
-      const response = await api.post(`/reports/${reportId}/export`);
-      return response.data;
+      if (pdfFormData) {
+        // Send PDF file with multipart/form-data
+        const response = await api.post(`/reports/${reportId}/export`, pdfFormData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        return response.data;
+      } else {
+        // Fallback to old method without PDF
+        const response = await api.post(`/reports/${reportId}/export`);
+        return response.data;
+      }
     } catch (error) {
       console.error('Error exporting report:', error);
       throw error;

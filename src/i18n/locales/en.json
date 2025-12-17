@@ -85,7 +85,9 @@
         },
         "logout": "Logout",
         "cancel": "Cancel",
-        "minutes": "min"
+        "minutes": "min",
+        "email": "Email",
+        "phone": "Phone"
     },
     "upload": {
         "title": "Upload Recording",
@@ -391,7 +393,6 @@
         "notesAndActions": "Notes & Actions",
         "notesForRegeneration": "Notes for regeneration",
         "notesPlaceholder": "Add specific instructions or context for AI to consider when regenerating the report...",
-        "downloadPDF": "Download PDF",
         "emailSummary": "Send report via email",
         "rawReportContent": "Raw Report Content",
         "transcriptionLength": "Transcription Length",
@@ -467,6 +468,25 @@
         "statusCompleted": "Completed",
         "generalSummary": "General Summary",
         "targetSummary": "Target Summary",
-        "conversationTopics": "Conversation Topics"
+        "conversationTopics": "Conversation Topics",
+        "exportClientReport": "Export Client Report",
+        "exportDescription": "Review the report content and choose to download as PDF or export and send to client.",
+        "preview": "Preview",
+        "details": "Details",
+        "pdfPreview": "PDF Preview",
+        "exportDetails": "Export Details",
+        "reportType": "Report Type",
+        "sessionDate": "Session Date",
+        "reportVersion": "Report Version",
+        "format": "Format",
+        "deliveryInfo": "Delivery Information",
+        "deliveryDescription": "The report will be sent as a PDF attachment to the client's email address.",
+        "clientEmail": "Client Email",
+        "downloadPDF": "Download PDF",
+        "downloading": "Downloading...",
+        "exportAndSend": "Export & Send",
+        "exporting": "Exporting...",
+        "pdfDownloadError": "Failed to download PDF. Please try again.",
+        "date": "Date"
     }
 }

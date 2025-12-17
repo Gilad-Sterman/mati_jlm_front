@@ -1,0 +1,475 @@
+// Export Report Modal Styles
+.export-modal {
+  max-width: 900px;
+  width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  .modal-header {
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .export-description {
+    margin-bottom: 1.5rem;
+    color: #6b7280;
+    font-size: 0.95rem;
+  }
+
+  .preview-toggle {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+
+    .toggle-btn {
+      padding: 0.75rem 1rem;
+      border: none;
+      background: transparent;
+      color: #6b7280;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+
+      &:hover {
+        color: #374151;
+        background-color: #f9fafb;
+      }
+
+      &.active {
+        color: #2563eb;
+        border-bottom-color: #2563eb;
+        background-color: #eff6ff;
+      }
+    }
+  }
+
+  .export-content {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+    padding-right: 0.5rem;
+  }
+
+  // PDF Preview Styles
+  .pdf-preview {
+    .preview-header {
+      margin-bottom: 1rem;
+
+      h3 {
+        color: #374151;
+        font-size: 1.1rem;
+        font-weight: 600;
+      }
+    }
+
+    .preview-document {
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      background: #ffffff;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .document-page {
+      padding: 2rem;
+      background: white;
+      min-height: 400px;
+      font-family: 'Arial', sans-serif;
+      line-height: 1.6;
+      color: #1f2937;
+
+      // MATI Logo Styles
+      .document-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #000000;
+
+        .header-content {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 2rem;
+        }
+
+        .header-left {
+          flex: 1;
+
+          .report-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #000000;
+            margin-bottom: 0.5rem;
+          }
+
+          .client-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #000000;
+            margin-bottom: 1rem;
+          }
+
+          .report-meta {
+            .meta-item {
+              margin-bottom: 0.5rem;
+
+              .meta-label {
+                font-weight: 600;
+                color: #000000;
+              }
+
+              .meta-value {
+                color: #000000;
+                margin-left: 0.5rem;
+              }
+            }
+          }
+        }
+
+        .header-right {
+          .mati-logo {
+            height: 90px;
+            width: auto;
+          }
+        }
+      }
+
+      .document-content {
+        .content-section {
+          margin-bottom: 2rem;
+
+          h5 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #000000;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #000000;
+            page-break-inside: avoid;
+            page-break-after: avoid;
+          }
+
+          .content-preview {
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: #000000;
+
+            p {
+              margin-bottom: 1rem;
+              text-align: justify;
+              color: #000000;
+              page-break-inside: avoid;
+            }
+
+            // Key Insights Styles
+            .insight-item {
+              margin-bottom: 1.5rem;
+              padding: 1rem 0;
+              border-bottom: 1px solid #cccccc;
+              page-break-inside: avoid;
+
+              .insight-category {
+                font-weight: 600;
+                color: #000000;
+                margin-bottom: 0.5rem;
+                font-size: 1.1rem;
+              }
+
+              .insight-content {
+                margin-bottom: 1rem;
+                color: #000000;
+              }
+
+              .supporting-quotes {
+                margin-top: 1rem;
+                padding-top: 1rem;
+                border-top: 1px solid #cccccc;
+
+                strong {
+                  color: #000000;
+                  font-size: 0.9rem;
+                }
+
+                ul {
+                  margin-top: 0.5rem;
+                  padding-left: 1rem;
+
+                  li {
+                    margin-bottom: 0.5rem;
+                    font-style: italic;
+                    color: #000000;
+                  }
+                }
+              }
+            }
+
+            // Action Items Styles
+            .action-item {
+              margin-bottom: 1.5rem;
+              padding: 1rem 0;
+              border-bottom: 1px solid #cccccc;
+              page-break-inside: avoid;
+
+              .action-task {
+                font-weight: 600;
+                color: #000000;
+                margin-bottom: 0.75rem;
+              }
+
+              .action-details {
+                display: block;
+                font-size: 0.9rem;
+
+                .action-owner,
+                .action-deadline,
+                .action-status {
+                  display: block;
+                  color: #000000;
+                  margin-bottom: 0.25rem;
+                }
+              }
+            }
+
+            // Legacy Structure Styles
+            .need-item,
+            .solution-item {
+              margin-bottom: 1rem;
+              padding: 1rem 0;
+              border-bottom: 1px solid #cccccc;
+              page-break-inside: avoid;
+
+              strong {
+                display: block;
+                margin-bottom: 0.5rem;
+                color: #000000;
+              }
+            }
+
+            .actions-item {
+              margin-bottom: 1rem;
+              page-break-inside: avoid;
+
+              strong {
+                display: block;
+                margin-bottom: 0.5rem;
+                color: #000000;
+              }
+
+              .actions-list {
+                padding-left: 1rem;
+
+                li {
+                  margin-bottom: 0.5rem;
+                  color: #000000;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Export Details Styles
+  .export-details {
+    .details-section {
+      margin-bottom: 2rem;
+
+      h4 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 1rem;
+      }
+
+      .detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f3f4f6;
+
+        .label {
+          font-weight: 500;
+          color: #6b7280;
+        }
+
+        .value {
+          color: #1f2937;
+          font-weight: 500;
+        }
+      }
+    }
+
+    .delivery-info {
+      background: #f9fafb;
+      padding: 1.5rem;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+
+      h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 1rem;
+      }
+
+      p {
+        color: #6b7280;
+        margin-bottom: 1rem;
+        line-height: 1.6;
+      }
+
+      .client-email {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .label {
+          font-weight: 500;
+          color: #6b7280;
+        }
+
+        .email {
+          color: #2563eb;
+          font-weight: 500;
+        }
+      }
+    }
+  }
+
+  // Modal Actions Styles
+  .modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 1.5rem 0 0 0;
+    border-top: 1px solid #e5e7eb;
+    flex-shrink: 0;
+    background: white;
+    margin-top: auto;
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 6px;
+      font-weight: 500;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: 1px solid transparent;
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      &.btn-secondary {
+        background: #f3f4f6;
+        color: #374151;
+        border-color: #d1d5db;
+
+        &:hover:not(:disabled) {
+          background: #e5e7eb;
+        }
+      }
+
+      &.btn-outline {
+        background: white;
+        color: #2563eb;
+        border-color: #2563eb;
+
+        &:hover:not(:disabled) {
+          background: #eff6ff;
+        }
+      }
+
+      &.btn-primary {
+        background: #2563eb;
+        color: white;
+        border-color: #2563eb;
+
+        &:hover:not(:disabled) {
+          background: #1d4ed8;
+        }
+      }
+
+      .spinner-small {
+        width: 16px;
+        height: 16px;
+        border: 2px solid transparent;
+        border-top: 2px solid currentColor;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+    }
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .export-modal {
+    width: 95vw;
+    max-height: 95vh;
+
+    .document-page {
+      padding: 1rem;
+
+      .document-header {
+        .header-content {
+          display: block;
+        }
+
+        .header-left {
+          display: block;
+          width: 100%;
+          padding-right: 0;
+          text-align: center;
+          margin-bottom: 1rem;
+
+          .report-meta {
+            .meta-item {
+              text-align: center;
+            }
+          }
+        }
+
+        .header-right {
+          display: block;
+          width: 100%;
+          text-align: center;
+
+          .mati-logo {
+            height: 60px;
+          }
+        }
+      }
+    }
+
+    .modal-actions {
+      flex-direction: column;
+      gap: 0.75rem;
+
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  }
+}

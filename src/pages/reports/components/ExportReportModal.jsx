@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, FileText, Send, Eye } from 'lucide-react';
+import { X, FileText, Send, Eye, Download } from 'lucide-react';
+import html2pdf from 'html2pdf.js';
 
 export function ExportReportModal({ 
     isOpen, 
@@ -12,6 +13,9 @@ export function ExportReportModal({
 }) {
     const { t, i18n } = useTranslation();
     const [previewMode, setPreviewMode] = useState('preview'); // 'preview' or 'details'
+    const [isDownloading, setIsDownloading] = useState(false);
+    const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+    const pdfContentRef = useRef(null);
 
     // Parse report content
     const getReportContent = () => {
@@ -57,16 +61,85 @@ export function ExportReportModal({
         return statusMap[status?.toLowerCase()] || status;
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!isLoading) {
-            onExport();
+        if (isLoading || isGeneratingPDF || !pdfContentRef.current) return;
+        
+        try {
+            setIsGeneratingPDF(true);
+            
+            // Generate PDF first
+            const element = pdfContentRef.current;
+            const clientName = session?.client?.name || 'Client';
+            const sessionDate = new Date(session?.created_at).toLocaleDateString().replace(/\//g, '-');
+            const filename = `${clientName}_Report_${sessionDate}.pdf`;
+            
+            const opt = {
+                margin: 1,
+                filename: filename,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true
+                },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+            
+            // Generate PDF as blob instead of downloading
+            const pdfBlob = await html2pdf().set(opt).from(element).outputPdf('blob');
+            
+            // Create FormData to send PDF to backend
+            const formData = new FormData();
+            formData.append('pdf', pdfBlob, filename);
+            
+            // Call the export function with the PDF
+            await onExport(formData);
+            
+        } catch (error) {
+            console.error('Error generating PDF for export:', error);
+            alert(t('reports.pdfGenerationError') || 'Failed to generate PDF. Please try again.');
+        } finally {
+            setIsGeneratingPDF(false);
         }
     };
 
     const handleClose = () => {
-        if (!isLoading) {
+        if (!isLoading && !isDownloading && !isGeneratingPDF) {
             onClose();
+        }
+    };
+
+    const handleDownloadPDF = async () => {
+        if (isDownloading || !pdfContentRef.current) return;
+        
+        try {
+            setIsDownloading(true);
+            
+            const element = pdfContentRef.current;
+            const clientName = session?.client?.name || 'Client';
+            const sessionDate = new Date(session?.created_at).toLocaleDateString().replace(/\//g, '-');
+            const filename = `${clientName}_Report_${sessionDate}.pdf`;
+            
+            const opt = {
+                margin: 1,
+                filename: filename,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true
+                },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+            
+            await html2pdf().set(opt).from(element).save();
+            
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            alert(t('reports.pdfDownloadError') || 'Failed to download PDF. Please try again.');
+        } finally {
+            setIsDownloading(false);
         }
     };
 
@@ -116,12 +189,41 @@ export function ExportReportModal({
                                 </div>
                                 <div className="preview-document">
                                     {/* PDF Preview Mockup */}
-                                    <div className="document-page">
-                                        <div className="document-header">
-                                            <h4>{session?.client?.name ? `${t('reports.clientReport')}: ${session.client.name}` : t('reports.clientReport')}</h4>
-                                            <div className="document-meta">
-                                                <span>{t('reports.adviser')}: {session?.adviser?.name}</span>
-                                                <span>{t('reports.date')}: {new Date(session?.created_at).toLocaleDateString()}</span>
+                                    <div className="document-page" ref={pdfContentRef}>
+                                        {/* Professional Header */}
+                                        <div className="document-header" style={{marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '2px solid #000000'}}>
+                                            <div className="header-content" style={{display: 'table', width: '100%', tableLayout: 'fixed'}}>
+                                                <div className="header-left" style={{display: 'table-cell', verticalAlign: 'top', width: '70%', paddingRight: '2rem'}}>
+                                                    <h1 className="report-title" style={{fontSize: '1.8rem', fontWeight: '700', color: '#000000', marginBottom: '0.5rem', lineHeight: '1.2'}}>{t('reports.clientReport')}</h1>
+                                                    {session?.client?.name && (
+                                                        <h2 className="client-name" style={{fontSize: '1.3rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', lineHeight: '1.3'}}>{session.client.name}</h2>
+                                                    )}
+                                                    <div className="report-meta">
+                                                        <div className="meta-item" style={{display: 'block', marginBottom: '0.4rem', lineHeight: '1.4'}}>
+                                                            <span className="meta-label" style={{fontWeight: '600', color: '#000000', display: 'inline'}}>{t('reports.date')}:</span>
+                                                            <span className="meta-value" style={{color: '#000000', fontWeight: '400', display: 'inline', marginLeft: '0.5rem'}}>{new Date(session?.created_at).toLocaleDateString()}</span>
+                                                        </div>
+                                                        <div className="meta-item" style={{display: 'block', marginBottom: '0.4rem', lineHeight: '1.4'}}>
+                                                            <span className="meta-label" style={{fontWeight: '600', color: '#000000', display: 'inline'}}>{t('reports.adviser')}:</span>
+                                                            <span className="meta-value" style={{color: '#000000', fontWeight: '400', display: 'inline', marginLeft: '0.5rem'}}>{session?.adviser?.name}</span>
+                                                        </div>
+                                                        {session?.adviser?.email && (
+                                                            <div className="meta-item" style={{display: 'block', marginBottom: '0.4rem', lineHeight: '1.4'}}>
+                                                                <span className="meta-label" style={{fontWeight: '600', color: '#000000', display: 'inline'}}>{t('common.email')}:</span>
+                                                                <span className="meta-value" style={{color: '#000000', fontWeight: '400', display: 'inline', marginLeft: '0.5rem'}}>{session.adviser.email}</span>
+                                                            </div>
+                                                        )}
+                                                        {session?.adviser?.phone && (
+                                                            <div className="meta-item" style={{display: 'block', marginBottom: '0.4rem', lineHeight: '1.4'}}>
+                                                                <span className="meta-label" style={{fontWeight: '600', color: '#000000', display: 'inline'}}>{t('common.phone')}:</span>
+                                                                <span className="meta-value" style={{color: '#000000', fontWeight: '400', display: 'inline', marginLeft: '0.5rem'}}>{session.adviser.phone}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="header-right" style={{display: 'table-cell', verticalAlign: 'top', width: '30%', textAlign: 'right'}}>
+                                                    <img src="/logo.svg" alt="MATI" className="mati-logo" style={{height: '90px', width: 'auto', maxWidth: '100%'}} />
+                                                </div>
                                             </div>
                                         </div>
                                         
@@ -129,7 +231,7 @@ export function ExportReportModal({
                                             {/* NEW STRUCTURE: General Summary */}
                                             {content?.general_summary && (
                                                 <div className="content-section">
-                                                    <h5>{t('reports.generalSummary')}</h5>
+                                                    <h5 style={{fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000'}}>{t('reports.generalSummary')}</h5>
                                                     <div className="content-preview">
                                                         <p>{content.general_summary}</p>
                                                     </div>
@@ -139,7 +241,7 @@ export function ExportReportModal({
                                             {/* NEW STRUCTURE: Key Insights */}
                                             {content?.key_insights && Array.isArray(content.key_insights) && content.key_insights.length > 0 && (
                                                 <div className="content-section">
-                                                    <h5>{t('reports.keyInsights')}</h5>
+                                                    <h5 style={{fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000'}}>{t('reports.keyInsights')}</h5>
                                                     <div className="content-preview">
                                                         {content.key_insights.map((insight, index) => (
                                                             <div key={index} className="insight-item">
@@ -168,7 +270,7 @@ export function ExportReportModal({
                                             {/* NEW STRUCTURE: Action Items */}
                                             {content?.action_items && Array.isArray(content.action_items) && content.action_items.length > 0 && (
                                                 <div className="content-section">
-                                                    <h5>{t('reports.actionItems')}</h5>
+                                                    <h5 style={{fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000'}}>{t('reports.actionItems')}</h5>
                                                     <div className="content-preview">
                                                         {content.action_items.map((item, index) => (
                                                             <div key={index} className="action-item">
@@ -193,7 +295,7 @@ export function ExportReportModal({
                                             {/* NEW STRUCTURE: Target Summary */}
                                             {content?.target_summary && (
                                                 <div className="content-section">
-                                                    <h5>{t('reports.targetSummary')}</h5>
+                                                    <h5 style={{fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000'}}>{t('reports.targetSummary')}</h5>
                                                     <div className="content-preview">
                                                         <p>{content.target_summary}</p>
                                                     </div>
@@ -203,7 +305,7 @@ export function ExportReportModal({
                                             {/* LEGACY STRUCTURE: Executive Summary */}
                                             {!content?.key_insights && content?.executive_summary && (
                                                 <div className="content-section">
-                                                    <h5>{t('reports.executiveSummarySection')}</h5>
+                                                    <h5 style={{fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000'}}>{t('reports.executiveSummarySection')}</h5>
                                                     <div className="content-preview">
                                                         {content.executive_summary}
                                                     </div>
@@ -213,7 +315,7 @@ export function ExportReportModal({
                                             {/* LEGACY STRUCTURE: Entrepreneur Needs */}
                                             {!content?.key_insights && content?.entrepreneur_needs && (
                                                 <div className="content-section">
-                                                    <h5>{t('reports.entrepreneurNeeds')}</h5>
+                                                    <h5 style={{fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000'}}>{t('reports.entrepreneurNeeds')}</h5>
                                                     <div className="content-preview">
                                                         {Array.isArray(content.entrepreneur_needs) ? (
                                                             content.entrepreneur_needs.map((need, index) => (
@@ -239,7 +341,7 @@ export function ExportReportModal({
                                             {/* LEGACY STRUCTURE: Advisor Solutions */}
                                             {!content?.key_insights && content?.advisor_solutions && (
                                                 <div className="content-section">
-                                                    <h5>{t('reports.advisorSolutions')}</h5>
+                                                    <h5 style={{fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000'}}>{t('reports.advisorSolutions')}</h5>
                                                     <div className="content-preview">
                                                         {Array.isArray(content.advisor_solutions) ? (
                                                             content.advisor_solutions.map((solution, index) => (
@@ -268,7 +370,7 @@ export function ExportReportModal({
                                                 (content.agreed_actions.concrete_recommendation && typeof content.agreed_actions.concrete_recommendation === 'string' && content.agreed_actions.concrete_recommendation.trim())
                                             ) && (
                                                 <div className="content-section">
-                                                    <h5>{t('reports.agreedActions')}</h5>
+                                                    <h5 style={{fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000'}}>{t('reports.agreedActions')}</h5>
                                                     <div className="content-preview">
                                                         {content.agreed_actions.immediate_actions && content.agreed_actions.immediate_actions.length > 0 && (
                                                             <div className="actions-item">
@@ -346,19 +448,37 @@ export function ExportReportModal({
                                 type="button"
                                 className="btn btn-secondary"
                                 onClick={handleClose}
-                                disabled={isLoading}
+                                disabled={isLoading || isDownloading || isGeneratingPDF}
                             >
                                 {t('common.cancel')}
                             </button>
                             <button
-                                type="submit"
-                                className="btn btn-primary export-btn"
-                                disabled={isLoading}
+                                type="button"
+                                className="btn btn-outline download-btn"
+                                onClick={handleDownloadPDF}
+                                disabled={isLoading || isDownloading || isGeneratingPDF}
                             >
-                                {isLoading ? (
+                                {isDownloading ? (
                                     <>
                                         <div className="spinner-small"></div>
-                                        {t('reports.exporting')}
+                                        {t('reports.downloading')}
+                                    </>
+                                ) : (
+                                    <>
+                                        <Download size={16} />
+                                        {t('reports.downloadPDF')}
+                                    </>
+                                )}
+                            </button>
+                            <button
+                                type="submit"
+                                className="btn btn-primary export-btn"
+                                disabled={isLoading || isDownloading || isGeneratingPDF}
+                            >
+                                {isLoading || isGeneratingPDF ? (
+                                    <>
+                                        <div className="spinner-small"></div>
+                                        {isGeneratingPDF ? 'Generating PDF...' : t('reports.exporting')}
                                     </>
                                 ) : (
                                     <>
