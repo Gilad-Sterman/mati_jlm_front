@@ -2,7 +2,7 @@ import { useSelector } from 'react-redux';
 import { LangSelect } from "../cmps/common/LangSelect";
 import { selectIsAuthenticated } from '../store/authSlice';
 import socketService from '../services/socketService';
-import logo1 from '../../src/assets/logo1.png';
+import logoFull from '../../src/assets/logo-full.svg';
     
 export function AppHeader() {
     const isAuthenticated = useSelector(selectIsAuthenticated);
@@ -11,7 +11,7 @@ export function AppHeader() {
     return (
         <header className="app-header">
             <div className="header-left">
-                <img className='logo' src={logo1} alt="" />
+                <img className='logo' src={logoFull} alt="" />
             </div>
             <div className="header-right">
                 <LangSelect />

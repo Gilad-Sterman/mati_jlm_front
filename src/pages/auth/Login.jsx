@@ -129,7 +129,7 @@ export function Login() {
         <section className="login">
             <div className="login-container">
                 <div className="login-header">
-                    <h1>{t('login.title')} מט"י</h1>
+                    <h1>{t('login.title')} </h1>
                     <p>{t('login.subtitle')}</p>
                 </div>
 

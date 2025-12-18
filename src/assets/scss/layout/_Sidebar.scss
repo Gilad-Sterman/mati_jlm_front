@@ -22,19 +22,17 @@
     .sidebar-logo {
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: $spacing-sm;
         padding: $spacing-xl $spacing-lg;
         text-align: center;
         border-bottom: 1px solid rgba($white-color, 0.1);
         margin-bottom: $spacing-md;
 
-        h2 {
-            text-align: start;
-        }
-
         img {
-            width: 100%;
-            max-width: 40px;
+            width: 60%;
+            filter: brightness(1.2);
+            // max-width: 40px;
             // filter: brightness(0) invert(1); // Make logo white
         }
     }

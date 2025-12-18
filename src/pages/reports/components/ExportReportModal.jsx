@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, FileText, Send, Eye, Download } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
@@ -15,6 +15,8 @@ export function ExportReportModal({
     const [previewMode, setPreviewMode] = useState('preview'); // 'preview' or 'details'
     const [isDownloading, setIsDownloading] = useState(false);
     const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+    const [logoDataUrl, setLogoDataUrl] = useState('/logo-full.svg');
+    const [pdfLogoUrl, setPdfLogoUrl] = useState('/logo-full.svg');
     const pdfContentRef = useRef(null);
 
     // Parse report content
@@ -30,6 +32,50 @@ export function ExportReportModal({
     };
 
     const content = getReportContent();
+
+    // Convert SVG to canvas image for PDF compatibility while keeping original for display
+    useEffect(() => {
+        const convertSvgForPdf = async () => {
+            try {
+                // Create an image element to load the SVG
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                
+                img.onload = () => {
+                    // Create canvas and draw the SVG
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Set canvas size to match SVG dimensions
+                    canvas.width = 342; // SVG viewBox width
+                    canvas.height = 210; // SVG viewBox height
+                    
+                    // Draw the image to canvas
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    
+                    // Convert to PNG data URL for PDF
+                    const pngDataUrl = canvas.toDataURL('image/png');
+                    setPdfLogoUrl(pngDataUrl);
+                };
+                
+                img.onerror = () => {
+                    console.error('Failed to load SVG for conversion');
+                    setPdfLogoUrl('/logo-t.png'); // Fallback to PNG
+                };
+                
+                // Load the SVG
+                img.src = '/logo-full.svg';
+                
+            } catch (error) {
+                console.error('Error converting SVG for PDF:', error);
+                setPdfLogoUrl('/logo-t.png'); // Fallback to PNG
+            }
+        };
+
+        if (isOpen) {
+            convertSvgForPdf();
+        }
+    }, [isOpen]);
 
     // Function to translate categories from English to current language
     const translateCategory = (category) => {
@@ -68,6 +114,11 @@ export function ExportReportModal({
         try {
             setIsGeneratingPDF(true);
             
+            // Switch to PNG logo for PDF generation
+            const logoImg = pdfContentRef.current.querySelector('.mati-logo');
+            const originalSrc = logoImg.src;
+            logoImg.src = pdfLogoUrl;
+            
             // Generate PDF first
             const element = pdfContentRef.current;
             const clientName = session?.client?.name || 'Client';
@@ -96,9 +147,15 @@ export function ExportReportModal({
             // Call the export function with the PDF
             await onExport(formData);
             
+            // Restore original logo after PDF generation
+            logoImg.src = originalSrc;
+            
         } catch (error) {
             console.error('Error generating PDF for export:', error);
             alert(t('reports.pdfGenerationError') || 'Failed to generate PDF. Please try again.');
+            // Restore original logo on error too
+            const logoImg = pdfContentRef.current?.querySelector('.mati-logo');
+            if (logoImg) logoImg.src = logoDataUrl;
         } finally {
             setIsGeneratingPDF(false);
         }
@@ -115,6 +172,11 @@ export function ExportReportModal({
         
         try {
             setIsDownloading(true);
+            
+            // Switch to PNG logo for PDF generation
+            const logoImg = pdfContentRef.current.querySelector('.mati-logo');
+            const originalSrc = logoImg.src;
+            logoImg.src = pdfLogoUrl;
             
             const element = pdfContentRef.current;
             const clientName = session?.client?.name || 'Client';
@@ -135,9 +197,15 @@ export function ExportReportModal({
             
             await html2pdf().set(opt).from(element).save();
             
+            // Restore original logo after PDF generation
+            logoImg.src = originalSrc;
+            
         } catch (error) {
             console.error('Error generating PDF:', error);
             alert(t('reports.pdfDownloadError') || 'Failed to download PDF. Please try again.');
+            // Restore original logo on error too
+            const logoImg = pdfContentRef.current?.querySelector('.mati-logo');
+            if (logoImg) logoImg.src = logoDataUrl;
         } finally {
             setIsDownloading(false);
         }
@@ -189,7 +257,11 @@ export function ExportReportModal({
                                 </div>
                                 <div className="preview-document">
                                     {/* PDF Preview Mockup */}
-                                    <div className="document-page" ref={pdfContentRef}>
+                                    <div className="document-page" ref={pdfContentRef} style={{
+                                        pageBreakInside: 'auto',
+                                        orphans: 3,
+                                        widows: 3
+                                    }}>
                                         {/* Professional Header */}
                                         <div className="document-header" style={{marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '2px solid #000000'}}>
                                             <div className="header-content" style={{display: 'table', width: '100%', tableLayout: 'fixed'}}>
@@ -200,29 +272,29 @@ export function ExportReportModal({
                                                     )}
                                                     <div className="report-meta">
                                                         <div className="meta-item" style={{display: 'block', marginBottom: '0.4rem', lineHeight: '1.4'}}>
-                                                            <span className="meta-label" style={{fontWeight: '600', color: '#000000', display: 'inline'}}>{t('reports.date')}:</span>
+                                                            <span className="meta-label" style={{fontWeight: '600', color: '#000000', display: 'inline'}}>{t('reports.date')}: </span>
                                                             <span className="meta-value" style={{color: '#000000', fontWeight: '400', display: 'inline', marginLeft: '0.5rem'}}>{new Date(session?.created_at).toLocaleDateString()}</span>
                                                         </div>
                                                         <div className="meta-item" style={{display: 'block', marginBottom: '0.4rem', lineHeight: '1.4'}}>
-                                                            <span className="meta-label" style={{fontWeight: '600', color: '#000000', display: 'inline'}}>{t('reports.adviser')}:</span>
+                                                            <span className="meta-label" style={{fontWeight: '600', color: '#000000', display: 'inline'}}>{t('reports.adviser')}: </span>
                                                             <span className="meta-value" style={{color: '#000000', fontWeight: '400', display: 'inline', marginLeft: '0.5rem'}}>{session?.adviser?.name}</span>
                                                         </div>
                                                         {session?.adviser?.email && (
                                                             <div className="meta-item" style={{display: 'block', marginBottom: '0.4rem', lineHeight: '1.4'}}>
-                                                                <span className="meta-label" style={{fontWeight: '600', color: '#000000', display: 'inline'}}>{t('common.email')}:</span>
+                                                                <span className="meta-label" style={{fontWeight: '600', color: '#000000', display: 'inline'}}>{t('common.email')}: </span>
                                                                 <span className="meta-value" style={{color: '#000000', fontWeight: '400', display: 'inline', marginLeft: '0.5rem'}}>{session.adviser.email}</span>
                                                             </div>
                                                         )}
                                                         {session?.adviser?.phone && (
                                                             <div className="meta-item" style={{display: 'block', marginBottom: '0.4rem', lineHeight: '1.4'}}>
-                                                                <span className="meta-label" style={{fontWeight: '600', color: '#000000', display: 'inline'}}>{t('common.phone')}:</span>
+                                                                <span className="meta-label" style={{fontWeight: '600', color: '#000000', display: 'inline'}}>{t('common.phone')}: </span>
                                                                 <span className="meta-value" style={{color: '#000000', fontWeight: '400', display: 'inline', marginLeft: '0.5rem'}}>{session.adviser.phone}</span>
                                                             </div>
                                                         )}
                                                     </div>
                                                 </div>
                                                 <div className="header-right" style={{display: 'table-cell', verticalAlign: 'top', width: '30%', textAlign: 'right'}}>
-                                                    <img src="/logo.svg" alt="MATI" className="mati-logo" style={{height: '90px', width: 'auto', maxWidth: '100%'}} />
+                                                    <img src={logoDataUrl} alt="MATI" className="mati-logo" style={{height: '90px', width: 'auto', maxWidth: '100%', display: 'block'}} />
                                                 </div>
                                             </div>
                                         </div>
@@ -231,9 +303,9 @@ export function ExportReportModal({
                                             {/* NEW STRUCTURE: General Summary */}
                                             {content?.general_summary && (
                                                 <div className="content-section">
-                                                    <h5 style={{fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000'}}>{t('reports.generalSummary')}</h5>
+                                                    <h5 style={{fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000', pageBreakAfter: 'avoid'}}>{t('reports.generalSummary')}</h5>
                                                     <div className="content-preview">
-                                                        <p>{content.general_summary}</p>
+                                                        <p style={{pageBreakInside: 'avoid', lineHeight: '1.6'}}>{content.general_summary}</p>
                                                     </div>
                                                 </div>
                                             )}
@@ -241,22 +313,22 @@ export function ExportReportModal({
                                             {/* NEW STRUCTURE: Key Insights */}
                                             {content?.key_insights && Array.isArray(content.key_insights) && content.key_insights.length > 0 && (
                                                 <div className="content-section">
-                                                    <h5 style={{fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000'}}>{t('reports.keyInsights')}</h5>
+                                                    <h5 style={{fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000', pageBreakAfter: 'avoid'}}>{t('reports.keyInsights')}</h5>
                                                     <div className="content-preview">
                                                         {content.key_insights.map((insight, index) => (
-                                                            <div key={index} className="insight-item">
-                                                                <div className="insight-category">
+                                                            <div key={index} className="insight-item" style={{pageBreakInside: 'avoid', marginBottom: '1rem'}}>
+                                                                <div className="insight-category" style={{marginBottom: '0.5rem'}}>
                                                                     <strong>{translateCategory(insight.category)}</strong>
                                                                 </div>
-                                                                <div className="insight-content">
-                                                                    <p>{insight.content}</p>
+                                                                <div className="insight-content" style={{marginBottom: '0.5rem'}}>
+                                                                    <p style={{pageBreakInside: 'avoid', lineHeight: '1.6'}}>{insight.content}</p>
                                                                 </div>
                                                                 {insight.supporting_quotes && insight.supporting_quotes.length > 0 && (
-                                                                    <div className="supporting-quotes">
+                                                                    <div className="supporting-quotes" style={{pageBreakInside: 'avoid'}}>
                                                                         <strong>{t('reports.supportingQuotes')}:</strong>
-                                                                        <ul>
+                                                                        <ul style={{marginTop: '0.5rem'}}>
                                                                             {insight.supporting_quotes.map((quote, qIndex) => (
-                                                                                <li key={qIndex}>"{quote}"</li>
+                                                                                <li key={qIndex} style={{pageBreakInside: 'avoid', marginBottom: '0.25rem'}}>"{quote}"</li>
                                                                             ))}
                                                                         </ul>
                                                                     </div>
@@ -270,17 +342,17 @@ export function ExportReportModal({
                                             {/* NEW STRUCTURE: Action Items */}
                                             {content?.action_items && Array.isArray(content.action_items) && content.action_items.length > 0 && (
                                                 <div className="content-section">
-                                                    <h5 style={{fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000'}}>{t('reports.actionItems')}</h5>
+                                                    <h5 style={{fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000', pageBreakAfter: 'avoid'}}>{t('reports.actionItems')}</h5>
                                                     <div className="content-preview">
                                                         {content.action_items.map((item, index) => (
-                                                            <div key={index} className="action-item">
-                                                                <div className="action-task">
+                                                            <div key={index} className="action-item" style={{pageBreakInside: 'avoid', marginBottom: '1rem'}}>
+                                                                <div className="action-task" style={{marginBottom: '0.5rem'}}>
                                                                     <strong>{item.task}</strong>
                                                                 </div>
-                                                                <div className="action-details">
-                                                                    <div className="action-owner">{t('reports.owner')}: {translateOwner(item.owner)}</div>
+                                                                <div className="action-details" style={{paddingLeft: '1rem'}}>
+                                                                    <div className="action-owner" style={{marginBottom: '0.25rem'}}>{t('reports.owner')}: {translateOwner(item.owner)}</div>
                                                                     {item.deadline && (
-                                                                        <div className="action-deadline">{t('reports.deadline')}: {item.deadline}</div>
+                                                                        <div className="action-deadline" style={{marginBottom: '0.25rem'}}>{t('reports.deadline')}: {item.deadline}</div>
                                                                     )}
                                                                     <div className={`action-status status-${item.status?.replace(/\s+/g, '-').toLowerCase()}`}>
                                                                         {t('reports.status')}: {translateStatus(item.status)}
@@ -295,9 +367,9 @@ export function ExportReportModal({
                                             {/* NEW STRUCTURE: Target Summary */}
                                             {content?.target_summary && (
                                                 <div className="content-section">
-                                                    <h5 style={{fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000'}}>{t('reports.targetSummary')}</h5>
+                                                    <h5 style={{fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000', pageBreakAfter: 'avoid'}}>{t('reports.targetSummary')}</h5>
                                                     <div className="content-preview">
-                                                        <p>{content.target_summary}</p>
+                                                        <p style={{pageBreakInside: 'avoid', lineHeight: '1.6'}}>{content.target_summary}</p>
                                                     </div>
                                                 </div>
                                             )}

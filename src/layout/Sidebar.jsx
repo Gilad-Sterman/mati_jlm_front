@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { Camera, LogOut, User, Upload, Settings, BarChart3, Users } from 'lucide-react';
 import logoT from '../../src/assets/logo-t.png';
+import logoFull from '../../src/assets/logo-full.svg';
 import { useTranslation } from 'react-i18next';
 import { logout, selectUser, selectIsAdmin } from '../store/authSlice';
 
@@ -22,11 +23,12 @@ export function Sidebar () {
         <aside className={`sidebar`}>
         {/* <aside className={`sidebar ${i18n.dir() === 'rtl' ? 'rtl' : ''}`}> */}
           <div className="sidebar-logo">
-            <img src={logoT} alt="Logo" />
-            <h2>{t('common.appName')} 
+            <img src={logoFull} alt="Logo" />
+            {/* <img src={logoT} alt="Logo" /> */}
+            {/* <h2>{t('common.appName')} 
               <br />
               {t('common.appName2')}
-            </h2>
+            </h2> */}
           </div>
           <nav>
               {isAdmin ? (
