@@ -484,9 +484,15 @@
         "clientEmail": "Client Email",
         "downloadPDF": "Download PDF",
         "downloading": "Downloading...",
-        "exportAndSend": "Export & Send",
         "exporting": "Exporting...",
         "pdfDownloadError": "Failed to download PDF. Please try again.",
-        "date": "Date"
+        "pdfGenerationError": "Failed to generate PDF. Please try again.",
+        "editReport": "Edit Report",
+        "saveChanges": "Save Changes",
+        "cancelEdit": "Cancel Edit",
+        "editModeActive": "Edit Mode Active",
+        "saveError": "Failed to save changes. Please try again.",
+        "discardChanges": "Discard unsaved changes?",
+        "saveChangesBeforePDF": "Please save your changes before generating PDF."
     }
 }

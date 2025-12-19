@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, FileText, Send, Eye, Download } from 'lucide-react';
+import { useDispatch } from 'react-redux';
+import { X, FileText, Send, Eye, Download, Edit3, Save, XCircle } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
+import { updateReport } from '../../../store/reportSlice';
 
 export function ExportReportModal({ 
     isOpen, 
@@ -12,12 +14,19 @@ export function ExportReportModal({
     isLoading = false 
 }) {
     const { t, i18n } = useTranslation();
+    const dispatch = useDispatch();
     const [previewMode, setPreviewMode] = useState('preview'); // 'preview' or 'details'
     const [isDownloading, setIsDownloading] = useState(false);
     const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
     const [logoDataUrl, setLogoDataUrl] = useState('/logo-full.svg');
     const [pdfLogoUrl, setPdfLogoUrl] = useState('/logo-full.svg');
     const pdfContentRef = useRef(null);
+    
+    // Edit mode state
+    const [isEditing, setIsEditing] = useState(false);
+    const [editedContent, setEditedContent] = useState(null);
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     // Parse report content
     const getReportContent = () => {
@@ -32,6 +41,18 @@ export function ExportReportModal({
     };
 
     const content = getReportContent();
+    
+    // Get display content (edited or saved)
+    const getDisplayContent = () => {
+        return isEditing ? editedContent : content;
+    };
+    
+    // Get PDF content (always saved content)
+    const getPdfContent = () => {
+        return content;
+    };
+    
+    const displayContent = getDisplayContent();
 
     // Convert SVG to canvas image for PDF compatibility while keeping original for display
     useEffect(() => {
@@ -107,9 +128,88 @@ export function ExportReportModal({
         return statusMap[status?.toLowerCase()] || status;
     };
 
+    // Edit mode handlers
+    const handleEdit = () => {
+        if (!content) return;
+        setEditedContent(JSON.parse(JSON.stringify(content))); // Deep copy
+        setIsEditing(true);
+        setHasUnsavedChanges(false);
+    };
+    
+    const handleSave = async () => {
+        if (!editedContent || isSaving) return;
+        
+        try {
+            setIsSaving(true);
+            
+            // Clean up empty quotes before saving
+            const cleanedContent = { ...editedContent };
+            if (cleanedContent.key_insights && Array.isArray(cleanedContent.key_insights)) {
+                cleanedContent.key_insights = cleanedContent.key_insights.map(insight => ({
+                    ...insight,
+                    supporting_quotes: insight.supporting_quotes ? 
+                        insight.supporting_quotes.filter(quote => quote && quote.trim()) : []
+                }));
+            }
+            
+            await dispatch(updateReport({ 
+                reportId: report.id, 
+                updateData: { content: cleanedContent } 
+            })).unwrap();
+            
+            setIsEditing(false);
+            setHasUnsavedChanges(false);
+            setEditedContent(null);
+        } catch (error) {
+            console.error('Error saving report:', error);
+            alert(t('reports.saveError') || 'Failed to save changes. Please try again.');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+    
+    const handleCancel = () => {
+        if (hasUnsavedChanges) {
+            if (window.confirm(t('reports.discardChanges') || 'Discard unsaved changes?')) {
+                setEditedContent(null);
+                setIsEditing(false);
+                setHasUnsavedChanges(false);
+            }
+        } else {
+            setEditedContent(null);
+            setIsEditing(false);
+            setHasUnsavedChanges(false);
+        }
+    };
+    
+    const handleContentChange = (field, value, index = null, subField = null) => {
+        if (!isEditing || !editedContent) return;
+        
+        const newContent = { ...editedContent };
+        
+        if (index !== null && subField) {
+            // Handle array items with subfields (e.g., key_insights[0].content)
+            newContent[field][index][subField] = value;
+        } else if (index !== null) {
+            // Handle array items (e.g., supporting_quotes[0])
+            newContent[field][index] = value;
+        } else {
+            // Handle direct fields (e.g., general_summary)
+            newContent[field] = value;
+        }
+        
+        setEditedContent(newContent);
+        setHasUnsavedChanges(true);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (isLoading || isGeneratingPDF || !pdfContentRef.current) return;
+        if (isLoading || isGeneratingPDF || !pdfContentRef.current || isEditing) return;
+        
+        if (isEditing) {
+            alert(t('reports.saveChangesBeforePDF') || 'Please save your changes before exporting.');
+            return;
+        }
         
         try {
             setIsGeneratingPDF(true);
@@ -168,7 +268,12 @@ export function ExportReportModal({
     };
 
     const handleDownloadPDF = async () => {
-        if (isDownloading || !pdfContentRef.current) return;
+        if (isDownloading || !pdfContentRef.current || isEditing) return;
+        
+        if (isEditing) {
+            alert(t('reports.saveChangesBeforePDF') || 'Please save your changes before downloading PDF.');
+            return;
+        }
         
         try {
             setIsDownloading(true);
@@ -232,21 +337,74 @@ export function ExportReportModal({
 
                     {/* Preview/Details Toggle */}
                     <div className="preview-toggle">
-                        <button
-                            className={`toggle-btn ${previewMode === 'preview' ? 'active' : ''}`}
-                            onClick={() => setPreviewMode('preview')}
-                        >
-                            <Eye size={16} />
-                            {t('reports.preview')}
-                        </button>
-                        <button
-                            className={`toggle-btn ${previewMode === 'details' ? 'active' : ''}`}
-                            onClick={() => setPreviewMode('details')}
-                        >
-                            <FileText size={16} />
-                            {t('reports.details')}
-                        </button>
+                        <div className="toggle-buttons">
+                            <button
+                                className={`toggle-btn ${previewMode === 'preview' ? 'active' : ''}`}
+                                onClick={() => setPreviewMode('preview')}
+                            >
+                                <Eye size={16} />
+                                {t('reports.preview')}
+                            </button>
+                            <button
+                                className={`toggle-btn ${previewMode === 'details' ? 'active' : ''}`}
+                                onClick={() => setPreviewMode('details')}
+                            >
+                                <FileText size={16} />
+                                {t('reports.details')}
+                            </button>
+                        </div>
+                        
+                        {/* Edit Controls - only show in preview mode */}
+                        {previewMode === 'preview' && (
+                            <div className="edit-controls-header">
+                                {!isEditing ? (
+                                    <button
+                                        className="btn btn-edit"
+                                        onClick={handleEdit}
+                                        disabled={!content || isLoading || isDownloading || isGeneratingPDF}
+                                        title={t('reports.editReport')}
+                                    >
+                                        <Edit3 size={16} />
+                                        {t('reports.edit')}
+                                    </button>
+                                ) : (
+                                    <div className="edit-action-buttons">
+                                        <button
+                                            className="btn btn-save"
+                                            onClick={handleSave}
+                                            disabled={!hasUnsavedChanges || isSaving}
+                                            title={t('reports.saveChanges')}
+                                        >
+                                            {isSaving ? (
+                                                <div className="spinner-sm"></div>
+                                            ) : (
+                                                <Save size={16} />
+                                            )}
+                                            {isSaving ? t('reports.saving') : t('reports.save')}
+                                        </button>
+                                        <button
+                                            className="btn btn-cancel"
+                                            onClick={handleCancel}
+                                            disabled={isSaving}
+                                            title={t('reports.cancelEdit')}
+                                        >
+                                            <XCircle size={16} />
+                                            {t('common.cancel')}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
+                    
+                    {/* Edit Mode Indicator */}
+                    {isEditing && (
+                        <div className="edit-indicator">
+                            <Edit3 size={14} />
+                            {t('reports.editModeActive')}
+                            {hasUnsavedChanges && <span className="unsaved-indicator">•</span>}
+                        </div>
+                    )}
 
                     {/* Content Area */}
                     <div className="export-content">
@@ -301,36 +459,76 @@ export function ExportReportModal({
                                         
                                         <div className="document-content">
                                             {/* NEW STRUCTURE: General Summary */}
-                                            {content?.general_summary && (
+                                            {displayContent?.general_summary && (
                                                 <div className="content-section">
                                                     <h5 style={{fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000', pageBreakAfter: 'avoid'}}>{t('reports.generalSummary')}</h5>
                                                     <div className="content-preview">
-                                                        <p style={{pageBreakInside: 'avoid', lineHeight: '1.6'}}>{content.general_summary}</p>
+                                                        {isEditing ? (
+                                                            <textarea
+                                                                className="editable-content editable-text"
+                                                                value={displayContent.general_summary}
+                                                                onChange={(e) => handleContentChange('general_summary', e.target.value)}
+                                                                style={{width: '100%', minHeight: '80px', lineHeight: '1.6', border: '2px dashed #3498db', borderRadius: '4px', padding: '8px', backgroundColor: 'rgba(52, 152, 219, 0.05)'}}
+                                                            />
+                                                        ) : (
+                                                            <p style={{pageBreakInside: 'avoid', lineHeight: '1.6'}}>{displayContent.general_summary}</p>
+                                                        )}
                                                     </div>
                                                 </div>
                                             )}
 
                                             {/* NEW STRUCTURE: Key Insights */}
-                                            {content?.key_insights && Array.isArray(content.key_insights) && content.key_insights.length > 0 && (
+                                            {displayContent?.key_insights && Array.isArray(displayContent.key_insights) && displayContent.key_insights.length > 0 && (
                                                 <div className="content-section">
                                                     <h5 style={{fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000', pageBreakAfter: 'avoid'}}>{t('reports.keyInsights')}</h5>
                                                     <div className="content-preview">
-                                                        {content.key_insights.map((insight, index) => (
+                                                        {displayContent.key_insights.map((insight, index) => (
                                                             <div key={index} className="insight-item" style={{pageBreakInside: 'avoid', marginBottom: '1rem'}}>
                                                                 <div className="insight-category" style={{marginBottom: '0.5rem'}}>
                                                                     <strong>{translateCategory(insight.category)}</strong>
                                                                 </div>
                                                                 <div className="insight-content" style={{marginBottom: '0.5rem'}}>
-                                                                    <p style={{pageBreakInside: 'avoid', lineHeight: '1.6'}}>{insight.content}</p>
+                                                                    {isEditing ? (
+                                                                        <textarea
+                                                                            className="editable-content editable-text"
+                                                                            value={insight.content}
+                                                                            onChange={(e) => handleContentChange('key_insights', e.target.value, index, 'content')}
+                                                                            style={{width: '100%', minHeight: '60px', lineHeight: '1.6', border: '2px dashed #3498db', borderRadius: '4px', padding: '8px', backgroundColor: 'rgba(52, 152, 219, 0.05)'}}
+                                                                        />
+                                                                    ) : (
+                                                                        <p style={{pageBreakInside: 'avoid', lineHeight: '1.6'}}>{insight.content}</p>
+                                                                    )}
                                                                 </div>
-                                                                {insight.supporting_quotes && insight.supporting_quotes.length > 0 && (
+                                                                {insight.supporting_quotes && insight.supporting_quotes.filter(quote => quote && quote.trim()).length > 0 && (
                                                                     <div className="supporting-quotes" style={{pageBreakInside: 'avoid'}}>
                                                                         <strong>{t('reports.supportingQuotes')}:</strong>
-                                                                        <ul style={{marginTop: '0.5rem'}}>
-                                                                            {insight.supporting_quotes.map((quote, qIndex) => (
-                                                                                <li key={qIndex} style={{pageBreakInside: 'avoid', marginBottom: '0.25rem'}}>"{quote}"</li>
-                                                                            ))}
-                                                                        </ul>
+                                                                        {isEditing ? (
+                                                                            <div className="editable-quotes" style={{marginTop: '0.5rem'}}>
+                                                                                {insight.supporting_quotes.map((quote, qIndex) => (
+                                                                                    <div key={qIndex} style={{marginBottom: '0.5rem', display: 'flex', alignItems: 'center'}}>
+                                                                                        <span style={{marginRight: '0.5rem'}}>"</span>
+                                                                                        <input
+                                                                                            type="text"
+                                                                                            className="editable-content editable-quote"
+                                                                                            value={quote}
+                                                                                            onChange={(e) => {
+                                                                                                const newQuotes = [...insight.supporting_quotes];
+                                                                                                newQuotes[qIndex] = e.target.value;
+                                                                                                handleContentChange('key_insights', newQuotes, index, 'supporting_quotes');
+                                                                                            }}
+                                                                                            style={{flex: 1, border: '1px dashed #3498db', borderRadius: '3px', padding: '4px', backgroundColor: 'rgba(52, 152, 219, 0.05)'}}
+                                                                                        />
+                                                                                        <span style={{marginLeft: '0.5rem'}}>"</span>
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                        ) : (
+                                                                            <ul style={{marginTop: '0.5rem'}}>
+                                                                                {insight.supporting_quotes.filter(quote => quote && quote.trim()).map((quote, qIndex) => (
+                                                                                    <li key={qIndex} style={{pageBreakInside: 'avoid', marginBottom: '0.25rem'}}>"{ quote}"</li>
+                                                                                ))}
+                                                                            </ul>
+                                                                        )}
                                                                     </div>
                                                                 )}
                                                             </div>
@@ -340,14 +538,23 @@ export function ExportReportModal({
                                             )}
 
                                             {/* NEW STRUCTURE: Action Items */}
-                                            {content?.action_items && Array.isArray(content.action_items) && content.action_items.length > 0 && (
+                                            {displayContent?.action_items && Array.isArray(displayContent.action_items) && displayContent.action_items.length > 0 && (
                                                 <div className="content-section">
                                                     <h5 style={{fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000', pageBreakAfter: 'avoid'}}>{t('reports.actionItems')}</h5>
                                                     <div className="content-preview">
-                                                        {content.action_items.map((item, index) => (
+                                                        {displayContent.action_items.map((item, index) => (
                                                             <div key={index} className="action-item" style={{pageBreakInside: 'avoid', marginBottom: '1rem'}}>
                                                                 <div className="action-task" style={{marginBottom: '0.5rem'}}>
-                                                                    <strong>{item.task}</strong>
+                                                                    {isEditing ? (
+                                                                        <textarea
+                                                                            className="editable-content editable-text"
+                                                                            value={item.task}
+                                                                            onChange={(e) => handleContentChange('action_items', e.target.value, index, 'task')}
+                                                                            style={{width: '100%', minHeight: '40px', fontWeight: '600', border: '2px dashed #3498db', borderRadius: '4px', padding: '6px', backgroundColor: 'rgba(52, 152, 219, 0.05)'}}
+                                                                        />
+                                                                    ) : (
+                                                                        <strong>{item.task}</strong>
+                                                                    )}
                                                                 </div>
                                                                 <div className="action-details" style={{paddingLeft: '1rem'}}>
                                                                     <div className="action-owner" style={{marginBottom: '0.25rem'}}>{t('reports.owner')}: {translateOwner(item.owner)}</div>
@@ -365,11 +572,20 @@ export function ExportReportModal({
                                             )}
 
                                             {/* NEW STRUCTURE: Target Summary */}
-                                            {content?.target_summary && (
+                                            {displayContent?.target_summary && (
                                                 <div className="content-section">
                                                     <h5 style={{fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000', pageBreakAfter: 'avoid'}}>{t('reports.targetSummary')}</h5>
                                                     <div className="content-preview">
-                                                        <p style={{pageBreakInside: 'avoid', lineHeight: '1.6'}}>{content.target_summary}</p>
+                                                        {isEditing ? (
+                                                            <textarea
+                                                                className="editable-content editable-text"
+                                                                value={displayContent.target_summary}
+                                                                onChange={(e) => handleContentChange('target_summary', e.target.value)}
+                                                                style={{width: '100%', minHeight: '80px', lineHeight: '1.6', border: '2px dashed #3498db', borderRadius: '4px', padding: '8px', backgroundColor: 'rgba(52, 152, 219, 0.05)'}}
+                                                            />
+                                                        ) : (
+                                                            <p style={{pageBreakInside: 'avoid', lineHeight: '1.6'}}>{displayContent.target_summary}</p>
+                                                        )}
                                                     </div>
                                                 </div>
                                             )}
@@ -516,49 +732,82 @@ export function ExportReportModal({
 
                     <form onSubmit={handleSubmit}>
                         <div className="modal-actions">
-                            <button
-                                type="button"
-                                className="btn btn-secondary"
-                                onClick={handleClose}
-                                disabled={isLoading || isDownloading || isGeneratingPDF}
-                            >
-                                {t('common.cancel')}
-                            </button>
-                            <button
-                                type="button"
-                                className="btn btn-outline download-btn"
-                                onClick={handleDownloadPDF}
-                                disabled={isLoading || isDownloading || isGeneratingPDF}
-                            >
-                                {isDownloading ? (
-                                    <>
-                                        <div className="spinner-small"></div>
-                                        {t('reports.downloading')}
-                                    </>
-                                ) : (
-                                    <>
-                                        <Download size={16} />
-                                        {t('reports.downloadPDF')}
-                                    </>
-                                )}
-                            </button>
-                            <button
-                                type="submit"
-                                className="btn btn-primary export-btn"
-                                disabled={isLoading || isDownloading || isGeneratingPDF}
-                            >
-                                {isLoading || isGeneratingPDF ? (
-                                    <>
-                                        <div className="spinner-small"></div>
-                                        {isGeneratingPDF ? 'Generating PDF...' : t('reports.exporting')}
-                                    </>
-                                ) : (
-                                    <>
-                                        <Send size={16} />
-                                        {t('reports.exportAndSend')}
-                                    </>
-                                )}
-                            </button>
+                            {/* Edit Mode Actions */}
+                            {isEditing ? (
+                                <div className="edit-actions-bottom">
+                                    <button
+                                        type="button"
+                                        className="btn btn-cancel"
+                                        onClick={handleCancel}
+                                        disabled={isSaving}
+                                        title={t('reports.cancelEdit')}
+                                    >
+                                        <XCircle size={16} />
+                                        {t('common.cancel')}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="btn btn-save"
+                                        onClick={handleSave}
+                                        disabled={!hasUnsavedChanges || isSaving}
+                                        title={t('reports.saveChanges')}
+                                    >
+                                        {isSaving ? (
+                                            <div className="spinner-sm"></div>
+                                        ) : (
+                                            <Save size={16} />
+                                        )}
+                                        {isSaving ? t('reports.saving') : t('reports.saveChanges')}
+                                    </button>
+                                </div>
+                            ) : (
+                                /* Normal Mode Actions */
+                                <>
+                                    <button
+                                        type="button"
+                                        className="btn btn-secondary"
+                                        onClick={handleClose}
+                                        disabled={isLoading || isDownloading || isGeneratingPDF}
+                                    >
+                                        {t('common.cancel')}
+                                    </button>
+                                    {previewMode === 'preview' && <button
+                                        type="button"
+                                        className="btn btn-outline download-btn"
+                                        onClick={handleDownloadPDF}
+                                        disabled={isLoading || isDownloading || isGeneratingPDF}
+                                    >
+                                        {isDownloading ? (
+                                            <>
+                                                <div className="spinner-small"></div>
+                                                {t('reports.downloading')}
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Download size={16} />
+                                                {t('reports.downloadPDF')}
+                                            </>
+                                        )}
+                                    </button>}
+                                    {previewMode === 'preview' && <button
+                                        type="submit"
+                                        className="btn btn-primary export-btn"
+                                        disabled={isLoading || isDownloading || isGeneratingPDF}
+                                    >
+                                        {isLoading || isGeneratingPDF ? (
+                                            <>
+                                                <div className="spinner-small"></div>
+                                                {isGeneratingPDF ? 'Generating PDF...' : t('reports.exporting')}
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Send size={16} />
+                                                {t('reports.exportAndSend')}
+                                            </>
+                                        )}
+                                    </button>}
+                                </>
+                            )}
                         </div>
                     </form>
                 </div>
