@@ -177,12 +177,13 @@
         "preparingUpload": "מכין העלאה...",
         "dropzone": {
             "title": "גרור את קובץ השמע לכאן",
-            "description": "פורמטים נתמכים: MP3, WAV, M4A, AAC (מקסימום 25MB)",
+            "description": "פורמטים נתמכים: MP3, WAV, M4A, AAC (מקסימום 50MB)",
             "button": "בחר קובץ"
         },
         "errors": {
             "invalidFileType": "אנא בחר קובץ שמע תקין (MP3, WAV, M4A, AAC)",
-            "fileTooLarge": "גודל הקובץ חייב להיות פחות מ-25MB",
+            "fileTooLarge": "גודל הקובץ חייב להיות פחות מ-100MB",
+            "fileLargeWarning": "קובץ זה גדול מאוד, תהליך העיבוד עשוי לקחת מספר דקות",
             "noFileSelected": "אנא בחר קובץ להעלאה",
             "noClientSelected": "אנא בחר לקוח",
             "clientNameRequired": "שם הלקוח נדרש",
@@ -571,7 +572,7 @@
         "editModeActive": "עריכת דוח פעילה",
         "saveChanges": "שמור שינויים",
         "saveError": "שגיאה בשמירת שינויים. אנא נסה שוב.",
-        "discardChanges": "האם אתה בטוח שברצונך להסיד את השינויים שלא נשמרו?",
+        "discardChanges": "האם אתה בטוח שברצונך להסיר את השינויים שלא נשמרו?",
         "saveChangesBeforePDF": "אנא שמור את השינויים לפני יצירת PDF.",
         "statusOpen": "פתוח",
         "statusInProgress": "בתהליך",

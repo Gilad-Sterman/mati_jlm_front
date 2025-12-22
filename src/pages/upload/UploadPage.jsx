@@ -146,7 +146,15 @@ export function UploadPage() {
             }
 
             // Validate file size (max 50MB)
-            const maxSize = 50 * 1024 * 1024; // 50MB
+            const largeSize = 50 * 1024 * 1024; // 50MB
+            if (file.size > maxSize) {
+                const isSure = confirm(t('upload.errors.fileLargeWarning'));
+                if(!isSure) {
+                    return;
+                }
+            }
+            
+            const maxSize = 100 * 1024 * 1024; // 100MB
             if (file.size > maxSize) {
                 alert(t('upload.errors.fileTooLarge'));
                 return;

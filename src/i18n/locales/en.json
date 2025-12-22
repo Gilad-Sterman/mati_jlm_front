@@ -177,12 +177,13 @@
         "preparingUpload": "Preparing upload...",
         "dropzone": {
             "title": "Drag your audio file here",
-            "description": "Supported formats: MP3, WAV, M4A, AAC (max 25MB)",
+            "description": "Supported formats: MP3, WAV, M4A, AAC (max 50MB)",
             "button": "Choose File"
         },
         "errors": {
             "invalidFileType": "Please select a valid audio file (MP3, WAV, M4A, AAC)",
-            "fileTooLarge": "File size must be less than 25MB",
+            "fileTooLarge": "File size must be less than 100MB",
+            "fileLargeWarning": "This file is very large - upload process may take a few minutes", 
             "noFileSelected": "Please select a file to upload",
             "noClientSelected": "Please select a client",
             "clientNameRequired": "Client name is required",
