@@ -10,7 +10,13 @@ import {
   handleTranscriptionComplete,
   handleReportGenerationStarted,
   handleAdvisorReportGenerated,
-  handleProcessingError
+  handleProcessingError,
+  handleChunkingStarted,
+  handleChunksCreated,
+  handleChunkProgress,
+  handleChunkCompleted,
+  handleChunkFailed,
+  handleChunkingCompleted
 } from '../store/sessionSlice';
 
 /**
@@ -36,6 +42,10 @@ export const useUploadSocket = () => {
 
     // Handle upload progress event
     const onUploadProgress = (data) => {
+      // Subscribe to session room for chunked transcription events (only on first progress update)
+      if (data.sessionId && socketService && data.progress <= 10) {
+        socketService.subscribeToSession(data.sessionId);
+      }
       dispatch(handleUploadProgress(data));
     };
 
@@ -87,6 +97,31 @@ export const useUploadSocket = () => {
       dispatch(handleProcessingError({ ...data, stage: 'report_generation' }));
     };
 
+    // Chunked transcription event handlers
+    const onChunkingStarted = (data) => {
+      dispatch(handleChunkingStarted(data));
+    };
+
+    const onChunksCreated = (data) => {
+      dispatch(handleChunksCreated(data));
+    };
+
+    const onChunkProgress = (data) => {
+      dispatch(handleChunkProgress(data));
+    };
+
+    const onChunkCompleted = (data) => {
+      dispatch(handleChunkCompleted(data));
+    };
+
+    const onChunkFailed = (data) => {
+      dispatch(handleChunkFailed(data));
+    };
+
+    const onChunkingCompleted = (data) => {
+      dispatch(handleChunkingCompleted(data));
+    };
+
     // Register socket event listeners
     
     // Upload events
@@ -103,6 +138,14 @@ export const useUploadSocket = () => {
     socket.on('reports_generated', onReportsGenerated);
     socket.on('transcription_error', onTranscriptionError);
     socket.on('report_generation_error', onReportGenerationError);
+    
+    // Chunked transcription events
+    socket.on('transcription_chunking_started', onChunkingStarted);
+    socket.on('transcription_chunks_created', onChunksCreated);
+    socket.on('transcription_chunk_progress', onChunkProgress);
+    socket.on('transcription_chunk_completed', onChunkCompleted);
+    socket.on('transcription_chunk_failed', onChunkFailed);
+    socket.on('transcription_chunking_completed', onChunkingCompleted);
 
     // Cleanup function to remove listeners
     return () => {
@@ -121,6 +164,14 @@ export const useUploadSocket = () => {
       socket.off('reports_generated', onReportsGenerated);
       socket.off('transcription_error', onTranscriptionError);
       socket.off('report_generation_error', onReportGenerationError);
+      
+      // Chunked transcription events
+      socket.off('transcription_chunking_started', onChunkingStarted);
+      socket.off('transcription_chunks_created', onChunksCreated);
+      socket.off('transcription_chunk_progress', onChunkProgress);
+      socket.off('transcription_chunk_completed', onChunkCompleted);
+      socket.off('transcription_chunk_failed', onChunkFailed);
+      socket.off('transcription_chunking_completed', onChunkingCompleted);
     };
   }, [socket, socketConnected, dispatch]);
 

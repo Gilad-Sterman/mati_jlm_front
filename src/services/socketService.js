@@ -95,6 +95,43 @@ class SocketService {
     this.socket.on('error', (error) => {
       console.error('Socket error:', error);
     });
+
+  }
+
+  /**
+   * Subscribe to session updates for a specific session
+   */
+  subscribeToSession(sessionId) {
+    if (this.socket && this.socket.connected) {
+      this.socket.emit('subscribe_session_updates', { sessionId });
+    }
+  }
+
+  /**
+   * Unsubscribe from session updates
+   */
+  unsubscribeFromSession(sessionId) {
+    if (this.socket && this.socket.connected) {
+      this.socket.emit('unsubscribe_session_updates', { sessionId });
+    }
+  }
+
+  /**
+   * Add event listener for chunked transcription events
+   */
+  onChunkedTranscription(eventName, callback) {
+    if (this.socket) {
+      this.socket.on(eventName, callback);
+    }
+  }
+
+  /**
+   * Remove event listener
+   */
+  offChunkedTranscription(eventName, callback) {
+    if (this.socket) {
+      this.socket.off(eventName, callback);
+    }
   }
 
   /**

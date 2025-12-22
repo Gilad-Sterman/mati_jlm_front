@@ -147,7 +147,7 @@ export function UploadPage() {
 
             // Validate file size (max 50MB)
             const largeSize = 50 * 1024 * 1024; // 50MB
-            if (file.size > maxSize) {
+            if (file.size > largeSize) {
                 const isSure = confirm(t('upload.errors.fileLargeWarning'));
                 if(!isSure) {
                     return;

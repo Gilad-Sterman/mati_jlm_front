@@ -106,6 +106,17 @@ const initialState = {
   advisorReportGenerated: false,
   currentReport: null, // Generated advisor report data
 
+  // Chunked transcription state
+  chunkingProgress: {
+    isChunking: false,
+    totalChunks: 0,
+    currentChunk: 0,
+    progress: 0,
+    messageKey: '',
+    completedChunks: 0,
+    failedChunks: 0
+  },
+
   // Dashboard stats
   dashboardStats: null,
   isDashboardLoading: false,
@@ -150,6 +161,17 @@ const sessionSlice = createSlice({
       state.transcriptionComplete = false;
       state.advisorReportGenerated = false;
       state.currentReport = null;
+
+      // Reset chunked transcription state
+      state.chunkingProgress = {
+        isChunking: false,
+        totalChunks: 0,
+        currentChunk: 0,
+        progress: 0,
+        message: '',
+        completedChunks: 0,
+        failedChunks: 0
+      };
     },
     // New action to return to upload form
     returnToUpload: (state) => {
@@ -166,6 +188,17 @@ const sessionSlice = createSlice({
       state.transcriptionComplete = false;
       state.advisorReportGenerated = false;
       state.currentReport = null;
+
+      // Reset chunked transcription state
+      state.chunkingProgress = {
+        isChunking: false,
+        totalChunks: 0,
+        currentChunk: 0,
+        progress: 0,
+        message: '',
+        completedChunks: 0,
+        failedChunks: 0
+      };
     },
     // Socket event handlers
     handleUploadStarted: (state, action) => {
@@ -350,6 +383,74 @@ const sessionSlice = createSlice({
       }
     },
 
+    // Chunked transcription event handlers
+    handleChunkingStarted: (state, action) => {
+      const { sessionId, messageKey } = action.payload;
+
+      // Only update UI state if this is the active session
+      if (state.activeSessionId === sessionId) {
+        state.chunkingProgress.isChunking = true;
+        state.chunkingProgress.messageKey = messageKey || 'chunkingStarted';
+        state.chunkingProgress.totalChunks = 0;
+        state.chunkingProgress.currentChunk = 0;
+        state.chunkingProgress.progress = 0;
+        state.chunkingProgress.completedChunks = 0;
+        state.chunkingProgress.failedChunks = 0;
+      }
+    },
+
+    handleChunksCreated: (state, action) => {
+      const { sessionId, totalChunks, message } = action.payload;
+
+      // Only update UI state if this is the active session
+      if (state.activeSessionId === sessionId) {
+        state.chunkingProgress.totalChunks = totalChunks;
+        state.chunkingProgress.message = message || `Created ${totalChunks} chunks for processing`;
+      }
+    },
+
+    handleChunkProgress: (state, action) => {
+      const { sessionId, currentChunk, totalChunks, progress, message } = action.payload;
+
+      // Only update UI state if this is the active session
+      if (state.activeSessionId === sessionId) {
+        state.chunkingProgress.currentChunk = currentChunk;
+        state.chunkingProgress.progress = progress;
+        state.chunkingProgress.message = message || `Processing chunk ${currentChunk} of ${totalChunks}...`;
+      }
+    },
+
+    handleChunkCompleted: (state, action) => {
+      const { sessionId, chunkIndex, totalChunks, progress, message } = action.payload;
+
+      // Only update UI state if this is the active session
+      if (state.activeSessionId === sessionId) {
+        state.chunkingProgress.completedChunks += 1;
+        state.chunkingProgress.progress = progress;
+        state.chunkingProgress.message = message || `Completed chunk ${chunkIndex} of ${totalChunks}`;
+      }
+    },
+
+    handleChunkFailed: (state, action) => {
+      const { sessionId, chunkIndex, totalChunks, message } = action.payload;
+
+      // Only update UI state if this is the active session
+      if (state.activeSessionId === sessionId) {
+        state.chunkingProgress.failedChunks += 1;
+        state.chunkingProgress.message = message || `Chunk ${chunkIndex} failed, continuing...`;
+      }
+    },
+
+    handleChunkingCompleted: (state, action) => {
+      const { sessionId, totalChunks, successfulChunks, failedChunks, message } = action.payload;
+
+      // Only update UI state if this is the active session
+      if (state.activeSessionId === sessionId) {
+        state.chunkingProgress.isChunking = false;
+        state.chunkingProgress.message = message || `Chunked transcription completed: ${successfulChunks}/${totalChunks} chunks successful`;
+      }
+    },
+
     // Reset processing state
     resetProcessingState: (state) => {
       state.processingStage = null;
@@ -486,6 +587,12 @@ export const {
   handleReportGenerationStarted,
   handleAdvisorReportGenerated,
   handleProcessingError,
+  handleChunkingStarted,
+  handleChunksCreated,
+  handleChunkProgress,
+  handleChunkCompleted,
+  handleChunkFailed,
+  handleChunkingCompleted,
   resetProcessingState,
   restoreActiveSession
 } = sessionSlice.actions;
@@ -516,5 +623,8 @@ export const selectTranscriptionComplete = (state) => state.sessions.transcripti
 export const selectAdvisorReportGenerated = (state) => state.sessions.advisorReportGenerated;
 export const selectCurrentReport = (state) => state.sessions.currentReport;
 export const selectPagination = (state) => state.sessions.pagination;
+
+// Chunked transcription selectors
+export const selectChunkingProgress = (state) => state.sessions.chunkingProgress;
 
 export default sessionSlice.reducer;

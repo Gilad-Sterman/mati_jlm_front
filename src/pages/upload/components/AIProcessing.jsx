@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { Check, Brain, FileText, ArrowLeft, Upload } from 'lucide-react';
 import { returnToUpload } from '../../../store/sessionSlice';
 
@@ -17,6 +17,10 @@ export function AIProcessing({
 }) {
   const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
+  
+  // Get chunked transcription progress from Redux
+  const chunkingProgress = useSelector(state => state.sessions.chunkingProgress);
+  
 
   const handleBackToUpload = () => {
     dispatch(returnToUpload());
@@ -135,10 +139,50 @@ export function AIProcessing({
                       {transcriptionComplete ? 
                         t('upload.transcriptionComplete') : 
                         stage === 'transcribing' ? 
-                        t('upload.transcriptionInProgress') :
+                        (chunkingProgress.isChunking && chunkingProgress.messageKey ? 
+                          t(`upload.${chunkingProgress.messageKey}`, {
+                            currentChunk: chunkingProgress.currentChunk,
+                            totalChunks: chunkingProgress.totalChunks,
+                            chunkIndex: chunkingProgress.currentChunk,
+                            successfulChunks: chunkingProgress.completedChunks,
+                            failedChunks: chunkingProgress.failedChunks
+                          }) : 
+                          t('upload.transcriptionInProgress')) :
                         t('upload.transcriptionPending')
                       }
                     </p>
+                    {/* Chunked transcription progress */}
+                    {stage === 'transcribing' && chunkingProgress.isChunking && (
+                      <div className="chunking-progress">
+                        <div className="chunk-progress-bar">
+                          <div 
+                            className="chunk-progress-fill" 
+                            style={{ width: `${chunkingProgress.progress}%` }}
+                          ></div>
+                          <span className="chunk-progress-text">
+                            {chunkingProgress.currentChunk > 0 ? 
+                              `${chunkingProgress.currentChunk}/${chunkingProgress.totalChunks}` : 
+                              `${chunkingProgress.progress}%`
+                            }
+                          </span>
+                        </div>
+                        {chunkingProgress.totalChunks > 0 && (
+                          <div className="chunk-stats">
+                            <span className="chunk-stat completed">
+                              ✓ {chunkingProgress.completedChunks}
+                            </span>
+                            {chunkingProgress.failedChunks > 0 && (
+                              <span className="chunk-stat failed">
+                                ✗ {chunkingProgress.failedChunks}
+                              </span>
+                            )}
+                            <span className="chunk-stat remaining">
+                              ⏳ {chunkingProgress.totalChunks - chunkingProgress.completedChunks - chunkingProgress.failedChunks}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <p className="step-description">{t('upload.transcriptionDescription')}</p>

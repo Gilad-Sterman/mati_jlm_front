@@ -17,22 +17,53 @@ export function useAppSocket() {
         
         const socket = socketService.connect(token);
         if (socket) {
-          socket.on('connect', () => {
+          // Set up connection state listeners
+          const handleConnect = () => {
             setSocketConnected(true);
             console.log('✅ App socket connected');
-          });
+          };
           
-          socket.on('disconnect', () => {
+          const handleDisconnect = () => {
             setSocketConnected(false);
             console.log('❌ App socket disconnected');
-          });
+          };
+          
+          socket.on('connect', handleConnect);
+          socket.on('disconnect', handleDisconnect);
+          
+          // Set initial state if already connected
+          if (socket.connected) {
+            setSocketConnected(true);
+          }
+          
+          // Cleanup function to remove listeners
+          return () => {
+            socket.off('connect', handleConnect);
+            socket.off('disconnect', handleDisconnect);
+          };
         }
       }
     }
     
     // Update connection state if socket already exists
     if (isAuthenticated && user?.id && socketService.getStatus().hasSocket) {
-      setSocketConnected(socketService.getStatus().isConnected);
+      const currentStatus = socketService.getStatus();
+      setSocketConnected(currentStatus.isConnected);
+      
+      // Also set up listeners for existing socket
+      const socket = socketService.socket;
+      if (socket) {
+        const handleConnect = () => setSocketConnected(true);
+        const handleDisconnect = () => setSocketConnected(false);
+        
+        socket.on('connect', handleConnect);
+        socket.on('disconnect', handleDisconnect);
+        
+        return () => {
+          socket.off('connect', handleConnect);
+          socket.off('disconnect', handleDisconnect);
+        };
+      }
     }
     
     // Disconnect when user logs out
