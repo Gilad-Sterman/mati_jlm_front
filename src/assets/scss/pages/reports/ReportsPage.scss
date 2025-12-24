@@ -392,6 +392,112 @@
           }
         }
       }
+
+      .edit-report-button {
+        display: flex;
+        align-items: center;
+        gap: $spacing-sm;
+        background: #311278; // Purple color for edit
+        color: $white-color;
+        border: none;
+        padding: $spacing-sm $spacing-sm;
+        border-radius: $border-radius-sm;
+        font-size: $font-size-sm;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+
+        &:hover {
+          background: darken(#8b5cf6, 10%);
+          transform: translateY(-1px);
+          box-shadow: 0 2px 8px rgba(139, 92, 246, 0.25);
+        }
+
+        &:active {
+          transform: translateY(0);
+        }
+
+        svg {
+          transition: transform 0.3s ease;
+        }
+
+        &:hover svg {
+          transform: scale(1.1);
+        }
+
+        &:disabled {
+          background: $border-color;
+          color: $text-muted;
+          cursor: not-allowed;
+          transform: none;
+          box-shadow: none;
+
+          &:hover {
+            background: $border-color;
+            transform: none;
+            box-shadow: none;
+
+            svg {
+              transform: none;
+            }
+          }
+        }
+      }
+
+      .download-pdf-button {
+        display: flex;
+        align-items: center;
+        gap: $spacing-sm;
+        background: #10b981; // Green color for download
+        color: $white-color;
+        border: none;
+        padding: $spacing-sm $spacing-sm;
+        border-radius: $border-radius-sm;
+        font-size: $font-size-sm;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+
+        &:hover {
+          background: darken(#10b981, 10%);
+          transform: translateY(-1px);
+          box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+        }
+
+        &:active {
+          transform: translateY(0);
+        }
+
+        svg {
+          transition: transform 0.3s ease;
+
+          &.spinner {
+            animation: spin 1s linear infinite;
+          }
+        }
+
+        &:hover svg:not(.spinner) {
+          transform: translateY(-2px);
+        }
+
+        &:disabled {
+          background: $border-color;
+          color: $text-muted;
+          cursor: not-allowed;
+          transform: none;
+          box-shadow: none;
+
+          &:hover {
+            background: $border-color;
+            transform: none;
+            box-shadow: none;
+
+            svg {
+              transform: none;
+            }
+          }
+        }
+      }
     }
 
     .no-report {

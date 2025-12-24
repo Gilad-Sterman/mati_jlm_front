@@ -11,7 +11,8 @@ export function ExportReportModal({
     onExport, 
     report, 
     session, 
-    isLoading = false 
+    isLoading = false,
+    initialEditMode = false
 }) {
     const { t, i18n } = useTranslation();
     const dispatch = useDispatch();
@@ -97,6 +98,16 @@ export function ExportReportModal({
             convertSvgForPdf();
         }
     }, [isOpen]);
+
+    // Handle initial edit mode
+    useEffect(() => {
+        if (isOpen && initialEditMode && content && !isEditing) {
+            setEditedContent(JSON.parse(JSON.stringify(content))); // Deep copy
+            setIsEditing(true);
+            setHasUnsavedChanges(false);
+            setPreviewMode('preview'); // Ensure we're in preview mode for editing
+        }
+    }, [isOpen, initialEditMode, content, isEditing]);
 
     // Function to translate categories from English to current language
     const translateCategory = (category) => {

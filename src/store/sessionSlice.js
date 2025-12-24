@@ -202,10 +202,10 @@ const sessionSlice = createSlice({
     },
     // Socket event handlers
     handleUploadStarted: (state, action) => {
-      const { fileName, message } = action.payload;
+      const { fileName, fileSize, message } = action.payload;
       state.uploadStatus = 'started';
       state.uploadMessage = message;
-      state.currentUploadSession = { fileName };
+      state.currentUploadSession = { fileName, fileSize };
       // state.currentUploadSession = { id: sessionId, fileName };
       // state.activeSessionId = sessionId; // Set this session as active for UI updates
       state.uploadProgress = 5;
@@ -485,15 +485,17 @@ const sessionSlice = createSlice({
         state.uploadProgress = 5; // Initial progress after API success
         state.sessions.unshift(action.payload.session);
         state.currentSession = action.payload.session;
-        state.currentUploadSession = action.payload.session;
+        // Preserve existing session data (fileName, fileSize) and merge with backend data
+        state.currentUploadSession = {
+          ...state.currentUploadSession,
+          ...action.payload.session
+        };
         state.activeSessionId = action.payload.session.id; // Set as active session
         state.uploadStatus = 'started';
         state.uploadMessage = 'Session created, starting file upload...';
-        state.error = null;
       })
       .addCase(createSession.rejected, (state, action) => {
         state.isUploading = false;
-        state.uploadProgress = 0;
         state.uiState = 'upload'; // Reset to upload form
         state.uploadStatus = null;
         state.uploadMessage = '';

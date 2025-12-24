@@ -1,8 +1,9 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { ArrowLeft, FileText, User, Calendar, Clock, ChevronDown, ChevronUp, RefreshCw, BookOpenText, FileWarning, FileCheck, FileQuestion, Flag, ArrowDown, Download, RotateCcw, Loader2, AlertCircle, Building2, CheckCircle, AlertTriangle, Users, ArrowRight } from 'lucide-react';
+import { ArrowLeft, FileText, User, Calendar, Clock, ChevronDown, ChevronUp, RefreshCw, BookOpenText, FileWarning, FileCheck, FileQuestion, Flag, ArrowDown, Download, RotateCcw, Loader2, AlertCircle, Building2, CheckCircle, AlertTriangle, Users, ArrowRight, Edit3 } from 'lucide-react';
+import html2pdf from 'html2pdf.js';
 import {
     fetchReportsForSession,
     regenerateClientReport,
@@ -28,8 +29,12 @@ export function ReportsPage() {
     const [loading, setLoading] = useState(true);
     const [showRegenerateModal, setShowRegenerateModal] = useState(false);
     const [showExportModal, setShowExportModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
     const [showTranscriptModal, setShowTranscriptModal] = useState(false);
     const [isSubmittingRegeneration, setIsSubmittingRegeneration] = useState(false);
+    const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
+    const [pdfLogoUrl, setPdfLogoUrl] = useState('/logo-full.svg');
+    const pdfContentRef = useRef(null);
 
     // Socket connection for regeneration events
     const { socketConnected, socketService } = useAppSocket();
@@ -73,6 +78,39 @@ export function ReportsPage() {
             setLoading(false);
         }
     }, [isLoadingReports, isLoadingSessions]);
+
+    // Convert SVG logo to PNG for PDF compatibility
+    useEffect(() => {
+        const convertSvgForPdf = async () => {
+            try {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = 342;
+                    canvas.height = 210;
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    const pngDataUrl = canvas.toDataURL('image/png');
+                    setPdfLogoUrl(pngDataUrl);
+                };
+                
+                img.onerror = () => {
+                    console.error('Failed to load SVG for conversion');
+                    setPdfLogoUrl('/logo-t.png');
+                };
+                
+                img.src = '/logo-full.svg';
+                
+            } catch (error) {
+                console.error('Error converting SVG for PDF:', error);
+                setPdfLogoUrl('/logo-t.png');
+            }
+        };
+
+        convertSvgForPdf();
+    }, []);
 
     // Socket event listeners for regeneration
     useEffect(() => {
@@ -171,6 +209,10 @@ export function ReportsPage() {
         setShowExportModal(true);
     };
 
+    const handleEditClick = () => {
+        setShowEditModal(true);
+    };
+
     const handleExportSubmit = async (pdfFormData) => {
         try {
             await dispatch(exportClientReport({ sessionId, pdfFormData })).unwrap();
@@ -194,12 +236,92 @@ export function ReportsPage() {
         }
     };
 
+    const handleEditModalClose = () => {
+        if (!isExportingReports) {
+            setShowEditModal(false);
+        }
+    };
+
     const handleViewTranscriptClick = () => {
         setShowTranscriptModal(true);
     };
 
     const handleTranscriptModalClose = () => {
         setShowTranscriptModal(false);
+    };
+
+    // Function to translate categories from English to current language
+    const translateCategory = (category) => {
+        const categoryMap = {
+            'what we learned about the clients business': t('reports.categoryBusiness'),
+            'decisions made': t('reports.categoryDecisions'),
+            'opportunities/risks or concerns that came up': t('reports.categoryOpportunities')
+        };
+        return categoryMap[category] || category;
+    };
+
+    // Function to translate owner values
+    const translateOwner = (owner) => {
+        const ownerMap = {
+            'client': t('reports.ownerClient'),
+            'adviser': t('reports.ownerAdviser'),
+            'advisor': t('reports.ownerAdviser')
+        };
+        return ownerMap[owner?.toLowerCase()] || owner;
+    };
+
+    // Function to translate status values
+    const translateStatus = (status) => {
+        const statusMap = {
+            'open': t('reports.statusOpen'),
+            'in progress': t('reports.statusInProgress'),
+            'completed': t('reports.statusCompleted')
+        };
+        return statusMap[status?.toLowerCase()] || status;
+    };
+
+    const handleDownloadPDF = async () => {
+        if (isDownloadingPDF || !pdfContentRef.current || !clientReport) return;
+        
+        try {
+            setIsDownloadingPDF(true);
+            
+            // Switch to PNG logo for PDF generation
+            const logoImg = pdfContentRef.current.querySelector('.mati-logo');
+            const originalSrc = logoImg?.src;
+            if (logoImg) logoImg.src = pdfLogoUrl;
+            
+            const element = pdfContentRef.current;
+            const clientName = session?.client?.name || 'Client';
+            const sessionDate = new Date(session?.created_at).toLocaleDateString().replace(/\//g, '-');
+            const filename = `${clientName}_Report_${sessionDate}.pdf`;
+            
+            const opt = {
+                margin: 1,
+                filename: filename,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true
+                },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+            
+            await html2pdf().set(opt).from(element).save();
+            
+            // Restore original logo after PDF generation
+            if (logoImg && originalSrc) logoImg.src = originalSrc;
+            
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            alert(t('reports.pdfDownloadError') || 'Failed to download PDF. Please try again.');
+            // Restore original logo on error too
+            const logoImg = pdfContentRef.current?.querySelector('.mati-logo');
+            if (logoImg) logoImg.src = '/logo-full.svg';
+        } finally {
+            setIsDownloadingPDF(false);
+        }
     };
 
 
@@ -285,6 +407,17 @@ export function ReportsPage() {
                                     </div>
                                     {clientReport && clientReport.status !== 'approved' && (
                                         <button
+                                            className="edit-report-button"
+                                            title={t('reports.editReport')}
+                                            onClick={handleEditClick}
+                                            disabled={isLoadingReports || isRegeneratingReports}
+                                        >
+                                            {t('reports.edit')}
+                                        </button>
+                                    )}
+
+                                    {clientReport && clientReport.status !== 'approved' && (
+                                        <button
                                             className="export-pdf-button"
                                             title={t('reports.exportAsPDF')}
                                             onClick={handleExportClick}
@@ -292,6 +425,22 @@ export function ReportsPage() {
                                         >
                                             {/* <FileText size={16} /> */}
                                             {t('reports.exportAsPDF')}
+                                        </button>
+                                    )}
+
+                                    {clientReport && clientReport.status === 'approved' && (
+                                        <button
+                                            className="download-pdf-button"
+                                            title={t('reports.downloadPDF')}
+                                            onClick={handleDownloadPDF}
+                                            disabled={isDownloadingPDF}
+                                        >
+                                            {isDownloadingPDF ? (
+                                                <Loader2 size={16} className="spinner" />
+                                            ) : (
+                                                <Download size={16} />
+                                            )}
+                                            {isDownloadingPDF ? t('reports.downloading') : t('reports.downloadPDF')}
                                         </button>
                                     )}
 
@@ -389,6 +538,17 @@ export function ReportsPage() {
                 isLoading={isExportingReports}
             />
 
+            {/* Edit Modal */}
+            <ExportReportModal
+                isOpen={showEditModal}
+                onClose={handleEditModalClose}
+                onExport={handleExportSubmit}
+                report={clientReport}
+                session={session}
+                isLoading={isExportingReports}
+                initialEditMode={true}
+            />
+
             {/* Original Transcript Modal */}
             <OriginalTranscriptModal
                 isOpen={showTranscriptModal}
@@ -396,6 +556,23 @@ export function ReportsPage() {
                 transcript={session?.transcription_text}
                 session={session}
             />
+
+            {/* Hidden PDF Content for Download */}
+            {clientReport && clientReport.status === 'approved' && (
+                <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
+                    <PDFContent 
+                        ref={pdfContentRef}
+                        report={clientReport}
+                        session={session}
+                        logoUrl="/logo-full.svg"
+                        translateCategory={translateCategory}
+                        translateOwner={translateOwner}
+                        translateStatus={translateStatus}
+                        t={t}
+                        i18n={i18n}
+                    />
+                </div>
+            )}
         </div>
     );
 }
@@ -1361,3 +1538,177 @@ function AdvisorReportDisplay({ report }) {
         </div>
     );
 }
+
+// PDF Content Component for Download
+const PDFContent = React.forwardRef(({ report, session, logoUrl, translateCategory, translateOwner, translateStatus, t, i18n }, ref) => {
+    if (!report?.content) return null;
+
+    let content;
+    try {
+        content = typeof report.content === 'string' ? JSON.parse(report.content) : report.content;
+    } catch (error) {
+        console.error('Error parsing report content:', error);
+        return null;
+    }
+
+    const isRTL = i18n?.language === 'he';
+
+    return (
+        <div ref={ref} style={{
+            pageBreakInside: 'auto',
+            orphans: 3,
+            widows: 3,
+            fontFamily: 'Arial, sans-serif',
+            fontSize: '14px',
+            lineHeight: '1.6',
+            color: '#000000',
+            backgroundColor: '#ffffff',
+            padding: '20px',
+            width: '210mm',
+            minHeight: '297mm'
+        }}>
+            {/* Professional Header */}
+            <div style={{marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '2px solid #000000', direction: isRTL ? 'rtl' : 'ltr'}}>
+                <div style={{display: 'table', width: '100%', tableLayout: 'fixed'}}>
+                    {isRTL ? (
+                        // Hebrew layout: Text on right, logo on left
+                        <>
+                            <div style={{display: 'table-cell', verticalAlign: 'top', width: '30%', textAlign: 'left', paddingRight: '2rem'}}>
+                                <img src={logoUrl} alt="MATI" className="mati-logo" style={{height: '80px', width: 'auto', maxWidth: '100%', display: 'block'}} />
+                            </div>
+                            <div style={{display: 'table-cell', verticalAlign: 'top', width: '70%', textAlign: 'right'}}>
+                                <h1 style={{fontSize: '1.8rem', fontWeight: '700', color: '#000000', marginBottom: '0.5rem', lineHeight: '1.2'}}>{t('reports.clientReport')}</h1>
+                                {session?.client?.name && (
+                                    <h2 style={{fontSize: '1.3rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', lineHeight: '1.3'}}>{session.client.name}</h2>
+                                )}
+                                <div>
+                                    <div style={{display: 'block', marginBottom: '0.4rem', lineHeight: '1.4'}}>
+                                        <span style={{color: '#000000', fontWeight: '400', display: 'inline', marginRight: '0.5rem'}}>{new Date(session?.created_at).toLocaleDateString()}</span>
+                                        <span style={{fontWeight: '600', color: '#000000', display: 'inline'}}> :{t('reports.date')}</span>
+                                    </div>
+                                    <div style={{display: 'block', marginBottom: '0.4rem', lineHeight: '1.4'}}>
+                                        <span style={{color: '#000000', fontWeight: '400', display: 'inline', marginRight: '0.5rem'}}>{session?.adviser?.name}</span>
+                                        <span style={{fontWeight: '600', color: '#000000', display: 'inline'}}> :{t('reports.adviser')}</span>
+                                    </div>
+                                    {session?.adviser?.email && (
+                                        <div style={{display: 'block', marginBottom: '0.4rem', lineHeight: '1.4'}}>
+                                            <span style={{color: '#000000', fontWeight: '400', display: 'inline', marginRight: '0.5rem'}}>{session.adviser.email}</span>
+                                            <span style={{fontWeight: '600', color: '#000000', display: 'inline'}}> :{t('common.email')}</span>
+                                        </div>
+                                    )}
+                                    {session?.adviser?.phone && (
+                                        <div style={{display: 'block', marginBottom: '0.4rem', lineHeight: '1.4'}}>
+                                            <span style={{color: '#000000', fontWeight: '400', display: 'inline', marginRight: '0.5rem'}}>{session.adviser.phone}</span>
+                                            <span style={{fontWeight: '600', color: '#000000', display: 'inline'}}> :{t('common.phone')}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </>
+                    ) : (
+                        // English layout: Text on left, logo on right
+                        <>
+                            <div style={{display: 'table-cell', verticalAlign: 'top', width: '70%', paddingRight: '2rem'}}>
+                                <h1 style={{fontSize: '1.8rem', fontWeight: '700', color: '#000000', marginBottom: '0.5rem', lineHeight: '1.2'}}>{t('reports.clientReport')}</h1>
+                                {session?.client?.name && (
+                                    <h2 style={{fontSize: '1.3rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', lineHeight: '1.3'}}>{session.client.name}</h2>
+                                )}
+                                <div>
+                                    <div style={{display: 'block', marginBottom: '0.4rem', lineHeight: '1.4'}}>
+                                        <span style={{fontWeight: '600', color: '#000000', display: 'inline'}}>{t('reports.date')}: </span>
+                                        <span style={{color: '#000000', fontWeight: '400', display: 'inline', marginLeft: '0.5rem'}}>{new Date(session?.created_at).toLocaleDateString()}</span>
+                                    </div>
+                                    <div style={{display: 'block', marginBottom: '0.4rem', lineHeight: '1.4'}}>
+                                        <span style={{fontWeight: '600', color: '#000000', display: 'inline'}}>{t('reports.adviser')}: </span>
+                                        <span style={{color: '#000000', fontWeight: '400', display: 'inline', marginLeft: '0.5rem'}}>{session?.adviser?.name}</span>
+                                    </div>
+                                    {session?.adviser?.email && (
+                                        <div style={{display: 'block', marginBottom: '0.4rem', lineHeight: '1.4'}}>
+                                            <span style={{fontWeight: '600', color: '#000000', display: 'inline'}}>{t('common.email')}: </span>
+                                            <span style={{color: '#000000', fontWeight: '400', display: 'inline', marginLeft: '0.5rem'}}>{session.adviser.email}</span>
+                                        </div>
+                                    )}
+                                    {session?.adviser?.phone && (
+                                        <div style={{display: 'block', marginBottom: '0.4rem', lineHeight: '1.4'}}>
+                                            <span style={{fontWeight: '600', color: '#000000', display: 'inline'}}>{t('common.phone')}: </span>
+                                            <span style={{color: '#000000', fontWeight: '400', display: 'inline', marginLeft: '0.5rem'}}>{session.adviser.phone}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            <div style={{display: 'table-cell', verticalAlign: 'top', width: '30%', textAlign: 'right'}}>
+                                <img src={logoUrl} alt="MATI" className="mati-logo" style={{height: '80px', width: 'auto', maxWidth: '100%', display: 'block'}} />
+                            </div>
+                        </>
+                    )}
+                </div>
+            </div>
+            
+            <div>
+                {/* General Summary */}
+                {content?.general_summary && (
+                    <div style={{marginBottom: '2rem'}}>
+                        <h5 style={{fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000', pageBreakAfter: 'avoid'}}>{t('reports.generalSummary')}</h5>
+                        <p style={{pageBreakInside: 'avoid', lineHeight: '1.6'}}>{content.general_summary}</p>
+                    </div>
+                )}
+
+                {/* Key Insights */}
+                {content?.key_insights && Array.isArray(content.key_insights) && content.key_insights.length > 0 && (
+                    <div style={{marginBottom: '2rem'}}>
+                        <h5 style={{fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000', pageBreakAfter: 'avoid'}}>{t('reports.keyInsights')}</h5>
+                        {content.key_insights.map((insight, index) => (
+                            <div key={index} style={{pageBreakInside: 'avoid', marginBottom: '1rem'}}>
+                                <div style={{marginBottom: '0.5rem'}}>
+                                    <strong>{translateCategory(insight.category)}</strong>
+                                </div>
+                                <div style={{marginBottom: '0.5rem'}}>
+                                    <p style={{pageBreakInside: 'avoid', lineHeight: '1.6'}}>{insight.content}</p>
+                                </div>
+                                {insight.supporting_quotes && insight.supporting_quotes.filter(quote => quote && quote.trim()).length > 0 && (
+                                    <div style={{pageBreakInside: 'avoid'}}>
+                                        <strong>{t('reports.supportingQuotes')}:</strong>
+                                        <ul style={{marginTop: '0.5rem'}}>
+                                            {insight.supporting_quotes.filter(quote => quote && quote.trim()).map((quote, qIndex) => (
+                                                <li key={qIndex} style={{pageBreakInside: 'avoid', marginBottom: '0.25rem'}}>"{quote}"</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* Action Items */}
+                {content?.action_items && Array.isArray(content.action_items) && content.action_items.length > 0 && (
+                    <div style={{marginBottom: '2rem'}}>
+                        <h5 style={{fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000', pageBreakAfter: 'avoid'}}>{t('reports.actionItems')}</h5>
+                        {content.action_items.map((item, index) => (
+                            <div key={index} style={{pageBreakInside: 'avoid', marginBottom: '1rem'}}>
+                                <div style={{marginBottom: '0.5rem'}}>
+                                    <strong>{item.task}</strong>
+                                </div>
+                                <div style={{paddingLeft: '1rem'}}>
+                                    <div style={{marginBottom: '0.25rem'}}>{t('reports.owner')}: {translateOwner(item.owner)}</div>
+                                    {item.deadline && (
+                                        <div style={{marginBottom: '0.25rem'}}>{t('reports.deadline')}: {item.deadline}</div>
+                                    )}
+                                    <div>{t('reports.status')}: {translateStatus(item.status)}</div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* Target Summary */}
+                {content?.target_summary && (
+                    <div style={{marginBottom: '2rem'}}>
+                        <h5 style={{fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000', pageBreakAfter: 'avoid'}}>{t('reports.targetSummary')}</h5>
+                        <p style={{pageBreakInside: 'avoid', lineHeight: '1.6'}}>{content.target_summary}</p>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+});

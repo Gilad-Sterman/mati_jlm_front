@@ -72,7 +72,6 @@ export function UploadPage() {
     const [selectedFile, setSelectedFile] = useState(null);
     const [dragActive, setDragActive] = useState(false);
     const [selectedClientId, setSelectedClientId] = useState('');
-    const [sessionTitle, setSessionTitle] = useState('');
     const [clientMode, setClientMode] = useState('existing'); // 'existing' or 'new'
     const [newClient, setNewClient] = useState({
         name: '',
@@ -123,7 +122,6 @@ export function UploadPage() {
         if (uiState === 'upload' && uploadStatus === null) {
             setSelectedFile(null);
             setSelectedClientId('');
-            setSessionTitle('');
             setClientMode('existing');
             setNewClient({ name: '', email: '', phone: '', business_domain: '', business_number: '' });
             setValidationErrors({}); // Clear validation errors
@@ -304,10 +302,35 @@ export function UploadPage() {
             }
         }
 
+        // Generate auto title based on client and adviser names (first names only)
+        const generateSessionTitle = () => {
+            const currentDate = new Date().toLocaleDateString();
+            let clientName = '';
+            let adviserName = user?.name || '';
+
+            if (clientMode === 'existing') {
+                const selectedClient = clients.find(c => c.id === selectedClientId);
+                clientName = selectedClient?.name || '';
+            } else {
+                clientName = newClient.name.trim();
+            }
+
+            // Extract first names only to keep titles shorter
+            const getFirstName = (fullName) => {
+                return fullName.split(' ')[0] || fullName;
+            };
+
+            const clientFirstName = getFirstName(clientName);
+            const adviserFirstName = getFirstName(adviserName);
+
+            // Format: "Session {date} - {clientFirstName} & {adviserFirstName}"
+            return `${t('upload.sessionPrefix')} ${currentDate} - ${clientFirstName} & ${adviserFirstName}`;
+        };
+
         // Prepare session data object (not FormData)
         const sessionData = {
             file: selectedFile,
-            title: sessionTitle.trim() || undefined,
+            title: generateSessionTitle(),
         };
 
         if (clientMode === 'existing') {
@@ -326,8 +349,10 @@ export function UploadPage() {
         dispatch(handleUploadStarted({
             // sessionId: 'temp-' + Date.now(), // Temporary ID until real one comes from backend
             fileName: selectedFile.name,
+            fileSize: selectedFile.size, // Add file size for time estimates
             message: 'Preparing upload...'
         }));
+
 
         try {
             await dispatch(createSession(sessionData)).unwrap();
@@ -357,6 +382,7 @@ export function UploadPage() {
                         fileName={currentUploadSession?.fileName}
                         fileUrl={currentUploadSession?.fileUrl}
                         duration={currentUploadSession?.duration}
+                        fileSize={currentUploadSession?.fileSize}
                         stage="uploading"
                         message={uploadMessage}
                         uploadProgress={uploadProgress}
@@ -372,6 +398,7 @@ export function UploadPage() {
                         fileName={currentUploadSession?.fileName}
                         fileUrl={currentUploadSession?.fileUrl}
                         duration={currentUploadSession?.duration}
+                        fileSize={currentUploadSession?.fileSize}
                         stage="transcribing"
                         message={processingMessage}
                         uploadProgress={uploadProgress}
@@ -387,6 +414,7 @@ export function UploadPage() {
                         fileName={currentUploadSession?.fileName}
                         fileUrl={currentUploadSession?.fileUrl}
                         duration={currentUploadSession?.duration}
+                        fileSize={currentUploadSession?.fileSize}
                         stage="generating_report"
                         message={processingMessage}
                         uploadProgress={uploadProgress}
@@ -612,6 +640,7 @@ export function UploadPage() {
                         fileName={currentUploadSession?.fileName}
                         fileUrl={currentUploadSession?.fileUrl}
                         duration={currentUploadSession?.duration}
+                        fileSize={currentUploadSession?.fileSize}
                         stage={processingStage}
                         message={processingMessage}
                         uploadProgress={uploadProgress}
@@ -697,18 +726,6 @@ export function UploadPage() {
                         <div className="upload-form">
                             <h2>{t('upload.sessionDetails')}</h2>
 
-                            {/* Session Title */}
-                            <div className="form-group">
-                                <label htmlFor="sessionTitle">{t('upload.sessionTitle')}</label>
-                                <input
-                                    type="text"
-                                    id="sessionTitle"
-                                    value={sessionTitle}
-                                    onChange={(e) => setSessionTitle(e.target.value)}
-                                    placeholder={t('upload.sessionTitlePlaceholder')}
-                                    disabled={isUploading}
-                                />
-                            </div>
 
                             {/* Client Selection Mode */}
                             <div className="form-group">
