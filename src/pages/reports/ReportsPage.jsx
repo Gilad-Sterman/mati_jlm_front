@@ -469,7 +469,7 @@ export function ReportsPage() {
                                     <p>{t('reports.regeneratingReport')}</p>
                                 </div>
                             ) : clientReport ? (
-                                <ClientReportDisplay report={clientReport} />
+                                <ClientReportDisplay report={clientReport} translateOwner={translateOwner} />
                             ) : (
                                 <div className="no-report">
                                     <FileText size={48} />
@@ -743,7 +743,7 @@ function renderInsightsByCategory(insights, t) {
 }
 
 // Client Report Display Component
-function ClientReportDisplay({ report }) {
+function ClientReportDisplay({ report, translateOwner }) {
     const { t } = useTranslation();
     const [allExpanded, setAllExpanded] = useState(true); // Default to expanded since sections default to open
 
