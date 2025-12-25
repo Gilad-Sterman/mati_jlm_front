@@ -814,7 +814,7 @@ function ClientReportDisplay({ report }) {
                                                 <div className="action-detail">
                                                     <Users size={16} />
                                                     <span className="detail-label">{t('reports.owner')}:</span>
-                                                    <span className="detail-value">{t(`reports.${item.owner}`) || t('reports.notSpecified')}</span>
+                                                    <span className="detail-value">{translateOwner(item.owner) || t('reports.notSpecified')}</span>
                                                 </div>
                                             </div>
                                             <div className="action-detail-row">
