@@ -425,7 +425,8 @@ const sessionSlice = createSlice({
 
       // Only update UI state if this is the active session
       if (state.activeSessionId === sessionId) {
-        state.chunkingProgress.completedChunks += 1;
+        // Set completedChunks to chunkIndex (same reliable source as currentChunk)
+        state.chunkingProgress.completedChunks = chunkIndex;
         state.chunkingProgress.progress = progress;
         state.chunkingProgress.message = message || `Completed chunk ${chunkIndex} of ${totalChunks}`;
       }
