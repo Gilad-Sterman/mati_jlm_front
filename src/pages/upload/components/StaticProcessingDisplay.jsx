@@ -176,7 +176,7 @@ export function StaticProcessingDisplay({
                 margin: 0
               }}>
                 {typeof totalEstimate === 'object' 
-                  ? t('upload.timeEstimate.totalRange', { 
+                  ? t('upload.timeEstimate.minuteRange', { 
                       min: totalEstimate.min, 
                       max: totalEstimate.max 
                     })
