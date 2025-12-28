@@ -503,7 +503,7 @@ const sessionSlice = createSlice({
         state.uploadStatus = null;
         state.uploadMessage = '';
         state.currentUploadSession = null;
-        state.error = action.payload?.message || action.error?.message || 'Upload failed';
+        state.error = action.payload || action.error?.message || 'Upload failed';
       })
       .addCase(fetchSessions.pending, (state) => {
         state.isLoading = true;

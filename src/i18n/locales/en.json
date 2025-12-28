@@ -515,6 +515,8 @@
         "deliveryDescription": "The report will be sent as a PDF attachment to the client's email address.",
         "clientEmail": "Client Email",
         "downloadPDF": "Download PDF",
+        "downloadAdvisorPDF": "Download Advisor PDF",
+        "viewPDF": "View PDF",
         "downloading": "Downloading...",
         "exporting": "Exporting...",
         "pdfDownloadError": "Failed to download PDF. Please try again.",

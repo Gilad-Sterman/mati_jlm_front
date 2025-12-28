@@ -243,7 +243,15 @@
       }
 
 
-      .export-pdf-button {
+      .advisor-report-actions {
+        display: flex;
+        align-items: center;
+        gap: $spacing-sm;
+        margin-top: $spacing-md;
+      }
+
+      .export-pdf-button,
+      .download-advisor-pdf-button {
         display: flex;
         align-items: center;
         gap: $spacing-sm;

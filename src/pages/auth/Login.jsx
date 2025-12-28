@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Eye, EyeOff } from 'lucide-react';
 import { loginUser, clearError, selectAuth } from '../../store/authSlice';
 import authService from '../../services/authService';
 
@@ -20,6 +21,7 @@ export function Login() {
         password: ''
     });
     const [formErrors, setFormErrors] = useState({});
+    const [showPassword, setShowPassword] = useState(false);
 
     // Track if this is the initial render to avoid navigation on mount
     const [hasAttemptedLogin, setHasAttemptedLogin] = useState(false);
@@ -160,17 +162,28 @@ export function Login() {
 
                     <div className="form-group">
                         <label htmlFor="password">{t('login.password')}</label>
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleInputChange}
-                            onKeyPress={handleKeyPress}
-                            placeholder={t('login.passwordPlaceholder')}
-                            className={formErrors.password ? 'error' : ''}
-                            disabled={isLoading}
-                        />
+                        <div className="password-input-container">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                id="password"
+                                name="password"
+                                value={formData.password}
+                                onChange={handleInputChange}
+                                onKeyPress={handleKeyPress}
+                                placeholder={t('login.passwordPlaceholder')}
+                                className={formErrors.password ? 'error' : ''}
+                                disabled={isLoading}
+                            />
+                            <button
+                                type="button"
+                                className="password-toggle"
+                                onClick={() => setShowPassword(!showPassword)}
+                                disabled={isLoading}
+                                aria-label={showPassword ? "Hide password" : "Show password"}
+                            >
+                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
+                        </div>
                         {formErrors.password && (
                             <span className="error-message">{formErrors.password}</span>
                         )}

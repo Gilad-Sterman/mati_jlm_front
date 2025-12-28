@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { ArrowLeft, FileText, User, Calendar, Clock, ChevronDown, ChevronUp, RefreshCw, BookOpenText, FileWarning, FileCheck, FileQuestion, Flag, ArrowDown, Download, RotateCcw, Loader2, AlertCircle, Building2, CheckCircle, AlertTriangle, Users, ArrowRight, Edit3 } from 'lucide-react';
+import { ArrowLeft, FileText, User, Calendar, Clock, ChevronDown, ChevronUp, RefreshCw, BookOpenText, FileWarning, FileCheck, FileQuestion, Flag, ArrowDown, Download, RotateCcw, Loader2, AlertCircle, Building2, CheckCircle, AlertTriangle, Users, ArrowRight, Edit3, ExternalLink } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
 import {
     fetchReportsForSession,
@@ -35,6 +35,7 @@ export function ReportsPage() {
     const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
     const [pdfLogoUrl, setPdfLogoUrl] = useState('/logo-full.svg');
     const pdfContentRef = useRef(null);
+    const advisorPdfContentRef = useRef(null);
 
     // Socket connection for regeneration events
     const { socketConnected, socketService } = useAppSocket();
@@ -220,6 +221,9 @@ export function ReportsPage() {
             // Close modal and show success
             setShowExportModal(false);
 
+            // Refetch session data to get updated file_url
+            dispatch(fetchSessionById(sessionId));
+
             // TODO: Show success notification/toast
             alert('Report exported successfully! Session marked as completed.');
 
@@ -319,6 +323,39 @@ export function ReportsPage() {
             // Restore original logo on error too
             const logoImg = pdfContentRef.current?.querySelector('.mati-logo');
             if (logoImg) logoImg.src = '/logo-full.svg';
+        } finally {
+            setIsDownloadingPDF(false);
+        }
+    };
+
+    const handleDownloadAdvisorPDF = async (advisorReport) => {
+        if (isDownloadingPDF || !advisorPdfContentRef.current || !advisorReport) return;
+        
+        try {
+            setIsDownloadingPDF(true);
+            
+            const element = advisorPdfContentRef.current;
+            const clientName = session?.client?.name || 'Client';
+            const sessionDate = new Date(session?.created_at).toLocaleDateString().replace(/\//g, '-');
+            const filename = `${clientName}_Advisor_Report_${sessionDate}.pdf`;
+            
+            const opt = {
+                margin: 0.5,
+                filename: filename,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true
+                },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+            
+            await html2pdf().set(opt).from(element).save();
+            
+        } catch (error) {
+            console.error('Error generating advisor PDF:', error);
+            alert(t('reports.pdfDownloadError') || 'Failed to download PDF. Please try again.');
         } finally {
             setIsDownloadingPDF(false);
         }
@@ -429,19 +466,30 @@ export function ReportsPage() {
                                     )}
 
                                     {clientReport && clientReport.status === 'approved' && (
-                                        <button
-                                            className="download-pdf-button"
-                                            title={t('reports.downloadPDF')}
-                                            onClick={handleDownloadPDF}
-                                            disabled={isDownloadingPDF}
-                                        >
-                                            {isDownloadingPDF ? (
-                                                <Loader2 size={16} className="spinner" />
-                                            ) : (
-                                                <Download size={16} />
-                                            )}
-                                            {isDownloadingPDF ? t('reports.downloading') : t('reports.downloadPDF')}
-                                        </button>
+                                        session?.file_url ? (
+                                            <button
+                                                className="view-pdf-button"
+                                                title={t('reports.viewPDF')}
+                                                onClick={() => window.open(session.file_url, '_blank')}
+                                            >
+                                                <ExternalLink size={16} />
+                                                {t('reports.viewPDF')}
+                                            </button>
+                                        ) : (
+                                            <button
+                                                className="download-pdf-button"
+                                                title={t('reports.downloadPDF')}
+                                                onClick={handleDownloadPDF}
+                                                disabled={isDownloadingPDF}
+                                            >
+                                                {isDownloadingPDF ? (
+                                                    <Loader2 size={16} className="spinner" />
+                                                ) : (
+                                                    <Download size={16} />
+                                                )}
+                                                {isDownloadingPDF ? t('reports.downloading') : t('reports.downloadPDF')}
+                                            </button>
+                                        )
                                     )}
 
                                     {clientReport && clientReport.status !== 'approved' && (
@@ -495,16 +543,33 @@ export function ReportsPage() {
                                         </div>
                                     </div>
                                 </div>
-                                {session?.transcription_text && (
-                                    <button
-                                        className="view-transcript-button"
-                                        onClick={handleViewTranscriptClick}
-                                        title={t('reports.viewOriginalTranscript')}
-                                    >
-                                        <FileText size={16} />
-                                        {t('reports.viewOriginalTranscript')}
-                                    </button>
-                                )}
+                                <div className="advisor-report-actions">
+                                    {session?.transcription_text && (
+                                        <button
+                                            className="view-transcript-button"
+                                            onClick={handleViewTranscriptClick}
+                                            title={t('reports.viewOriginalTranscript')}
+                                        >
+                                            <FileText size={16} />
+                                            {t('reports.viewOriginalTranscript')}
+                                        </button>
+                                    )}
+                                    {advisorReport && (
+                                        <button
+                                            className="download-advisor-pdf-button"
+                                            onClick={() => handleDownloadAdvisorPDF(advisorReport)}
+                                            title={t('reports.downloadAdvisorPDF')}
+                                            disabled={isDownloadingPDF}
+                                        >
+                                            {isDownloadingPDF ? (
+                                                <Loader2 size={16} className="spinner" />
+                                            ) : (
+                                                <Download size={16} />
+                                            )}
+                                            {isDownloadingPDF ? t('reports.downloading') : t('reports.downloadAdvisorPDF')}
+                                        </button>
+                                    )}
+                                </div>
                             </div>
 
                             {advisorReport ? (
@@ -568,6 +633,19 @@ export function ReportsPage() {
                         translateCategory={translateCategory}
                         translateOwner={translateOwner}
                         translateStatus={translateStatus}
+                        t={t}
+                        i18n={i18n}
+                    />
+                </div>
+            )}
+
+            {/* Hidden Advisor PDF Content for Download */}
+            {advisorReport && (
+                <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
+                    <AdvisorPDFContent 
+                        ref={advisorPdfContentRef}
+                        report={advisorReport}
+                        session={session}
                         t={t}
                         i18n={i18n}
                     />
@@ -1708,6 +1786,206 @@ const PDFContent = React.forwardRef(({ report, session, logoUrl, translateCatego
                         <p style={{pageBreakInside: 'avoid', lineHeight: '1.6'}}>{content.target_summary}</p>
                     </div>
                 )}
+            </div>
+        </div>
+    );
+});
+
+// Advisor PDF Content Component for Download
+const AdvisorPDFContent = React.forwardRef(({ report, session, t, i18n }, ref) => {
+    if (!report?.content) return null;
+
+    let content;
+    try {
+        content = typeof report.content === 'string' ? JSON.parse(report.content) : report.content;
+    } catch (error) {
+        console.error('Error parsing advisor report content:', error);
+        return null;
+    }
+
+    const isHebrew = i18n?.language === 'he';
+
+    // Translation helper for section titles
+    const getSectionTitle = (key) => {
+        const titles = {
+            advisorReport: isHebrew ? 'דוח יועץ' : 'Advisor Report',
+            internalUse: isHebrew ? 'לשימוש פנימי בלבד' : 'Internal Use Only',
+            date: isHebrew ? 'תאריך' : 'Date',
+            advisor: isHebrew ? 'יועץ' : 'Advisor',
+            session: isHebrew ? 'פגישה' : 'Session',
+            clientReadinessScore: isHebrew ? 'ציון מוכנות לקוח' : 'Client Readiness Score',
+            advisorPerformance: isHebrew ? 'ביצועי יועץ' : 'Advisor Performance',
+            listening: isHebrew ? 'הקשבה' : 'Listening',
+            clarity: isHebrew ? 'בהירות' : 'Clarity',
+            continuation: isHebrew ? 'המשכיות' : 'Continuation',
+            topicsDiscussed: isHebrew ? 'נושאים שנדונו' : 'Topics Discussed',
+            strengthsToPreserve: isHebrew ? 'חוזקות לשמר' : 'Strengths to Preserve',
+            areasForImprovement: isHebrew ? 'תחומים לשיפור' : 'Areas for Improvement',
+            generatedOn: isHebrew ? 'נוצר ב' : 'Generated on',
+            confidential: isHebrew ? 'מסמך פנימי סודי' : 'Confidential Internal Document'
+        };
+        return titles[key] || key;
+    };
+
+    return (
+        <div ref={ref} style={{
+            fontFamily: 'Arial, sans-serif',
+            fontSize: '12px',
+            lineHeight: '1.4',
+            color: '#000000',
+            backgroundColor: '#ffffff',
+            padding: '15px',
+            maxWidth: '100%',
+            direction: isHebrew ? 'rtl' : 'ltr',
+            textAlign: isHebrew ? 'right' : 'left'
+        }}>
+            {/* Simple Header */}
+            <div style={{marginBottom: '20px', paddingBottom: '10px', borderBottom: '1px solid #000000'}}>
+                <h1 style={{fontSize: '18px', fontWeight: 'bold', color: '#000000', margin: '0 0 5px 0'}}>
+                    {getSectionTitle('advisorReport')}
+                </h1>
+                <p style={{fontSize: '10px', color: '#666666', margin: '0 0 10px 0'}}>
+                    {getSectionTitle('internalUse')}
+                </p>
+                
+                <div style={{fontSize: '11px', lineHeight: '1.3'}}>
+                    <div style={{marginBottom: '3px'}}>
+                        <strong>{getSectionTitle('date')}:</strong> {new Date(session?.created_at).toLocaleDateString()}
+                    </div>
+                    <div style={{marginBottom: '3px'}}>
+                        <strong>{getSectionTitle('advisor')}:</strong> {session?.adviser?.name || 'N/A'}
+                    </div>
+                    <div style={{marginBottom: '3px'}}>
+                        <strong>{getSectionTitle('session')}:</strong> {session?.title || 'N/A'}
+                    </div>
+                    {session?.client?.name && (
+                        <div style={{marginBottom: '3px'}}>
+                            <strong>Client:</strong> {session.client.name}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Client Readiness Score */}
+            {content.client_readiness_score && (
+                <div style={{marginBottom: '15px'}}>
+                    <h2 style={{fontSize: '14px', fontWeight: 'bold', color: '#000000', marginBottom: '5px', borderBottom: '1px solid #cccccc', paddingBottom: '2px'}}>
+                        {getSectionTitle('clientReadinessScore')}
+                    </h2>
+                    <div style={{fontSize: '16px', fontWeight: 'bold', color: '#000000', marginBottom: '5px'}}>
+                        {content.client_readiness_score}/100
+                    </div>
+                </div>
+            )}
+
+            {/* Advisor Performance */}
+            {content.listening?.score && (
+                <div style={{marginBottom: '15px'}}>
+                    <h2 style={{fontSize: '14px', fontWeight: 'bold', color: '#000000', marginBottom: '5px', borderBottom: '1px solid #cccccc', paddingBottom: '2px'}}>
+                        {getSectionTitle('advisorPerformance')}
+                    </h2>
+                    
+                    <div style={{marginBottom: '8px'}}>
+                        <div style={{fontWeight: 'bold', marginBottom: '2px', fontSize: '12px'}}>
+                            {getSectionTitle('listening')}: {content.listening.score}/5
+                        </div>
+                        {content.listening.feedback && (
+                            <div style={{marginLeft: '10px', color: '#666666', fontSize: '11px', marginBottom: '5px'}}>
+                                {content.listening.feedback}
+                            </div>
+                        )}
+                    </div>
+
+                    {content.clarity?.score && (
+                        <div style={{marginBottom: '8px'}}>
+                            <div style={{fontWeight: 'bold', marginBottom: '2px', fontSize: '12px'}}>
+                                {getSectionTitle('clarity')}: {content.clarity.score}/5
+                            </div>
+                            {content.clarity.feedback && (
+                                <div style={{marginLeft: '10px', color: '#666666', fontSize: '11px', marginBottom: '5px'}}>
+                                    {content.clarity.feedback}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {content.continuation?.score && (
+                        <div style={{marginBottom: '8px'}}>
+                            <div style={{fontWeight: 'bold', marginBottom: '2px', fontSize: '12px'}}>
+                                {getSectionTitle('continuation')}: {content.continuation.score}/5
+                            </div>
+                            {content.continuation.feedback && (
+                                <div style={{marginLeft: '10px', color: '#666666', fontSize: '11px', marginBottom: '5px'}}>
+                                    {content.continuation.feedback}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Topics Covered */}
+            {content.topics && Array.isArray(content.topics) && content.topics.length > 0 && (
+                <div style={{marginBottom: '15px'}}>
+                    <h2 style={{fontSize: '14px', fontWeight: 'bold', color: '#000000', marginBottom: '5px', borderBottom: '1px solid #cccccc', paddingBottom: '2px'}}>
+                        {getSectionTitle('topicsDiscussed')}
+                    </h2>
+                    {content.topics.map((topic, index) => (
+                        <div key={index} style={{marginBottom: '8px', paddingLeft: '10px', borderLeft: '2px solid #e5e7eb'}}>
+                            <div style={{fontWeight: 'bold', marginBottom: '2px', fontSize: '12px'}}>
+                                {topic.topic} ({topic.time_percentage}%)
+                            </div>
+                            {topic.sub_topics && topic.sub_topics.length > 0 && (
+                                <div style={{fontSize: '11px', color: '#666666'}}>
+                                    {topic.sub_topics.join(', ')}
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Things to Preserve */}
+            {content.things_to_preserve && Array.isArray(content.things_to_preserve) && content.things_to_preserve.length > 0 && (
+                <div style={{marginBottom: '15px'}}>
+                    <h2 style={{fontSize: '14px', fontWeight: 'bold', color: '#000000', marginBottom: '5px', borderBottom: '1px solid #cccccc', paddingBottom: '2px'}}>
+                        {getSectionTitle('strengthsToPreserve')}
+                    </h2>
+                    {content.things_to_preserve.map((item, index) => (
+                        <div key={index} style={{marginBottom: '8px', paddingLeft: '10px', borderLeft: '2px solid #10b981'}}>
+                            <div style={{fontWeight: 'bold', marginBottom: '2px', color: '#059669', fontSize: '12px'}}>
+                                {item.title}
+                            </div>
+                            <div style={{fontSize: '11px', color: '#000000'}}>
+                                {item.description}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Areas for Improvement */}
+            {content.needs_improvement && Array.isArray(content.needs_improvement) && content.needs_improvement.length > 0 && (
+                <div style={{marginBottom: '15px'}}>
+                    <h2 style={{fontSize: '14px', fontWeight: 'bold', color: '#000000', marginBottom: '5px', borderBottom: '1px solid #cccccc', paddingBottom: '2px'}}>
+                        {getSectionTitle('areasForImprovement')}
+                    </h2>
+                    {content.needs_improvement.map((item, index) => (
+                        <div key={index} style={{marginBottom: '8px', paddingLeft: '10px', borderLeft: '2px solid #f59e0b'}}>
+                            <div style={{fontWeight: 'bold', marginBottom: '2px', color: '#d97706', fontSize: '12px'}}>
+                                {item.title}
+                            </div>
+                            <div style={{fontSize: '11px', color: '#000000'}}>
+                                {item.description}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Footer */}
+            <div style={{marginTop: '20px', paddingTop: '10px', borderTop: '1px solid #cccccc', textAlign: 'center', fontSize: '10px', color: '#666666'}}>
+                <div>{getSectionTitle('generatedOn')} {new Date().toLocaleDateString()} - {getSectionTitle('confidential')}</div>
             </div>
         </div>
     );

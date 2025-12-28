@@ -168,6 +168,14 @@ export function UploadPage() {
             // Set original file for upload and display file for UI
             setOriginalFile(file);
             setSelectedFile(file);
+
+            // Clear session and client errors when user selects a new file
+            if (sessionError) {
+                dispatch(clearSessionError());
+            }
+            if (clientError) {
+                dispatch(clearClientError());
+            }
             
             // Extract audio duration asynchronously
             const audio = new Audio();
@@ -251,6 +259,14 @@ export function UploadPage() {
             // Clear selected client when switching to new
             setSelectedClientId('');
         }
+
+        // Clear session and client errors when user changes client mode
+        if (sessionError) {
+            dispatch(clearSessionError());
+        }
+        if (clientError) {
+            dispatch(clearClientError());
+        }
     };
 
     const handleNewClientChange = (field, value) => {
@@ -265,6 +281,14 @@ export function UploadPage() {
                 ...prev,
                 [field]: null
             }));
+        }
+
+        // Clear session and client errors when user makes changes
+        if (sessionError) {
+            dispatch(clearSessionError());
+        }
+        if (clientError) {
+            dispatch(clearClientError());
         }
 
         // Validate email field in real-time
@@ -403,8 +427,8 @@ export function UploadPage() {
             // Don't reset form immediately - wait for upload completion via socket events
         } catch (error) {
             console.error('Upload failed:', error);
-            // Reset UI state on error
-            dispatch(resetUploadState());
+            // Don't reset upload state - let the error display to the user
+            // The error is already stored in Redux state by createSession.rejected
         }
     };
 
@@ -787,7 +811,16 @@ export function UploadPage() {
                                     <select
                                         id="clientSelect"
                                         value={selectedClientId}
-                                        onChange={(e) => setSelectedClientId(e.target.value)}
+                                        onChange={(e) => {
+                                            setSelectedClientId(e.target.value);
+                                            // Clear session and client errors when user changes client selection
+                                            if (sessionError) {
+                                                dispatch(clearSessionError());
+                                            }
+                                            if (clientError) {
+                                                dispatch(clearClientError());
+                                            }
+                                        }}
                                         disabled={isUploading}
                                     >
                                         <option value="">{t('upload.chooseClient')}</option>

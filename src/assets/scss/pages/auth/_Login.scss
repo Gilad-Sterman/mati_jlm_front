@@ -121,6 +121,64 @@
                 animation: fadeIn 0.3s ease;
             }
 
+            .password-input-container {
+                position: relative;
+                display: flex;
+                align-items: center;
+
+                input {
+                    padding-right: 50px; // Make room for the eye icon
+                    
+                    [dir="rtl"] & {
+                        padding-right: $spacing-lg;
+                        padding-left: 50px;
+                    }
+                }
+
+                .password-toggle {
+                    position: absolute;
+                    right: $spacing-md;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    color: #6c757d;
+                    padding: $spacing-xs;
+                    border-radius: $border-radius-sm;
+                    transition: all 0.3s ease;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+
+                    [dir="rtl"] & {
+                        right: auto;
+                        left: $spacing-md;
+                    }
+
+                    &:hover:not(:disabled) {
+                        color: $secondary-color;
+                        background-color: rgba($secondary-color, 0.1);
+                    }
+
+                    &:focus {
+                        outline: none;
+                        color: $secondary-color;
+                        background-color: rgba($secondary-color, 0.1);
+                    }
+
+                    &:disabled {
+                        opacity: 0.5;
+                        cursor: not-allowed;
+                    }
+
+                    svg {
+                        width: 20px;
+                        height: 20px;
+                    }
+                }
+            }
+
             .password-requirements {
                 margin-top: $spacing-md;
                 padding: $spacing-md;

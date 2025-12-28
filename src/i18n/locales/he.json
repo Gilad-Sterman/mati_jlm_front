@@ -400,6 +400,8 @@
         "notesForRegeneration": "הערות ליצירה מחדש",
         "notesPlaceholder": "הוסף הוראות ספציפיות או הקשר עבור הבינה המלאכותית לקחת בחשבון בעת יצירת הדוח מחדש...",
         "downloadPDF": "הורדת PDF",
+        "downloadAdvisorPDF": "הורדת PDF ",
+        "viewPDF": "צפייה ב-PDF",
         "downloading": "מוריד...",
         "emailSummary": "שליחת דוח במייל",
         "rawReportContent": "תוכן דוח גולמי",
