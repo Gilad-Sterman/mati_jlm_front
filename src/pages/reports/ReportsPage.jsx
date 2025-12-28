@@ -1202,7 +1202,7 @@ function AdvisorReportDisplay({ report }) {
                         </div>
 
                         {/* Score Breakdown */}
-                        <div className="score-breakdown">
+                        {/* <div className="score-breakdown">
                             <h4>{t('reports.scoreBreakdown')}</h4>
                             <div className="score-breakdown-content entrepreneur">
                                 <ul>
@@ -1220,7 +1220,7 @@ function AdvisorReportDisplay({ report }) {
                                     </li>
                                 </ul>
                             </div>
-                        </div>
+                        </div> */}
                     </CollapsibleSection>
 
                     {/* Section 2: Advisor Quality Metrics */}

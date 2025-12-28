@@ -178,9 +178,11 @@ const sessionSlice = createSlice({
       state.uiState = 'upload';
       state.uploadStatus = null;
       state.uploadMessage = '';
+      state.uploadProgress = 0; // Reset upload progress
       state.currentUploadSession = null;
       state.activeSessionId = null; // Clear active session so socket events don't affect UI
       state.error = null;
+      state.isUploading = false; // Reset uploading flag
 
       // Reset processing state for clean UI
       state.processingStage = null;

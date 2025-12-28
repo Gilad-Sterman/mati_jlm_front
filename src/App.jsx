@@ -16,6 +16,7 @@ import { useAppSocket } from './hooks/useAppSocket'
 import { useTranslation } from 'react-i18next';
 import { SessionsPage } from './pages/sessions/SessionsPage'
 import { ReportsPage } from './pages/reports/ReportsPage'
+import { GlobalNotifications } from './components/GlobalNotifications'
 
 function App() {
   const { t, i18n } = useTranslation();
@@ -116,6 +117,9 @@ function App() {
             </Routes>
           </PageContent>
         </div>
+        
+        {/* Global Notifications - only show when authenticated */}
+        {isAuthenticated && <GlobalNotifications />}
       </div>
     </Router>
   )

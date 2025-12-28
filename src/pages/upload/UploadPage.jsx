@@ -35,7 +35,7 @@ import { useUploadSocket } from '../../hooks/useUploadSocket';
 import { salesforceService } from '../../services/salesforceService';
 
 // Components
-import { AIProcessing } from './components/AIProcessing';
+import { StaticProcessingDisplay } from './components/StaticProcessingDisplay';
 
 
 export function UploadPage() {
@@ -66,10 +66,12 @@ export function UploadPage() {
     const advisorReportGenerated = useSelector(selectAdvisorReportGenerated);
     const currentReport = useSelector(selectCurrentReport);
 
-    // Initialize upload socket
-    useUploadSocket();
+    // Note: useUploadSocket is no longer needed since we use global notifications
+    // useUploadSocket();
     // Local state
     const [selectedFile, setSelectedFile] = useState(null);
+    const [originalFile, setOriginalFile] = useState(null); // Keep original file for upload
+    const [fileDuration, setFileDuration] = useState(null); // Store duration separately
     const [dragActive, setDragActive] = useState(false);
     const [selectedClientId, setSelectedClientId] = useState('');
     const [clientMode, setClientMode] = useState('existing'); // 'existing' or 'new'
@@ -121,6 +123,8 @@ export function UploadPage() {
     useEffect(() => {
         if (uiState === 'upload' && uploadStatus === null) {
             setSelectedFile(null);
+            setOriginalFile(null);
+            setFileDuration(null);
             setSelectedClientId('');
             setClientMode('existing');
             setNewClient({ name: '', email: '', phone: '', business_domain: '', business_number: '' });
@@ -134,9 +138,11 @@ export function UploadPage() {
 
     // File handling
     const handleFileSelect = (files) => {
-        const file = files[0];
-        if (file) {
-            // Validate file type (audio files)
+        if (files && files.length > 0) {
+            const file = files[0];
+            
+
+            // Validate file type
             const allowedTypes = ['audio/mpeg', 'audio/wav', 'audio/mp3', 'audio/m4a', 'audio/mp4', 'audio/x-m4a', 'audio/aac', 'audio/ogg'];
             if (!allowedTypes.includes(file.type)) {
                 alert(t('upload.errors.invalidFileType'));
@@ -158,7 +164,42 @@ export function UploadPage() {
                 return;
             }
 
+            
+            // Set original file for upload and display file for UI
+            setOriginalFile(file);
             setSelectedFile(file);
+            
+            // Extract audio duration asynchronously
+            const audio = new Audio();
+            const fileUrl = URL.createObjectURL(file);
+            
+            const handleLoadedMetadata = () => {
+                const duration = audio.duration;
+                
+                // Store duration separately to avoid FormData issues
+                setFileDuration(duration);
+                
+                // Clean up
+                audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+                audio.removeEventListener('error', handleError);
+                audio.src = '';
+                URL.revokeObjectURL(fileUrl);
+            };
+            
+            const handleError = () => {
+                // Duration extraction failed, but file is already set
+                console.warn('Could not extract audio duration');
+                
+                // Clean up
+                audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+                audio.removeEventListener('error', handleError);
+                audio.src = '';
+                URL.revokeObjectURL(fileUrl);
+            };
+            
+            audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+            audio.addEventListener('error', handleError);
+            audio.src = fileUrl;
         }
     };
 
@@ -192,6 +233,8 @@ export function UploadPage() {
 
     const removeFile = () => {
         setSelectedFile(null);
+        setOriginalFile(null);
+        setFileDuration(null);
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
@@ -329,7 +372,7 @@ export function UploadPage() {
 
         // Prepare session data object (not FormData)
         const sessionData = {
-            file: selectedFile,
+            file: originalFile, // Use original file for upload
             title: generateSessionTitle(),
         };
 
@@ -350,6 +393,7 @@ export function UploadPage() {
             // sessionId: 'temp-' + Date.now(), // Temporary ID until real one comes from backend
             fileName: selectedFile.name,
             fileSize: selectedFile.size, // Add file size for time estimates
+            duration: fileDuration, // Add duration for time estimates
             message: 'Preparing upload...'
         }));
 
@@ -366,61 +410,34 @@ export function UploadPage() {
 
     // Format file size
     const formatFileSize = (bytes) => {
-        if (bytes === 0) return '0 Bytes';
+        if (!bytes || bytes === 0 || isNaN(bytes)) return '0Bytes';
         const k = 1024;
         const sizes = ['Bytes', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + sizes[i];
+    };
+
+    // Format duration
+    const formatDuration = (seconds) => {
+        if (!seconds || isNaN(seconds)) return '';
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
     // Render different UI states
     const renderContent = () => {
         switch (uiState) {
             case 'uploading':
-                return (
-                    <AIProcessing
-                        fileName={currentUploadSession?.fileName}
-                        fileUrl={currentUploadSession?.fileUrl}
-                        duration={currentUploadSession?.duration}
-                        fileSize={currentUploadSession?.fileSize}
-                        stage="uploading"
-                        message={uploadMessage}
-                        uploadProgress={uploadProgress}
-                        uploadComplete={uploadStatus === 'complete'}
-                        transcriptionComplete={transcriptionComplete}
-                        advisorReportGenerated={advisorReportGenerated}
-                    />
-                );
-
             case 'transcribing':
-                return (
-                    <AIProcessing
-                        fileName={currentUploadSession?.fileName}
-                        fileUrl={currentUploadSession?.fileUrl}
-                        duration={currentUploadSession?.duration}
-                        fileSize={currentUploadSession?.fileSize}
-                        stage="transcribing"
-                        message={processingMessage}
-                        uploadProgress={uploadProgress}
-                        uploadComplete={true}
-                        transcriptionComplete={transcriptionComplete}
-                        advisorReportGenerated={advisorReportGenerated}
-                    />
-                );
-
             case 'generating_report':
+            case 'processing':
                 return (
-                    <AIProcessing
+                    <StaticProcessingDisplay
                         fileName={currentUploadSession?.fileName}
                         fileUrl={currentUploadSession?.fileUrl}
-                        duration={currentUploadSession?.duration}
-                        fileSize={currentUploadSession?.fileSize}
-                        stage="generating_report"
-                        message={processingMessage}
-                        uploadProgress={uploadProgress}
-                        uploadComplete={true}
-                        transcriptionComplete={transcriptionComplete}
-                        advisorReportGenerated={advisorReportGenerated}
+                        duration={fileDuration || currentUploadSession?.duration}
+                        fileSize={selectedFile?.size || currentUploadSession?.fileSize}
                     />
                 );
 
@@ -707,7 +724,12 @@ export function UploadPage() {
                                         <FileAudio className="file-icon" />
                                         <div className="file-details">
                                             <h4>{selectedFile.name}</h4>
-                                            <p>{formatFileSize(selectedFile.size)}</p>
+                                            <p>
+                                                {formatFileSize(selectedFile.size)}
+                                                {fileDuration && (
+                                                    <span> • {formatDuration(fileDuration)}</span>
+                                                )}
+                                            </p>
                                         </div>
                                         <button
                                             type="button"

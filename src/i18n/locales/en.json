@@ -21,6 +21,15 @@
             "accountNotActive": "Your account is not active. Please contact an administrator."
         }
     },
+    "notifications": {
+        "clearAll": "Clear All",
+        "processingComplete": "Processing Complete!",
+        "sessionProcessedSuccessfully": "Your session has been processed successfully.",
+        "viewReports": "View Reports",
+        "processingFailed": "Processing Failed",
+        "processingError": "An error occurred during processing.",
+        "tryAgain": "Try Again"
+    },
     "register": {
         "title": "Register",
         "subtitle": "Create an advisor account",
@@ -141,11 +150,11 @@
         "Generating_advisor_and_client_reports": "Generating reports...",
         "Generating_advisor_report": "Generating reports...",
         "uploadingFile": "Uploading file",
-        "fileUploadedSuccessfully": "File uploaded successfully!",
-        "uploadDescription": "The file is securely stored in the cloud",
+        "uploadPending": "Uploading to cloud storage...",
+        "uploadDescription": "Securely uploading your file to cloud storage",
         "aiProcessingInProgress": "AI processing in progress, this may take a few minutes",
         "aiTranscription": "AI Transcription & Processing",
-        "transcriptionDescription": "Converting audio to text using advanced AI",
+        "transcriptionDescription": "Converting your audio to text using AI",
         "reportGeneration": "Report Generation",
         "reportDescription": "Creating customized reports for the advisor and entrepreneur",
         "transcriptionComplete": "Transcription completed successfully",
@@ -175,6 +184,9 @@
         "duration": "Duration",
         "uploadAnother": "Upload another file",
         "backToUpload": "Back to upload",
+        "processingInBackground": "Your file is being processed in the background.",
+        "weWillNotifyYou": "We'll notify you when it's ready!",
+        "notificationDescription": "You can continue using the app while we process your session.",
         "uploadFailed": "Upload failed",
         "tryAgain": "Try again",
         "qualityMetrics": "Advisor Performance",
@@ -185,6 +197,7 @@
         "timeEstimate": {
             "lessThanMinute": "less than a minute",
             "oneMinute": "about 1 minute",
+            "totalMinutes": "Total: {{minutes}} minutes",
             "minutes": "about {{minutes}} minutes",
             "minuteRange": "{{min}}-{{max}} minutes",
             "uploadEstimate": "This step will take {{time}}",

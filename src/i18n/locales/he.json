@@ -21,6 +21,15 @@
             "accountNotActive": "החשבון שלך לא פעיל. אנא פנה למנהל המערכת."
         }
     },
+    "notifications": {
+        "clearAll": "נקה הכל",
+        "processingComplete": "העיבוד הושלם!",
+        "sessionProcessedSuccessfully": "הסשן שלך עובד בהצלחה.",
+        "viewReports": "צפה בדוחות",
+        "processingFailed": "העיבוד נכשל",
+        "processingError": "אירעה שגיאה במהלך העיבוד.",
+        "tryAgain": "נסה שוב"
+    },
     "register": {
         "title": "הרשמה למערכת",
         "subtitle": "צור חשבון יועץ",
@@ -127,6 +136,7 @@
         "failed": "נכשל",
         "waiting": "בתהליך",
         "uploadComplete": "ההעלאה הושלמה!",
+        "uploadPending": "מעלה לאחסון בענן...",
         "retry": "נסה שוב",
         "success": "הפגישה הועלתה בהצלחה!",
         "Preparing_upload": "מכין העלאה...",
@@ -175,6 +185,9 @@
         "duration": "משך זמן",
         "uploadAnother": "העלה קובץ נוסף",
         "backToUpload": "חזור להעלאה",
+        "processingInBackground": "הקובץ שלך מעובד ברקע.",
+        "weWillNotifyYou": "נודיע לך כשהוא יהיה מוכן!",
+        "notificationDescription": "אתה יכול להמשיך להשתמש באפליקציה בזמן שאנחנו מעבדים את הסשן שלך.",
         "uploadFailed": "ההעלאה נכשלה",
         "tryAgain": "נסה שוב",
         "qualityMetrics": "ביצועי יועץ",
@@ -185,6 +198,7 @@
         "timeEstimate": {
             "lessThanMinute": "פחות מדקה",
             "oneMinute": "כדקה",
+            "totalMinutes": "סה״כ: {{minutes}} דקות",
             "minutes": "כ-{{minutes}} דקות",
             "minuteRange": "{{min}}-{{max}} דקות",
             "uploadEstimate": "שלב זה ייקח {{time}}",
