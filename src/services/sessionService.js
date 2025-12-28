@@ -48,11 +48,15 @@ export const sessionService = {
   async createSession(sessionData) {
     const formData = new FormData();
     
-    // Add file
-    formData.append('file', sessionData.file);
-    
-    // Add filename separately to preserve UTF-8 encoding
-    formData.append('fileName', sessionData.file.name);
+    // Add multiple files
+    if (sessionData.files && sessionData.files.length > 0) {
+      sessionData.files.forEach((file, index) => {
+        formData.append('files', file);
+      });
+      
+      // Add primary filename separately to preserve UTF-8 encoding
+      formData.append('fileName', sessionData.files[0].name);
+    }
     
     // Add session fields
     if (sessionData.title) {

@@ -69,9 +69,9 @@ export function UploadPage() {
     // Note: useUploadSocket is no longer needed since we use global notifications
     // useUploadSocket();
     // Local state
-    const [selectedFile, setSelectedFile] = useState(null);
-    const [originalFile, setOriginalFile] = useState(null); // Keep original file for upload
-    const [fileDuration, setFileDuration] = useState(null); // Store duration separately
+    const [selectedFiles, setSelectedFiles] = useState([]);
+    const [originalFiles, setOriginalFiles] = useState([]); // Keep original files for upload
+    const [totalDuration, setTotalDuration] = useState(null); // Store total duration
     const [dragActive, setDragActive] = useState(false);
     const [selectedClientId, setSelectedClientId] = useState('');
     const [clientMode, setClientMode] = useState('existing'); // 'existing' or 'new'
@@ -106,10 +106,10 @@ export function UploadPage() {
     // Restore active session when returning to upload page during processing
     useEffect(() => {
         // If we have a processing UI state but no activeSessionId, restore it
-        if ((uiState === 'uploading' || uiState === 'transcribing' || uiState === 'generating_report' || uiState === 'processing') && 
-            currentUploadSession && 
+        if ((uiState === 'uploading' || uiState === 'transcribing' || uiState === 'generating_report' || uiState === 'processing') &&
+            currentUploadSession &&
             !activeSessionId) {
-            
+
             const sessionId = currentUploadSession.id || currentUploadSession.sessionId;
             if (sessionId) {
                 console.log(`🔄 Restoring active session: ${sessionId}`);
@@ -122,9 +122,9 @@ export function UploadPage() {
     // Reset form when returning to upload state
     useEffect(() => {
         if (uiState === 'upload' && uploadStatus === null) {
-            setSelectedFile(null);
-            setOriginalFile(null);
-            setFileDuration(null);
+            setSelectedFiles([]);
+            setOriginalFiles([]);
+            setTotalDuration(null);
             setSelectedClientId('');
             setClientMode('existing');
             setNewClient({ name: '', email: '', phone: '', business_domain: '', business_number: '' });
@@ -139,77 +139,97 @@ export function UploadPage() {
     // File handling
     const handleFileSelect = (files) => {
         if (files && files.length > 0) {
-            const file = files[0];
-            
+            const fileArray = Array.from(files);
 
-            // Validate file type
+            // Validate file types
             const allowedTypes = ['audio/mpeg', 'audio/wav', 'audio/mp3', 'audio/m4a', 'audio/mp4', 'audio/x-m4a', 'audio/aac', 'audio/ogg'];
-            if (!allowedTypes.includes(file.type)) {
-                alert(t('upload.errors.invalidFileType'));
+            const invalidFiles = fileArray.filter(file => !allowedTypes.includes(file.type));
+
+            if (invalidFiles.length > 0) {
+                alert(t('upload.errors.invalidFileType') + ': ' + invalidFiles.map(f => f.name).join(', '));
                 return;
             }
 
-            // Validate file size (max 50MB)
-            const largeSize = 50 * 1024 * 1024; // 50MB
-            if (file.size > largeSize) {
-                const isSure = confirm(t('upload.errors.fileLargeWarning'));
-                if(!isSure) {
-                    return;
-                }
-            }
-            
-            const maxSize = 100 * 1024 * 1024; // 100MB
-            if (file.size > maxSize) {
-                alert(t('upload.errors.fileTooLarge'));
+            // Combine with existing files (if any) and remove duplicates
+            const existingFiles = selectedFiles || [];
+            const existingFileNames = existingFiles.map(f => f.name);
+            const newFiles = fileArray.filter(file => !existingFileNames.includes(file.name));
+            const combinedFiles = [...existingFiles, ...newFiles];
+
+            // Validate total file size (max 200MB for multiple files)
+            const totalSize = combinedFiles.reduce((sum, file) => sum + file.size, 0);
+            const maxTotalSize = 200 * 1024 * 1024; // 200MB total
+
+            if (totalSize > maxTotalSize) {
+                alert(t('upload.errors.filesTooLarge') || 'Total file size exceeds 200MB limit');
                 return;
             }
 
-            
-            // Set original file for upload and display file for UI
-            setOriginalFile(file);
-            setSelectedFile(file);
+            // Validate individual file size (max 100MB per file)
+            const maxIndividualSize = 100 * 1024 * 1024; // 100MB
+            const oversizedFiles = fileArray.filter(file => file.size > maxIndividualSize);
 
-            // Clear session and client errors when user selects a new file
+            if (oversizedFiles.length > 0) {
+                alert(t('upload.errors.fileTooLarge') + ': ' + oversizedFiles.map(f => f.name).join(', '));
+                return;
+            }
+
+            // Set combined files for upload and display
+            setOriginalFiles(combinedFiles);
+            setSelectedFiles(combinedFiles);
+
+            // Clear session and client errors when user selects new files
             if (sessionError) {
                 dispatch(clearSessionError());
             }
             if (clientError) {
                 dispatch(clearClientError());
             }
-            
-            // Extract audio duration asynchronously
-            const audio = new Audio();
-            const fileUrl = URL.createObjectURL(file);
-            
-            const handleLoadedMetadata = () => {
-                const duration = audio.duration;
-                
-                // Store duration separately to avoid FormData issues
-                setFileDuration(duration);
-                
-                // Clean up
-                audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-                audio.removeEventListener('error', handleError);
-                audio.src = '';
-                URL.revokeObjectURL(fileUrl);
-            };
-            
-            const handleError = () => {
-                // Duration extraction failed, but file is already set
-                console.warn('Could not extract audio duration');
-                
-                // Clean up
-                audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-                audio.removeEventListener('error', handleError);
-                audio.src = '';
-                URL.revokeObjectURL(fileUrl);
-            };
-            
-            audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-            audio.addEventListener('error', handleError);
-            audio.src = fileUrl;
+
+            // Extract total duration from all files asynchronously
+            let totalDuration = 0;
+            let processedFiles = 0;
+
+            const processDuration = (file) => {
+                const audio = new Audio();
+                const fileUrl = URL.createObjectURL(file);
+
+                const handleLoadedMetadata = () => {
+                    totalDuration += audio.duration || 0;
+                    processedFiles++;
+
+                    // Clean up
+                    audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+                    audio.removeEventListener('error', handleError);
+                    audio.src = '';
+                    URL.revokeObjectURL(fileUrl);
+
+                    // If all files processed, set total duration
+                    if (processedFiles === fileArray.length) {
+                        setTotalDuration(totalDuration);
+                    }
+                };
+
+                const handleError = () => {
+                    processedFiles++;
+
+                    // Clean up
+                    audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+                    audio.removeEventListener('error', handleError);
+                    audio.src = '';
+                    URL.revokeObjectURL(fileUrl);
+
+                    // If all files processed, set total duration
+                    if (processedFiles === combinedFiles.length) {
+                        setTotalDuration(totalDuration);
+                    }
+                };
+
+                // Process duration for each file
+                combinedFiles.forEach(processDuration);
+            }
         }
-    };
+    }
 
     const handleDrop = (e) => {
         e.preventDefault();
@@ -240,9 +260,9 @@ export function UploadPage() {
     };
 
     const removeFile = () => {
-        setSelectedFile(null);
-        setOriginalFile(null);
-        setFileDuration(null);
+        setSelectedFiles([]);
+        setOriginalFiles([]);
+        setTotalDuration(null);
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
@@ -324,7 +344,7 @@ export function UploadPage() {
 
         try {
             const result = await salesforceService.lookupClientData(newClient.business_number.trim());
-            
+
             if (result.success && result.data) {
                 // Auto-fill form fields with Salesforce data
                 setNewClient(prev => ({
@@ -334,7 +354,7 @@ export function UploadPage() {
                     phone: result.data.phone || prev.phone,
                     business_domain: result.data.company_name || prev.business_domain
                 }));
-                
+
                 // Clear any validation errors for auto-filled fields
                 setValidationErrors({});
                 setSalesforceError('');
@@ -351,7 +371,7 @@ export function UploadPage() {
 
     // Session upload
     const handleUpload = async () => {
-        if (!selectedFile) {
+        if (!selectedFiles || selectedFiles.length === 0) {
             alert(t('upload.errors.noFileSelected'));
             return;
         }
@@ -396,7 +416,7 @@ export function UploadPage() {
 
         // Prepare session data object (not FormData)
         const sessionData = {
-            file: originalFile, // Use original file for upload
+            files: originalFiles, // Use original files for upload
             title: generateSessionTitle(),
         };
 
@@ -415,9 +435,9 @@ export function UploadPage() {
         // Set current upload session info immediately for UI
         dispatch(handleUploadStarted({
             // sessionId: 'temp-' + Date.now(), // Temporary ID until real one comes from backend
-            fileName: selectedFile.name,
-            fileSize: selectedFile.size, // Add file size for time estimates
-            duration: fileDuration, // Add duration for time estimates
+            fileName: selectedFiles.length > 1 ? `${selectedFiles.length} files` : selectedFiles[0].name,
+            fileSize: selectedFiles.reduce((sum, file) => sum + file.size, 0), // Add total file size for time estimates
+            duration: totalDuration, // Add total duration for time estimates
             message: 'Preparing upload...'
         }));
 
@@ -460,8 +480,8 @@ export function UploadPage() {
                     <StaticProcessingDisplay
                         fileName={currentUploadSession?.fileName}
                         fileUrl={currentUploadSession?.fileUrl}
-                        duration={fileDuration || currentUploadSession?.duration}
-                        fileSize={selectedFile?.size || currentUploadSession?.fileSize}
+                        duration={totalDuration || currentUploadSession?.duration}
+                        fileSize={selectedFiles?.reduce((sum, file) => sum + file.size, 0) || currentUploadSession?.fileSize}
                     />
                 );
 
@@ -720,7 +740,7 @@ export function UploadPage() {
                                 {t('upload.fileUpload')}
                             </h2>
 
-                            {!selectedFile ? (
+                            {!selectedFiles || selectedFiles.length === 0 ? (
                                 <div
                                     className={`upload-dropzone ${dragActive ? 'active' : ''}`}
                                     onDrop={handleDrop}
@@ -734,38 +754,69 @@ export function UploadPage() {
                                     <button type="button" className="upload-button">
                                         {t('upload.dropzone.button')}
                                     </button>
-                                    <input
-                                        ref={fileInputRef}
-                                        type="file"
-                                        accept="audio/*"
-                                        onChange={handleFileInputChange}
-                                        style={{ display: 'none' }}
-                                    />
                                 </div>
                             ) : (
-                                <div className="file-selected">
-                                    <div className="file-info">
-                                        <FileAudio className="file-icon" />
-                                        <div className="file-details">
-                                            <h4>{selectedFile.name}</h4>
-                                            <p>
-                                                {formatFileSize(selectedFile.size)}
-                                                {fileDuration && (
-                                                    <span> • {formatDuration(fileDuration)}</span>
-                                                )}
-                                            </p>
+                                <div className="files-selected">
+                                    <div className="files-header">
+                                        <h4>
+                                            {selectedFiles.length === 1 
+                                                ? t('upload.filesSelected', { count: selectedFiles.length })
+                                                : t('upload.filesSelectedPlural', { count: selectedFiles.length })
+                                            }
+                                        </h4>
+                                        <div className="files-actions">
+                                            <button
+                                                type="button"
+                                                className="btn-secondary add-more-files"
+                                                onClick={() => fileInputRef.current?.click()}
+                                                disabled={isUploading}
+                                            >
+                                                <Plus size={16} />
+                                                {t('upload.addMoreFiles')}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="btn-danger remove-all-files"
+                                                onClick={removeFile}
+                                                disabled={isUploading}
+                                            >
+                                                <X size={16} />
+                                                {t('upload.removeAllFiles')}
+                                            </button>
                                         </div>
-                                        <button
-                                            type="button"
-                                            className="remove-file"
-                                            onClick={removeFile}
-                                            disabled={isUploading}
-                                        >
-                                            <X />
-                                        </button>
+                                    </div>
+                                    <div className="files-list">
+                                        {selectedFiles.map((file, index) => (
+                                            <div key={index} className="file-item">
+                                                <FileAudio className="file-icon" />
+                                                <div className="file-details">
+                                                    <span className="file-name">{file.name}</span>
+                                                    <span className="file-size">{formatFileSize(file.size)}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="files-summary">
+                                        <div className="summary-stats">
+                                            <span className="total-label">{t('upload.totalFiles')}:</span>
+                                            <span className="total-size">{formatFileSize(selectedFiles.reduce((sum, file) => sum + file.size, 0))}</span>
+                                            {totalDuration && (
+                                                <span className="total-duration"> • {formatDuration(totalDuration)}</span>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             )}
+                            
+                            {/* Hidden file input for "Add More" functionality */}
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="audio/*"
+                                multiple
+                                onChange={handleFileInputChange}
+                                style={{ display: 'none' }}
+                            />
                         </div>
 
                         {/* Session Details Form */}
@@ -983,7 +1034,7 @@ export function UploadPage() {
                                 type="button"
                                 className={`process-button ${uploadStatus === 'complete' ? 'success' : ''}`}
                                 onClick={handleUpload}
-                                disabled={!selectedFile ||
+                                disabled={!selectedFiles || selectedFiles.length === 0 ||
                                     (clientMode === 'existing' && !selectedClientId) ||
                                     (clientMode === 'new' && (!newClient.name.trim() || !newClient.email.trim() || !newClient.phone.trim() || !isValidEmail(newClient.email.trim()) || !isValidPhone(newClient.phone.trim()))) ||
                                     isUploading ||
@@ -1030,3 +1081,4 @@ export function UploadPage() {
         </div>
     );
 }
+

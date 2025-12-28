@@ -194,6 +194,11 @@
         "continuation": "Continuity",
         "clarity": "Clarity",
         "preparingUpload": "Preparing upload...",
+        "filesSelected": "{{count}} file selected",
+        "filesSelectedPlural": "{{count}} files selected",
+        "addMoreFiles": "Add More",
+        "removeAllFiles": "Remove All",
+        "totalFiles": "Total",
         "timeEstimate": {
             "lessThanMinute": "less than a minute",
             "oneMinute": "about 1 minute",
