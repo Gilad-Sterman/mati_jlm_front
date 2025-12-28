@@ -54,8 +54,11 @@ export function StaticProcessingDisplay({
       // Use 12.5 minutes as average (between 10-15 minutes)
       transcriptionMinutes = Math.ceil(audioDurationMinutes / 12.5);
     } else if (fileSizeInMB) {
-      // Estimate based on file size if no duration (rough estimate)
-      transcriptionMinutes = Math.ceil(fileSizeInMB * 0.3);
+      // Estimate based on file size if no duration
+      // Typical audio: ~0.6-1MB per minute for compressed audio
+      // Use 0.8MB per minute as average, so duration ≈ fileSizeInMB / 0.8
+      const estimatedDurationMinutes = fileSizeInMB / 0.8;
+      transcriptionMinutes = Math.ceil(estimatedDurationMinutes / 12.5);
     }
     
     // Report generation: based on audio duration

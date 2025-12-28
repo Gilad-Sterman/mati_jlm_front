@@ -205,7 +205,7 @@ export function UploadPage() {
                     URL.revokeObjectURL(fileUrl);
 
                     // If all files processed, set total duration
-                    if (processedFiles === fileArray.length) {
+                    if (processedFiles === combinedFiles.length) {
                         setTotalDuration(totalDuration);
                     }
                 };
@@ -225,9 +225,13 @@ export function UploadPage() {
                     }
                 };
 
-                // Process duration for each file
-                combinedFiles.forEach(processDuration);
-            }
+                audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+                audio.addEventListener('error', handleError);
+                audio.src = fileUrl;
+            };
+
+            // Process duration for each file
+            combinedFiles.forEach(processDuration);
         }
     }
 
