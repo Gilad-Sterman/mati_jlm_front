@@ -336,6 +336,12 @@
         "loadingReports": "טוען דוחות...",
         "loadingSessions": "טוען סשנים...",
         "loadingSessionsAndReports": "טוען סשנים ודוחות...",
+        "previous": "הקודם",
+        "next": "הבא",
+        "previousPage": "עמוד קודם",
+        "nextPage": "עמוד הבא",
+        "pageOf": "עמוד {{current}} מתוך {{total}}",
+        "showingRange": "{{start}}-{{end}} מתוך {{total}}",
         "status": {
             "uploaded": "הועלה",
             "processing": "בעיבוד",

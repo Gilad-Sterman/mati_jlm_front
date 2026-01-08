@@ -334,6 +334,12 @@
         "loadingReports": "Loading reports...",
         "loadingSessions": "Loading sessions...",
         "loadingSessionsAndReports": "Loading sessions and reports...",
+        "previous": "Previous",
+        "next": "Next",
+        "previousPage": "Previous page",
+        "nextPage": "Next page",
+        "pageOf": "Page {{current}} of {{total}}",
+        "showingRange": "{{start}}-{{end}} of {{total}}",
         "status": {
             "uploaded": "Uploaded",
             "processing": "Processing",

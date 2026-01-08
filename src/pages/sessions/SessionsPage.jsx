@@ -15,6 +15,7 @@ export function SessionsPage() {
     // Redux state
     const sessions = useSelector(state => state.sessions.sessions);
     const advisers = useSelector(selectAdvisers);
+    const pagination = useSelector(state => state.sessions.pagination);
     const isLoading = useSelector(state => state.sessions.isLoading);
     const currentUser = useSelector(state => state.auth.user);
     const isAdmin = currentUser?.role === 'admin';
@@ -27,6 +28,7 @@ export function SessionsPage() {
     const [dateTo, setDateTo] = useState('');
     const [sortBy, setSortBy] = useState('created_at');
     const [sortDirection, setSortDirection] = useState('desc');
+    const [currentPage, setCurrentPage] = useState(1);
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
 
     // Debounce search term to avoid too many API calls
@@ -38,7 +40,12 @@ export function SessionsPage() {
         return () => clearTimeout(timer);
     }, [searchTerm]);
 
-    // Load sessions with reports in a single API call with filters
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [debouncedSearchTerm, statusFilter, adviserFilter, dateFrom, dateTo, sortBy, sortDirection]);
+
+    // Load sessions with reports in a single API call with filters and pagination
     useEffect(() => {
         const params = {};
 
@@ -49,9 +56,13 @@ export function SessionsPage() {
         if (dateTo) params.date_to = dateTo;
         if (sortBy) params.sort_by = sortBy;
         if (sortDirection) params.sort_direction = sortDirection;
+        
+        // Add pagination parameters
+        params.page = currentPage;
+        params.limit = 10;
 
         dispatch(fetchSessionsWithReports(params));
-    }, [dispatch, debouncedSearchTerm, statusFilter, adviserFilter, dateFrom, dateTo, sortBy, sortDirection, isAdmin]);
+    }, [dispatch, debouncedSearchTerm, statusFilter, adviserFilter, dateFrom, dateTo, sortBy, sortDirection, currentPage, isAdmin]);
 
     // Handle URL parameter changes (e.g., when navigating from dashboard)
     useEffect(() => {
@@ -256,9 +267,27 @@ export function SessionsPage() {
         setDateTo('');
         setSortBy('created_at');
         setSortDirection('desc');
+        setCurrentPage(1);
         
         // Clear URL parameters
         navigate('/sessions', { replace: true });
+    };
+
+    // Pagination handlers
+    const handlePreviousPage = () => {
+        if (currentPage > 1) {
+            setCurrentPage(currentPage - 1);
+        }
+    };
+
+    const handleNextPage = () => {
+        if (currentPage < pagination.totalPages) {
+            setCurrentPage(currentPage + 1);
+        }
+    };
+
+    const handlePageClick = (page) => {
+        setCurrentPage(page);
     };
 
     return (
@@ -267,8 +296,23 @@ export function SessionsPage() {
                 <h1>{t('sessions.title')}</h1>
                 <div className="sessions-stats">
                     <div className="sessions-count">
-                        <span className="count-number">{sessions.length}</span>
-                        <span className="count-label">{t('sessions.sessions')}</span>
+                        {pagination.total > 0 ? (
+                            <>
+                                <span className="count-number">
+                                    {t('sessions.showingRange', {
+                                        start: ((currentPage - 1) * pagination.limit) + 1,
+                                        end: Math.min(currentPage * pagination.limit, pagination.total),
+                                        total: pagination.total
+                                    })}
+                                </span>
+                                <span className="count-label">{t('sessions.sessions')}</span>
+                            </>
+                        ) : (
+                            <>
+                                <span className="count-number">{sessions.length}</span>
+                                <span className="count-label">{t('sessions.sessions')}</span>
+                            </>
+                        )}
                     </div>
                     {sessions.length > 0 && (avgClientScore !== null || avgAdviserScore !== null) && (
                         <div className="average-scores">
@@ -405,6 +449,55 @@ export function SessionsPage() {
                     )}
                 </div>
             </div>
+
+            {/* Pagination Controls */}
+            {!isLoading && sessions.length > 0 && pagination.totalPages > 1 && (
+                <div className="pagination-controls">
+                    <button 
+                        className="pagination-btn prev-btn"
+                        onClick={handlePreviousPage}
+                        disabled={currentPage === 1}
+                        title={t('sessions.previousPage')}
+                    >
+                        {i18n.language === 'he' ? (
+                            <>
+                                {t('sessions.previous')}
+                                <ChevronRight size={18} />
+                            </>
+                        ) : (
+                            <>
+                                <ChevronLeft size={18} />
+                                {t('sessions.previous')}
+                            </>
+                        )}
+                    </button>
+                    
+                    <div className="pagination-info">
+                        <span className="page-info">
+                            {t('sessions.pageOf', { current: currentPage, total: pagination.totalPages })}
+                        </span>
+                    </div>
+                    
+                    <button 
+                        className="pagination-btn next-btn"
+                        onClick={handleNextPage}
+                        disabled={currentPage === pagination.totalPages}
+                        title={t('sessions.nextPage')}
+                    >
+                        {i18n.language === 'he' ? (
+                            <>
+                                <ChevronLeft size={18} />
+                                {t('sessions.next')}
+                            </>
+                        ) : (
+                            <>
+                                {t('sessions.next')}
+                                <ChevronRight size={18} />
+                            </>
+                        )}
+                    </button>
+                </div>
+            )}
 
             {/* Sessions List with Loading States */}
             {isLoading ? (

@@ -86,7 +86,7 @@ export function ReportsPage() {
             try {
                 const img = new Image();
                 img.crossOrigin = 'anonymous';
-                
+
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
@@ -96,14 +96,14 @@ export function ReportsPage() {
                     const pngDataUrl = canvas.toDataURL('image/png');
                     setPdfLogoUrl(pngDataUrl);
                 };
-                
+
                 img.onerror = () => {
                     console.error('Failed to load SVG for conversion');
                     setPdfLogoUrl('/logo-t.png');
                 };
-                
+
                 img.src = '/logo-full.svg';
-                
+
             } catch (error) {
                 console.error('Error converting SVG for PDF:', error);
                 setPdfLogoUrl('/logo-t.png');
@@ -286,37 +286,37 @@ export function ReportsPage() {
 
     const handleDownloadPDF = async () => {
         if (isDownloadingPDF || !pdfContentRef.current || !clientReport) return;
-        
+
         try {
             setIsDownloadingPDF(true);
-            
+
             // Switch to PNG logo for PDF generation
             const logoImg = pdfContentRef.current.querySelector('.mati-logo');
             const originalSrc = logoImg?.src;
             if (logoImg) logoImg.src = pdfLogoUrl;
-            
+
             const element = pdfContentRef.current;
             const clientName = session?.client?.name || 'Client';
             const sessionDate = new Date(session?.created_at).toLocaleDateString().replace(/\//g, '-');
             const filename = `${clientName}_Report_${sessionDate}.pdf`;
-            
+
             const opt = {
                 margin: 1,
                 filename: filename,
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { 
+                html2canvas: {
                     scale: 2,
                     useCORS: true,
                     allowTaint: true
                 },
                 jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
             };
-            
+
             await html2pdf().set(opt).from(element).save();
-            
+
             // Restore original logo after PDF generation
             if (logoImg && originalSrc) logoImg.src = originalSrc;
-            
+
         } catch (error) {
             console.error('Error generating PDF:', error);
             alert(t('reports.pdfDownloadError') || 'Failed to download PDF. Please try again.');
@@ -330,29 +330,29 @@ export function ReportsPage() {
 
     const handleDownloadAdvisorPDF = async (advisorReport) => {
         if (isDownloadingPDF || !advisorPdfContentRef.current || !advisorReport) return;
-        
+
         try {
             setIsDownloadingPDF(true);
-            
+
             const element = advisorPdfContentRef.current;
             const clientName = session?.client?.name || 'Client';
             const sessionDate = new Date(session?.created_at).toLocaleDateString().replace(/\//g, '-');
             const filename = `${clientName}_Advisor_Report_${sessionDate}.pdf`;
-            
+
             const opt = {
                 margin: 0.5,
                 filename: filename,
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { 
+                html2canvas: {
                     scale: 2,
                     useCORS: true,
                     allowTaint: true
                 },
                 jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
             };
-            
+
             await html2pdf().set(opt).from(element).save();
-            
+
         } catch (error) {
             console.error('Error generating advisor PDF:', error);
             alert(t('reports.pdfDownloadError') || 'Failed to download PDF. Please try again.');
@@ -466,16 +466,7 @@ export function ReportsPage() {
                                     )}
 
                                     {clientReport && clientReport.status === 'approved' && (
-                                        session?.file_url ? (
-                                            <button
-                                                className="view-pdf-button"
-                                                title={t('reports.viewPDF')}
-                                                onClick={() => window.open(session.file_url, '_blank')}
-                                            >
-                                                <ExternalLink size={16} />
-                                                {t('reports.viewPDF')}
-                                            </button>
-                                        ) : (
+                                        (
                                             <button
                                                 className="download-pdf-button"
                                                 title={t('reports.downloadPDF')}
@@ -625,7 +616,7 @@ export function ReportsPage() {
             {/* Hidden PDF Content for Download */}
             {clientReport && clientReport.status === 'approved' && (
                 <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
-                    <PDFContent 
+                    <PDFContent
                         ref={pdfContentRef}
                         report={clientReport}
                         session={session}
@@ -642,7 +633,7 @@ export function ReportsPage() {
             {/* Hidden Advisor PDF Content for Download */}
             {advisorReport && (
                 <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
-                    <AdvisorPDFContent 
+                    <AdvisorPDFContent
                         ref={advisorPdfContentRef}
                         report={advisorReport}
                         session={session}
@@ -1646,38 +1637,38 @@ const PDFContent = React.forwardRef(({ report, session, logoUrl, translateCatego
             minHeight: '297mm'
         }}>
             {/* Professional Header */}
-            <div style={{marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '2px solid #000000', direction: isRTL ? 'rtl' : 'ltr'}}>
-                <div style={{display: 'table', width: '100%', tableLayout: 'fixed'}}>
+            <div style={{ marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '2px solid #000000', direction: isRTL ? 'rtl' : 'ltr' }}>
+                <div style={{ display: 'table', width: '100%', tableLayout: 'fixed' }}>
                     {isRTL ? (
                         // Hebrew layout: Text on right, logo on left
                         <>
-                            <div style={{display: 'table-cell', verticalAlign: 'top', width: '30%', textAlign: 'left', paddingRight: '2rem'}}>
-                                <img src={logoUrl} alt="MATI" className="mati-logo" style={{height: '80px', width: 'auto', maxWidth: '100%', display: 'block'}} />
+                            <div style={{ display: 'table-cell', verticalAlign: 'top', width: '30%', textAlign: 'left', paddingRight: '2rem' }}>
+                                <img src={logoUrl} alt="MATI" className="mati-logo" style={{ height: '80px', width: 'auto', maxWidth: '100%', display: 'block' }} />
                             </div>
-                            <div style={{display: 'table-cell', verticalAlign: 'top', width: '70%', textAlign: 'right'}}>
-                                <h1 style={{fontSize: '1.8rem', fontWeight: '700', color: '#000000', marginBottom: '0.5rem', lineHeight: '1.2'}}>{t('reports.clientReport')}</h1>
+                            <div style={{ display: 'table-cell', verticalAlign: 'top', width: '70%', textAlign: 'right' }}>
+                                <h1 style={{ fontSize: '1.8rem', fontWeight: '700', color: '#000000', marginBottom: '0.5rem', lineHeight: '1.2' }}>{t('reports.clientReport')}</h1>
                                 {session?.client?.name && (
-                                    <h2 style={{fontSize: '1.3rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', lineHeight: '1.3'}}>{session.client.name}</h2>
+                                    <h2 style={{ fontSize: '1.3rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', lineHeight: '1.3' }}>{session.client.name}</h2>
                                 )}
                                 <div>
-                                    <div style={{display: 'block', marginBottom: '0.4rem', lineHeight: '1.4'}}>
-                                        <span style={{color: '#000000', fontWeight: '400', display: 'inline', marginRight: '0.5rem'}}>{new Date(session?.created_at).toLocaleDateString()}</span>
-                                        <span style={{fontWeight: '600', color: '#000000', display: 'inline'}}> :{t('reports.date')}</span>
+                                    <div style={{ display: 'block', marginBottom: '0.4rem', lineHeight: '1.4' }}>
+                                        <span style={{ color: '#000000', fontWeight: '400', display: 'inline', marginRight: '0.5rem' }}>{new Date(session?.created_at).toLocaleDateString()}</span>
+                                        <span style={{ fontWeight: '600', color: '#000000', display: 'inline' }}> :{t('reports.date')}</span>
                                     </div>
-                                    <div style={{display: 'block', marginBottom: '0.4rem', lineHeight: '1.4'}}>
-                                        <span style={{color: '#000000', fontWeight: '400', display: 'inline', marginRight: '0.5rem'}}>{session?.adviser?.name}</span>
-                                        <span style={{fontWeight: '600', color: '#000000', display: 'inline'}}> :{t('reports.adviser')}</span>
+                                    <div style={{ display: 'block', marginBottom: '0.4rem', lineHeight: '1.4' }}>
+                                        <span style={{ color: '#000000', fontWeight: '400', display: 'inline', marginRight: '0.5rem' }}>{session?.adviser?.name}</span>
+                                        <span style={{ fontWeight: '600', color: '#000000', display: 'inline' }}> :{t('reports.adviser')}</span>
                                     </div>
                                     {session?.adviser?.email && (
-                                        <div style={{display: 'block', marginBottom: '0.4rem', lineHeight: '1.4'}}>
-                                            <span style={{color: '#000000', fontWeight: '400', display: 'inline', marginRight: '0.5rem'}}>{session.adviser.email}</span>
-                                            <span style={{fontWeight: '600', color: '#000000', display: 'inline'}}> :{t('common.email')}</span>
+                                        <div style={{ display: 'block', marginBottom: '0.4rem', lineHeight: '1.4' }}>
+                                            <span style={{ color: '#000000', fontWeight: '400', display: 'inline', marginRight: '0.5rem' }}>{session.adviser.email}</span>
+                                            <span style={{ fontWeight: '600', color: '#000000', display: 'inline' }}> :{t('common.email')}</span>
                                         </div>
                                     )}
                                     {session?.adviser?.phone && (
-                                        <div style={{display: 'block', marginBottom: '0.4rem', lineHeight: '1.4'}}>
-                                            <span style={{color: '#000000', fontWeight: '400', display: 'inline', marginRight: '0.5rem'}}>{session.adviser.phone}</span>
-                                            <span style={{fontWeight: '600', color: '#000000', display: 'inline'}}> :{t('common.phone')}</span>
+                                        <div style={{ display: 'block', marginBottom: '0.4rem', lineHeight: '1.4' }}>
+                                            <span style={{ color: '#000000', fontWeight: '400', display: 'inline', marginRight: '0.5rem' }}>{session.adviser.phone}</span>
+                                            <span style={{ fontWeight: '600', color: '#000000', display: 'inline' }}> :{t('common.phone')}</span>
                                         </div>
                                     )}
                                 </div>
@@ -1686,69 +1677,69 @@ const PDFContent = React.forwardRef(({ report, session, logoUrl, translateCatego
                     ) : (
                         // English layout: Text on left, logo on right
                         <>
-                            <div style={{display: 'table-cell', verticalAlign: 'top', width: '70%', paddingRight: '2rem'}}>
-                                <h1 style={{fontSize: '1.8rem', fontWeight: '700', color: '#000000', marginBottom: '0.5rem', lineHeight: '1.2'}}>{t('reports.clientReport')}</h1>
+                            <div style={{ display: 'table-cell', verticalAlign: 'top', width: '70%', paddingRight: '2rem' }}>
+                                <h1 style={{ fontSize: '1.8rem', fontWeight: '700', color: '#000000', marginBottom: '0.5rem', lineHeight: '1.2' }}>{t('reports.clientReport')}</h1>
                                 {session?.client?.name && (
-                                    <h2 style={{fontSize: '1.3rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', lineHeight: '1.3'}}>{session.client.name}</h2>
+                                    <h2 style={{ fontSize: '1.3rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', lineHeight: '1.3' }}>{session.client.name}</h2>
                                 )}
                                 <div>
-                                    <div style={{display: 'block', marginBottom: '0.4rem', lineHeight: '1.4'}}>
-                                        <span style={{fontWeight: '600', color: '#000000', display: 'inline'}}>{t('reports.date')}: </span>
-                                        <span style={{color: '#000000', fontWeight: '400', display: 'inline', marginLeft: '0.5rem'}}>{new Date(session?.created_at).toLocaleDateString()}</span>
+                                    <div style={{ display: 'block', marginBottom: '0.4rem', lineHeight: '1.4' }}>
+                                        <span style={{ fontWeight: '600', color: '#000000', display: 'inline' }}>{t('reports.date')}: </span>
+                                        <span style={{ color: '#000000', fontWeight: '400', display: 'inline', marginLeft: '0.5rem' }}>{new Date(session?.created_at).toLocaleDateString()}</span>
                                     </div>
-                                    <div style={{display: 'block', marginBottom: '0.4rem', lineHeight: '1.4'}}>
-                                        <span style={{fontWeight: '600', color: '#000000', display: 'inline'}}>{t('reports.adviser')}: </span>
-                                        <span style={{color: '#000000', fontWeight: '400', display: 'inline', marginLeft: '0.5rem'}}>{session?.adviser?.name}</span>
+                                    <div style={{ display: 'block', marginBottom: '0.4rem', lineHeight: '1.4' }}>
+                                        <span style={{ fontWeight: '600', color: '#000000', display: 'inline' }}>{t('reports.adviser')}: </span>
+                                        <span style={{ color: '#000000', fontWeight: '400', display: 'inline', marginLeft: '0.5rem' }}>{session?.adviser?.name}</span>
                                     </div>
                                     {session?.adviser?.email && (
-                                        <div style={{display: 'block', marginBottom: '0.4rem', lineHeight: '1.4'}}>
-                                            <span style={{fontWeight: '600', color: '#000000', display: 'inline'}}>{t('common.email')}: </span>
-                                            <span style={{color: '#000000', fontWeight: '400', display: 'inline', marginLeft: '0.5rem'}}>{session.adviser.email}</span>
+                                        <div style={{ display: 'block', marginBottom: '0.4rem', lineHeight: '1.4' }}>
+                                            <span style={{ fontWeight: '600', color: '#000000', display: 'inline' }}>{t('common.email')}: </span>
+                                            <span style={{ color: '#000000', fontWeight: '400', display: 'inline', marginLeft: '0.5rem' }}>{session.adviser.email}</span>
                                         </div>
                                     )}
                                     {session?.adviser?.phone && (
-                                        <div style={{display: 'block', marginBottom: '0.4rem', lineHeight: '1.4'}}>
-                                            <span style={{fontWeight: '600', color: '#000000', display: 'inline'}}>{t('common.phone')}: </span>
-                                            <span style={{color: '#000000', fontWeight: '400', display: 'inline', marginLeft: '0.5rem'}}>{session.adviser.phone}</span>
+                                        <div style={{ display: 'block', marginBottom: '0.4rem', lineHeight: '1.4' }}>
+                                            <span style={{ fontWeight: '600', color: '#000000', display: 'inline' }}>{t('common.phone')}: </span>
+                                            <span style={{ color: '#000000', fontWeight: '400', display: 'inline', marginLeft: '0.5rem' }}>{session.adviser.phone}</span>
                                         </div>
                                     )}
                                 </div>
                             </div>
-                            <div style={{display: 'table-cell', verticalAlign: 'top', width: '30%', textAlign: 'right'}}>
-                                <img src={logoUrl} alt="MATI" className="mati-logo" style={{height: '80px', width: 'auto', maxWidth: '100%', display: 'block'}} />
+                            <div style={{ display: 'table-cell', verticalAlign: 'top', width: '30%', textAlign: 'right' }}>
+                                <img src={logoUrl} alt="MATI" className="mati-logo" style={{ height: '80px', width: 'auto', maxWidth: '100%', display: 'block' }} />
                             </div>
                         </>
                     )}
                 </div>
             </div>
-            
+
             <div>
                 {/* General Summary */}
                 {content?.general_summary && (
-                    <div style={{marginBottom: '2rem'}}>
-                        <h5 style={{fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000', pageBreakAfter: 'avoid'}}>{t('reports.generalSummary')}</h5>
-                        <p style={{pageBreakInside: 'avoid', lineHeight: '1.6'}}>{content.general_summary}</p>
+                    <div style={{ marginBottom: '2rem' }}>
+                        <h5 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000', pageBreakAfter: 'avoid' }}>{t('reports.generalSummary')}</h5>
+                        <p style={{ pageBreakInside: 'avoid', lineHeight: '1.6' }}>{content.general_summary}</p>
                     </div>
                 )}
 
                 {/* Key Insights */}
                 {content?.key_insights && Array.isArray(content.key_insights) && content.key_insights.length > 0 && (
-                    <div style={{marginBottom: '2rem'}}>
-                        <h5 style={{fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000', pageBreakAfter: 'avoid'}}>{t('reports.keyInsights')}</h5>
+                    <div style={{ marginBottom: '2rem' }}>
+                        <h5 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000', pageBreakAfter: 'avoid' }}>{t('reports.keyInsights')}</h5>
                         {content.key_insights.map((insight, index) => (
-                            <div key={index} style={{pageBreakInside: 'avoid', marginBottom: '1rem'}}>
-                                <div style={{marginBottom: '0.5rem'}}>
+                            <div key={index} style={{ pageBreakInside: 'avoid', marginBottom: '1rem' }}>
+                                <div style={{ marginBottom: '0.5rem' }}>
                                     <strong>{translateCategory(insight.category)}</strong>
                                 </div>
-                                <div style={{marginBottom: '0.5rem'}}>
-                                    <p style={{pageBreakInside: 'avoid', lineHeight: '1.6'}}>{insight.content}</p>
+                                <div style={{ marginBottom: '0.5rem' }}>
+                                    <p style={{ pageBreakInside: 'avoid', lineHeight: '1.6' }}>{insight.content}</p>
                                 </div>
                                 {insight.supporting_quotes && insight.supporting_quotes.filter(quote => quote && quote.trim()).length > 0 && (
-                                    <div style={{pageBreakInside: 'avoid'}}>
+                                    <div style={{ pageBreakInside: 'avoid' }}>
                                         <strong>{t('reports.supportingQuotes')}:</strong>
-                                        <ul style={{marginTop: '0.5rem'}}>
+                                        <ul style={{ marginTop: '0.5rem' }}>
                                             {insight.supporting_quotes.filter(quote => quote && quote.trim()).map((quote, qIndex) => (
-                                                <li key={qIndex} style={{pageBreakInside: 'avoid', marginBottom: '0.25rem'}}>"{quote}"</li>
+                                                <li key={qIndex} style={{ pageBreakInside: 'avoid', marginBottom: '0.25rem' }}>"{quote}"</li>
                                             ))}
                                         </ul>
                                     </div>
@@ -1760,17 +1751,17 @@ const PDFContent = React.forwardRef(({ report, session, logoUrl, translateCatego
 
                 {/* Action Items */}
                 {content?.action_items && Array.isArray(content.action_items) && content.action_items.length > 0 && (
-                    <div style={{marginBottom: '2rem'}}>
-                        <h5 style={{fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000', pageBreakAfter: 'avoid'}}>{t('reports.actionItems')}</h5>
+                    <div style={{ marginBottom: '2rem' }}>
+                        <h5 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000', pageBreakAfter: 'avoid' }}>{t('reports.actionItems')}</h5>
                         {content.action_items.map((item, index) => (
-                            <div key={index} style={{pageBreakInside: 'avoid', marginBottom: '1rem'}}>
-                                <div style={{marginBottom: '0.5rem'}}>
+                            <div key={index} style={{ pageBreakInside: 'avoid', marginBottom: '1rem' }}>
+                                <div style={{ marginBottom: '0.5rem' }}>
                                     <strong>{item.task}</strong>
                                 </div>
-                                <div style={{paddingLeft: '1rem'}}>
-                                    <div style={{marginBottom: '0.25rem'}}>{t('reports.owner')}: {translateOwner(item.owner)}</div>
+                                <div style={{ paddingLeft: '1rem' }}>
+                                    <div style={{ marginBottom: '0.25rem' }}>{t('reports.owner')}: {translateOwner(item.owner)}</div>
                                     {item.deadline && (
-                                        <div style={{marginBottom: '0.25rem'}}>{t('reports.deadline')}: {item.deadline}</div>
+                                        <div style={{ marginBottom: '0.25rem' }}>{t('reports.deadline')}: {item.deadline}</div>
                                     )}
                                     <div>{t('reports.status')}: {translateStatus(item.status)}</div>
                                 </div>
@@ -1781,9 +1772,9 @@ const PDFContent = React.forwardRef(({ report, session, logoUrl, translateCatego
 
                 {/* Target Summary */}
                 {content?.target_summary && (
-                    <div style={{marginBottom: '2rem'}}>
-                        <h5 style={{fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000', pageBreakAfter: 'avoid'}}>{t('reports.targetSummary')}</h5>
-                        <p style={{pageBreakInside: 'avoid', lineHeight: '1.6'}}>{content.target_summary}</p>
+                    <div style={{ marginBottom: '2rem' }}>
+                        <h5 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000', pageBreakAfter: 'avoid' }}>{t('reports.targetSummary')}</h5>
+                        <p style={{ pageBreakInside: 'avoid', lineHeight: '1.6' }}>{content.target_summary}</p>
                     </div>
                 )}
             </div>
@@ -1840,26 +1831,26 @@ const AdvisorPDFContent = React.forwardRef(({ report, session, t, i18n }, ref) =
             textAlign: isHebrew ? 'right' : 'left'
         }}>
             {/* Simple Header */}
-            <div style={{marginBottom: '20px', paddingBottom: '10px', borderBottom: '1px solid #000000'}}>
-                <h1 style={{fontSize: '18px', fontWeight: 'bold', color: '#000000', margin: '0 0 5px 0'}}>
+            <div style={{ marginBottom: '20px', paddingBottom: '10px', borderBottom: '1px solid #000000' }}>
+                <h1 style={{ fontSize: '18px', fontWeight: 'bold', color: '#000000', margin: '0 0 5px 0' }}>
                     {getSectionTitle('advisorReport')}
                 </h1>
-                <p style={{fontSize: '10px', color: '#666666', margin: '0 0 10px 0'}}>
+                <p style={{ fontSize: '10px', color: '#666666', margin: '0 0 10px 0' }}>
                     {getSectionTitle('internalUse')}
                 </p>
-                
-                <div style={{fontSize: '11px', lineHeight: '1.3'}}>
-                    <div style={{marginBottom: '3px'}}>
+
+                <div style={{ fontSize: '11px', lineHeight: '1.3' }}>
+                    <div style={{ marginBottom: '3px' }}>
                         <strong>{getSectionTitle('date')}:</strong> {new Date(session?.created_at).toLocaleDateString()}
                     </div>
-                    <div style={{marginBottom: '3px'}}>
+                    <div style={{ marginBottom: '3px' }}>
                         <strong>{getSectionTitle('advisor')}:</strong> {session?.adviser?.name || 'N/A'}
                     </div>
-                    <div style={{marginBottom: '3px'}}>
+                    <div style={{ marginBottom: '3px' }}>
                         <strong>{getSectionTitle('session')}:</strong> {session?.title || 'N/A'}
                     </div>
                     {session?.client?.name && (
-                        <div style={{marginBottom: '3px'}}>
+                        <div style={{ marginBottom: '3px' }}>
                             <strong>Client:</strong> {session.client.name}
                         </div>
                     )}
@@ -1868,11 +1859,11 @@ const AdvisorPDFContent = React.forwardRef(({ report, session, t, i18n }, ref) =
 
             {/* Client Readiness Score */}
             {content.client_readiness_score && (
-                <div style={{marginBottom: '15px'}}>
-                    <h2 style={{fontSize: '14px', fontWeight: 'bold', color: '#000000', marginBottom: '5px', borderBottom: '1px solid #cccccc', paddingBottom: '2px'}}>
+                <div style={{ marginBottom: '15px' }}>
+                    <h2 style={{ fontSize: '14px', fontWeight: 'bold', color: '#000000', marginBottom: '5px', borderBottom: '1px solid #cccccc', paddingBottom: '2px' }}>
                         {getSectionTitle('clientReadinessScore')}
                     </h2>
-                    <div style={{fontSize: '16px', fontWeight: 'bold', color: '#000000', marginBottom: '5px'}}>
+                    <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#000000', marginBottom: '5px' }}>
                         {content.client_readiness_score}/100
                     </div>
                 </div>
@@ -1880,29 +1871,29 @@ const AdvisorPDFContent = React.forwardRef(({ report, session, t, i18n }, ref) =
 
             {/* Advisor Performance */}
             {content.listening?.score && (
-                <div style={{marginBottom: '15px'}}>
-                    <h2 style={{fontSize: '14px', fontWeight: 'bold', color: '#000000', marginBottom: '5px', borderBottom: '1px solid #cccccc', paddingBottom: '2px'}}>
+                <div style={{ marginBottom: '15px' }}>
+                    <h2 style={{ fontSize: '14px', fontWeight: 'bold', color: '#000000', marginBottom: '5px', borderBottom: '1px solid #cccccc', paddingBottom: '2px' }}>
                         {getSectionTitle('advisorPerformance')}
                     </h2>
-                    
-                    <div style={{marginBottom: '8px'}}>
-                        <div style={{fontWeight: 'bold', marginBottom: '2px', fontSize: '12px'}}>
+
+                    <div style={{ marginBottom: '8px' }}>
+                        <div style={{ fontWeight: 'bold', marginBottom: '2px', fontSize: '12px' }}>
                             {getSectionTitle('listening')}: {content.listening.score}/5
                         </div>
                         {content.listening.feedback && (
-                            <div style={{marginLeft: '10px', color: '#666666', fontSize: '11px', marginBottom: '5px'}}>
+                            <div style={{ marginLeft: '10px', color: '#666666', fontSize: '11px', marginBottom: '5px' }}>
                                 {content.listening.feedback}
                             </div>
                         )}
                     </div>
 
                     {content.clarity?.score && (
-                        <div style={{marginBottom: '8px'}}>
-                            <div style={{fontWeight: 'bold', marginBottom: '2px', fontSize: '12px'}}>
+                        <div style={{ marginBottom: '8px' }}>
+                            <div style={{ fontWeight: 'bold', marginBottom: '2px', fontSize: '12px' }}>
                                 {getSectionTitle('clarity')}: {content.clarity.score}/5
                             </div>
                             {content.clarity.feedback && (
-                                <div style={{marginLeft: '10px', color: '#666666', fontSize: '11px', marginBottom: '5px'}}>
+                                <div style={{ marginLeft: '10px', color: '#666666', fontSize: '11px', marginBottom: '5px' }}>
                                     {content.clarity.feedback}
                                 </div>
                             )}
@@ -1910,12 +1901,12 @@ const AdvisorPDFContent = React.forwardRef(({ report, session, t, i18n }, ref) =
                     )}
 
                     {content.continuation?.score && (
-                        <div style={{marginBottom: '8px'}}>
-                            <div style={{fontWeight: 'bold', marginBottom: '2px', fontSize: '12px'}}>
+                        <div style={{ marginBottom: '8px' }}>
+                            <div style={{ fontWeight: 'bold', marginBottom: '2px', fontSize: '12px' }}>
                                 {getSectionTitle('continuation')}: {content.continuation.score}/5
                             </div>
                             {content.continuation.feedback && (
-                                <div style={{marginLeft: '10px', color: '#666666', fontSize: '11px', marginBottom: '5px'}}>
+                                <div style={{ marginLeft: '10px', color: '#666666', fontSize: '11px', marginBottom: '5px' }}>
                                     {content.continuation.feedback}
                                 </div>
                             )}
@@ -1926,17 +1917,17 @@ const AdvisorPDFContent = React.forwardRef(({ report, session, t, i18n }, ref) =
 
             {/* Topics Covered */}
             {content.topics && Array.isArray(content.topics) && content.topics.length > 0 && (
-                <div style={{marginBottom: '15px'}}>
-                    <h2 style={{fontSize: '14px', fontWeight: 'bold', color: '#000000', marginBottom: '5px', borderBottom: '1px solid #cccccc', paddingBottom: '2px'}}>
+                <div style={{ marginBottom: '15px' }}>
+                    <h2 style={{ fontSize: '14px', fontWeight: 'bold', color: '#000000', marginBottom: '5px', borderBottom: '1px solid #cccccc', paddingBottom: '2px' }}>
                         {getSectionTitle('topicsDiscussed')}
                     </h2>
                     {content.topics.map((topic, index) => (
-                        <div key={index} style={{marginBottom: '8px', paddingLeft: '10px', borderLeft: '2px solid #e5e7eb'}}>
-                            <div style={{fontWeight: 'bold', marginBottom: '2px', fontSize: '12px'}}>
+                        <div key={index} style={{ marginBottom: '8px', paddingLeft: '10px', borderLeft: '2px solid #e5e7eb' }}>
+                            <div style={{ fontWeight: 'bold', marginBottom: '2px', fontSize: '12px' }}>
                                 {topic.topic} ({topic.time_percentage}%)
                             </div>
                             {topic.sub_topics && topic.sub_topics.length > 0 && (
-                                <div style={{fontSize: '11px', color: '#666666'}}>
+                                <div style={{ fontSize: '11px', color: '#666666' }}>
                                     {topic.sub_topics.join(', ')}
                                 </div>
                             )}
@@ -1947,16 +1938,16 @@ const AdvisorPDFContent = React.forwardRef(({ report, session, t, i18n }, ref) =
 
             {/* Things to Preserve */}
             {content.things_to_preserve && Array.isArray(content.things_to_preserve) && content.things_to_preserve.length > 0 && (
-                <div style={{marginBottom: '15px'}}>
-                    <h2 style={{fontSize: '14px', fontWeight: 'bold', color: '#000000', marginBottom: '5px', borderBottom: '1px solid #cccccc', paddingBottom: '2px'}}>
+                <div style={{ marginBottom: '15px' }}>
+                    <h2 style={{ fontSize: '14px', fontWeight: 'bold', color: '#000000', marginBottom: '5px', borderBottom: '1px solid #cccccc', paddingBottom: '2px' }}>
                         {getSectionTitle('strengthsToPreserve')}
                     </h2>
                     {content.things_to_preserve.map((item, index) => (
-                        <div key={index} style={{marginBottom: '8px', paddingLeft: '10px', borderLeft: '2px solid #10b981'}}>
-                            <div style={{fontWeight: 'bold', marginBottom: '2px', color: '#059669', fontSize: '12px'}}>
+                        <div key={index} style={{ marginBottom: '8px', paddingLeft: '10px', borderLeft: '2px solid #10b981' }}>
+                            <div style={{ fontWeight: 'bold', marginBottom: '2px', color: '#059669', fontSize: '12px' }}>
                                 {item.title}
                             </div>
-                            <div style={{fontSize: '11px', color: '#000000'}}>
+                            <div style={{ fontSize: '11px', color: '#000000' }}>
                                 {item.description}
                             </div>
                         </div>
@@ -1966,16 +1957,16 @@ const AdvisorPDFContent = React.forwardRef(({ report, session, t, i18n }, ref) =
 
             {/* Areas for Improvement */}
             {content.needs_improvement && Array.isArray(content.needs_improvement) && content.needs_improvement.length > 0 && (
-                <div style={{marginBottom: '15px'}}>
-                    <h2 style={{fontSize: '14px', fontWeight: 'bold', color: '#000000', marginBottom: '5px', borderBottom: '1px solid #cccccc', paddingBottom: '2px'}}>
+                <div style={{ marginBottom: '15px' }}>
+                    <h2 style={{ fontSize: '14px', fontWeight: 'bold', color: '#000000', marginBottom: '5px', borderBottom: '1px solid #cccccc', paddingBottom: '2px' }}>
                         {getSectionTitle('areasForImprovement')}
                     </h2>
                     {content.needs_improvement.map((item, index) => (
-                        <div key={index} style={{marginBottom: '8px', paddingLeft: '10px', borderLeft: '2px solid #f59e0b'}}>
-                            <div style={{fontWeight: 'bold', marginBottom: '2px', color: '#d97706', fontSize: '12px'}}>
+                        <div key={index} style={{ marginBottom: '8px', paddingLeft: '10px', borderLeft: '2px solid #f59e0b' }}>
+                            <div style={{ fontWeight: 'bold', marginBottom: '2px', color: '#d97706', fontSize: '12px' }}>
                                 {item.title}
                             </div>
-                            <div style={{fontSize: '11px', color: '#000000'}}>
+                            <div style={{ fontSize: '11px', color: '#000000' }}>
                                 {item.description}
                             </div>
                         </div>
@@ -1984,7 +1975,7 @@ const AdvisorPDFContent = React.forwardRef(({ report, session, t, i18n }, ref) =
             )}
 
             {/* Footer */}
-            <div style={{marginTop: '20px', paddingTop: '10px', borderTop: '1px solid #cccccc', textAlign: 'center', fontSize: '10px', color: '#666666'}}>
+            <div style={{ marginTop: '20px', paddingTop: '10px', borderTop: '1px solid #cccccc', textAlign: 'center', fontSize: '10px', color: '#666666' }}>
                 <div>{getSectionTitle('generatedOn')} {new Date().toLocaleDateString()} - {getSectionTitle('confidential')}</div>
             </div>
         </div>
