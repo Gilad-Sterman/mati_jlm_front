@@ -794,7 +794,7 @@ function renderInsightsByCategory(insights, t) {
                         <div className="insight-content">
                             <p>{insight.content}</p>
                         </div>
-                        {insight.supporting_quotes && insight.supporting_quotes.length > 0 && (
+                        {/* {insight.supporting_quotes && insight.supporting_quotes.length > 0 && (
                             <div className="quotes-section">
                                 <h5>{t('reports.supportingQuotes')}</h5>
                                 <ul className="quotes-list">
@@ -803,7 +803,7 @@ function renderInsightsByCategory(insights, t) {
                                     ))}
                                 </ul>
                             </div>
-                        )}
+                        )} */}
                     </div>
                 ))}
             </div>
@@ -878,7 +878,7 @@ function ClientReportDisplay({ report, translateOwner }) {
                                                 {item.status ? t(getStatusTranslationKey(item.status)) : t('reports.statusUnknown')}
                                             </span>
                                         </div>
-                                        <div className="action-card-body">
+                                        {/* <div className="action-card-body">
                                             <div className="action-detail-row">
                                                 <div className="action-detail">
                                                     <Users size={16} />
@@ -895,7 +895,7 @@ function ClientReportDisplay({ report, translateOwner }) {
                                                     </span>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div> */}
                                     </div>
                                 ))}
                             </div>
@@ -1419,7 +1419,7 @@ function AdvisorReportDisplay({ report }) {
                     <CollapsibleSection title={t('reports.speakingTimeAnalysis')} defaultOpen={true} forceOpen={allExpanded} color="purple">
                         <div className="speaking-time-visual">
                             <div className="duration-info">
-                                <h4>{t('reports.duration')}: {content.conversation_duration.split('.')[0]} דקות</h4>
+                                <h4>{t('reports.duration')}: {content.conversation_duration?.split('.')[0]} דקות</h4>
                             </div>
                             <div className="speaking-comparison">
                                 <div className="speaker-section advisor-section">
@@ -1734,7 +1734,7 @@ const PDFContent = React.forwardRef(({ report, session, logoUrl, translateCatego
                                 <div style={{ marginBottom: '0.5rem' }}>
                                     <p style={{ pageBreakInside: 'avoid', lineHeight: '1.6' }}>{insight.content}</p>
                                 </div>
-                                {insight.supporting_quotes && insight.supporting_quotes.filter(quote => quote && quote.trim()).length > 0 && (
+                                {/* {insight.supporting_quotes && insight.supporting_quotes.filter(quote => quote && quote.trim()).length > 0 && (
                                     <div style={{ pageBreakInside: 'avoid' }}>
                                         <strong>{t('reports.supportingQuotes')}:</strong>
                                         <ul style={{ marginTop: '0.5rem' }}>
@@ -1743,7 +1743,7 @@ const PDFContent = React.forwardRef(({ report, session, logoUrl, translateCatego
                                             ))}
                                         </ul>
                                     </div>
-                                )}
+                                )} */}
                             </div>
                         ))}
                     </div>
@@ -1758,13 +1758,13 @@ const PDFContent = React.forwardRef(({ report, session, logoUrl, translateCatego
                                 <div style={{ marginBottom: '0.5rem' }}>
                                     <strong>{item.task}</strong>
                                 </div>
-                                <div style={{ paddingLeft: '1rem' }}>
+                                {/* <div style={{ paddingLeft: '1rem' }}>
                                     <div style={{ marginBottom: '0.25rem' }}>{t('reports.owner')}: {translateOwner(item.owner)}</div>
                                     {item.deadline && (
                                         <div style={{ marginBottom: '0.25rem' }}>{t('reports.deadline')}: {item.deadline}</div>
                                     )}
                                     <div>{t('reports.status')}: {translateStatus(item.status)}</div>
-                                </div>
+                                </div> */}
                             </div>
                         ))}
                     </div>

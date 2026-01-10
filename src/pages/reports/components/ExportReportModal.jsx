@@ -510,7 +510,7 @@ export function ExportReportModal({
                                                                         <p style={{pageBreakInside: 'avoid', lineHeight: '1.6'}}>{insight.content}</p>
                                                                     )}
                                                                 </div>
-                                                                {insight.supporting_quotes && insight.supporting_quotes.filter(quote => quote && quote.trim()).length > 0 && (
+                                                                {/* {insight.supporting_quotes && insight.supporting_quotes.filter(quote => quote && quote.trim()).length > 0 && (
                                                                     <div className="supporting-quotes" style={{pageBreakInside: 'avoid'}}>
                                                                         <strong>{t('reports.supportingQuotes')}:</strong>
                                                                         {isEditing ? (
@@ -541,7 +541,7 @@ export function ExportReportModal({
                                                                             </ul>
                                                                         )}
                                                                     </div>
-                                                                )}
+                                                                )} */}
                                                             </div>
                                                         ))}
                                                     </div>
@@ -567,7 +567,7 @@ export function ExportReportModal({
                                                                         <strong>{item.task}</strong>
                                                                     )}
                                                                 </div>
-                                                                <div className="action-details" style={{paddingLeft: '1rem'}}>
+                                                                {/* <div className="action-details" style={{paddingLeft: '1rem'}}>
                                                                     <div className="action-owner" style={{marginBottom: '0.25rem'}}>{t('reports.owner')}: {translateOwner(item.owner)}</div>
                                                                     {item.deadline && (
                                                                         <div className="action-deadline" style={{marginBottom: '0.25rem'}}>{t('reports.deadline')}: {item.deadline}</div>
@@ -575,7 +575,7 @@ export function ExportReportModal({
                                                                     <div className={`action-status status-${item.status?.replace(/\s+/g, '-').toLowerCase()}`}>
                                                                         {t('reports.status')}: {translateStatus(item.status)}
                                                                     </div>
-                                                                </div>
+                                                                </div> */}
                                                             </div>
                                                         ))}
                                                     </div>

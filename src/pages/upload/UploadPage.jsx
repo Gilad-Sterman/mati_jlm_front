@@ -414,8 +414,8 @@ export function UploadPage() {
             const clientFirstName = getFirstName(clientName);
             const adviserFirstName = getFirstName(adviserName);
 
-            // Format: "Session {date} - {clientFirstName} & {adviserFirstName}"
-            return `${t('upload.sessionPrefix')} ${currentDate} - ${clientFirstName} & ${adviserFirstName}`;
+            // Format: "Session {date} - {clientFirstName} - {adviserFirstName}"
+            return `${t('upload.sessionPrefix')} ${currentDate} - ${clientFirstName} - ${adviserFirstName}`;
         };
 
         // Prepare session data object (not FormData)
