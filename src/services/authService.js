@@ -118,6 +118,26 @@ export const authService = {
     } catch (error) {
       throw new Error('Token verification failed');
     }
+  },
+
+  // Forgot password - send reset email
+  async forgotPassword(email) {
+    try {
+      const response = await api.post('/auth/forgot-password', { email });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to send reset email');
+    }
+  },
+
+  // Reset password with token
+  async resetPassword(token, password) {
+    try {
+      const response = await api.post('/auth/reset-password', { token, password });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to reset password');
+    }
   }
 };
 

@@ -200,7 +200,11 @@ export function Login() {
                 </div>
 
                 <div className="login-footer">
-                    <p>{t('login.forgotPassword')}</p>
+                    <p>
+                        <Link to="/forgot-password" className="forgot-password-link">
+                            {t('login.forgotPassword')}
+                        </Link>
+                    </p>
                     <p>
                         {t('login.noAccount')}{' '}
                         <Link to="/register" className="register-link">

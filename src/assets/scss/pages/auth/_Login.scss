@@ -35,6 +35,17 @@
             opacity: 0.9;
             font-weight: 300;
         }
+
+        .success-icon {
+            margin-bottom: $spacing-lg;
+            
+            svg {
+                width: 48px;
+                height: 48px;
+                color: $white-color;
+                opacity: 0.9;
+            }
+        }
     }
 
     .login-form {
@@ -220,6 +231,43 @@
                             text-align: center;
                         }
 
+                        &.unmet {
+                            color: #6c757d;
+                            
+                            .requirement-icon {
+                                color: $danger-color;
+                                margin-right: $spacing-sm;
+                                font-weight: bold;
+                                font-size: 12px;
+                                width: 16px;
+                                text-align: center;
+
+                                [dir="rtl"] & {
+                                    margin-right: 0;
+                                    margin-left: $spacing-sm;
+                                }
+                            }
+                        }
+
+                        &.met {
+                            color: $success-color;
+                            
+                            .requirement-icon {
+                                color: $success-color;
+                                margin-right: $spacing-sm;
+                                font-weight: bold;
+                                font-size: 12px;
+                                width: 16px;
+                                text-align: center;
+
+                                [dir="rtl"] & {
+                                    margin-right: 0;
+                                    margin-left: $spacing-sm;
+                                }
+                            }
+                        }
+
+                        // Legacy support for existing classes
                         &.invalid {
                             color: #6c757d;
                             
@@ -293,7 +341,8 @@
             }
         }
 
-        .register-link {
+        .register-link,
+        .forgot-password-link {
             color: $secondary-color;
             text-decoration: none;
             font-weight: 600;
@@ -302,6 +351,46 @@
             &:hover {
                 color: $primary-color;
                 text-decoration: underline;
+            }
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: $spacing-xs;
+            color: #6c757d;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+
+            &:hover {
+                color: $secondary-color;
+            }
+
+            svg {
+                width: 16px;
+                height: 16px;
+            }
+
+            // RTL support - flip arrow direction
+            [dir="rtl"] & {
+                flex-direction: row-reverse;
+            }
+        }
+
+        .resend-link {
+            background: none;
+            border: none;
+            color: $secondary-color;
+            text-decoration: underline;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: inherit;
+            padding: 0;
+            transition: all 0.3s ease;
+
+            &:hover {
+                color: $primary-color;
             }
         }
     }

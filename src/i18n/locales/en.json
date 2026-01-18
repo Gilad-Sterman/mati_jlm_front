@@ -21,6 +21,59 @@
             "accountNotActive": "Your account is not active. Please contact an administrator."
         }
     },
+    "forgotPassword": {
+        "title": "Forgot Password",
+        "subtitle": "Enter your email to receive password reset instructions",
+        "email": "Email",
+        "emailPlaceholder": "Enter your email address",
+        "submit": "Send Reset Email",
+        "sending": "Sending...",
+        "backToLogin": "Back to Login",
+        "emailSent": {
+            "title": "Check Your Email",
+            "message": "We've sent password reset instructions to {{email}}"
+        },
+        "didntReceive": "Didn't receive the email?",
+        "tryAgain": "Try again",
+        "errors": {
+            "emailRequired": "Email is required",
+            "emailInvalid": "Please enter a valid email"
+        }
+    },
+    "resetPassword": {
+        "title": "Reset Password",
+        "subtitle": "Enter your new password",
+        "newPassword": "New Password",
+        "newPasswordPlaceholder": "Enter your new password",
+        "confirmPassword": "Confirm Password",
+        "confirmPasswordPlaceholder": "Confirm your new password",
+        "submit": "Reset Password",
+        "resetting": "Resetting...",
+        "backToLogin": "Back to Login",
+        "success": {
+            "title": "Password Reset Successfully",
+            "message": "Your password has been updated. You can now log in with your new password.",
+            "loginButton": "Go to Login"
+        },
+        "requirements": {
+            "title": "Password Requirements:",
+            "minLength": "At least 6 characters",
+            "uppercase": "One uppercase letter",
+            "lowercase": "One lowercase letter",
+            "number": "One number"
+        },
+        "validation": {
+            "minLength": "Password must be at least 6 characters long",
+            "uppercase": "Password must contain at least one uppercase letter",
+            "lowercase": "Password must contain at least one lowercase letter",
+            "number": "Password must contain at least one number"
+        },
+        "errors": {
+            "passwordRequired": "Password is required",
+            "confirmPasswordRequired": "Please confirm your password",
+            "passwordMismatch": "Passwords do not match"
+        }
+    },
     "notifications": {
         "clearAll": "Clear All",
         "processingComplete": "Processing Complete!",
