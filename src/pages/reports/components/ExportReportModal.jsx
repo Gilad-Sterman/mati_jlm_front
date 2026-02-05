@@ -493,57 +493,50 @@ export function ExportReportModal({
                                                 <div className="content-section">
                                                     <h5 style={{fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000', pageBreakAfter: 'avoid'}}>{t('reports.keyInsights')}</h5>
                                                     <div className="content-preview">
-                                                        {displayContent.key_insights.map((insight, index) => (
-                                                            <div key={index} className="insight-item" style={{pageBreakInside: 'avoid', marginBottom: '1rem'}}>
-                                                                <div className="insight-category" style={{marginBottom: '0.5rem'}}>
-                                                                    <strong>{translateCategory(insight.category)}</strong>
-                                                                </div>
-                                                                <div className="insight-content" style={{marginBottom: '0.5rem'}}>
-                                                                    {isEditing ? (
-                                                                        <textarea
-                                                                            className="editable-content editable-text"
-                                                                            value={insight.content}
-                                                                            onChange={(e) => handleContentChange('key_insights', e.target.value, index, 'content')}
-                                                                            style={{width: '100%', minHeight: '60px', lineHeight: '1.6', border: '2px dashed #3498db', borderRadius: '4px', padding: '8px', backgroundColor: 'rgba(52, 152, 219, 0.05)'}}
-                                                                        />
-                                                                    ) : (
-                                                                        <p style={{pageBreakInside: 'avoid', lineHeight: '1.6'}}>{insight.content}</p>
-                                                                    )}
-                                                                </div>
-                                                                {/* {insight.supporting_quotes && insight.supporting_quotes.filter(quote => quote && quote.trim()).length > 0 && (
-                                                                    <div className="supporting-quotes" style={{pageBreakInside: 'avoid'}}>
-                                                                        <strong>{t('reports.supportingQuotes')}:</strong>
-                                                                        {isEditing ? (
-                                                                            <div className="editable-quotes" style={{marginTop: '0.5rem'}}>
-                                                                                {insight.supporting_quotes.map((quote, qIndex) => (
-                                                                                    <div key={qIndex} style={{marginBottom: '0.5rem', display: 'flex', alignItems: 'center'}}>
-                                                                                        <span style={{marginRight: '0.5rem'}}>"</span>
-                                                                                        <input
-                                                                                            type="text"
-                                                                                            className="editable-content editable-quote"
-                                                                                            value={quote}
-                                                                                            onChange={(e) => {
-                                                                                                const newQuotes = [...insight.supporting_quotes];
-                                                                                                newQuotes[qIndex] = e.target.value;
-                                                                                                handleContentChange('key_insights', newQuotes, index, 'supporting_quotes');
-                                                                                            }}
-                                                                                            style={{flex: 1, border: '1px dashed #3498db', borderRadius: '3px', padding: '4px', backgroundColor: 'rgba(52, 152, 219, 0.05)'}}
-                                                                                        />
-                                                                                        <span style={{marginLeft: '0.5rem'}}>"</span>
+                                                        {(() => {
+                                                            // Group insights by category
+                                                            const insightsByCategory = {};
+                                                            displayContent.key_insights.forEach((insight, index) => {
+                                                                const category = insight.category || 'Other';
+                                                                if (!insightsByCategory[category]) {
+                                                                    insightsByCategory[category] = [];
+                                                                }
+                                                                insightsByCategory[category].push({...insight, originalIndex: index});
+                                                            });
+                                                            
+                                                            // Render each category with its insights grouped together
+                                                            return Object.keys(insightsByCategory).map(category => {
+                                                                const categoryInsights = insightsByCategory[category];
+                                                                
+                                                                return (
+                                                                    <div key={category} className="category-group" style={{marginBottom: '2rem'}}>
+                                                                        <div className="category-header" style={{marginBottom: '1rem'}}>
+                                                                            <h6 style={{fontSize: '1.2rem', fontWeight: '600', color: '#000000', marginBottom: '0.5rem', paddingBottom: '0.3rem', borderBottom: '1px solid #ddd'}}>
+                                                                                <strong>{translateCategory(category)}</strong>
+                                                                            </h6>
+                                                                        </div>
+                                                                        <div className="category-insights" style={{marginLeft: '1rem'}}>
+                                                                            {categoryInsights.map((insight, categoryIndex) => (
+                                                                                <div key={insight.originalIndex} className="insight-item" style={{pageBreakInside: 'avoid', marginBottom: '1rem'}}>
+                                                                                    <div className="insight-content" style={{marginBottom: '0.5rem'}}>
+                                                                                        {isEditing ? (
+                                                                                            <textarea
+                                                                                                className="editable-content editable-text"
+                                                                                                value={insight.content}
+                                                                                                onChange={(e) => handleContentChange('key_insights', e.target.value, insight.originalIndex, 'content')}
+                                                                                                style={{width: '100%', minHeight: '60px', lineHeight: '1.6', border: '2px dashed #3498db', borderRadius: '4px', padding: '8px', backgroundColor: 'rgba(52, 152, 219, 0.05)'}}
+                                                                                            />
+                                                                                        ) : (
+                                                                                            <p style={{pageBreakInside: 'avoid', lineHeight: '1.6'}}>• {insight.content}</p>
+                                                                                        )}
                                                                                     </div>
-                                                                                ))}
-                                                                            </div>
-                                                                        ) : (
-                                                                            <ul style={{marginTop: '0.5rem'}}>
-                                                                                {insight.supporting_quotes.filter(quote => quote && quote.trim()).map((quote, qIndex) => (
-                                                                                    <li key={qIndex} style={{pageBreakInside: 'avoid', marginBottom: '0.25rem'}}>"{ quote}"</li>
-                                                                                ))}
-                                                                            </ul>
-                                                                        )}
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
                                                                     </div>
-                                                                )} */}
-                                                            </div>
-                                                        ))}
+                                                                );
+                                                            });
+                                                        })()}
                                                     </div>
                                                 </div>
                                             )}

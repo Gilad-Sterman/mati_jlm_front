@@ -1726,26 +1726,41 @@ const PDFContent = React.forwardRef(({ report, session, logoUrl, translateCatego
                 {content?.key_insights && Array.isArray(content.key_insights) && content.key_insights.length > 0 && (
                     <div style={{ marginBottom: '2rem' }}>
                         <h5 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#000000', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #000000', pageBreakAfter: 'avoid' }}>{t('reports.keyInsights')}</h5>
-                        {content.key_insights.map((insight, index) => (
-                            <div key={index} style={{ pageBreakInside: 'avoid', marginBottom: '1rem' }}>
-                                <div style={{ marginBottom: '0.5rem' }}>
-                                    <strong>{translateCategory(insight.category)}</strong>
-                                </div>
-                                <div style={{ marginBottom: '0.5rem' }}>
-                                    <p style={{ pageBreakInside: 'avoid', lineHeight: '1.6' }}>{insight.content}</p>
-                                </div>
-                                {/* {insight.supporting_quotes && insight.supporting_quotes.filter(quote => quote && quote.trim()).length > 0 && (
-                                    <div style={{ pageBreakInside: 'avoid' }}>
-                                        <strong>{t('reports.supportingQuotes')}:</strong>
-                                        <ul style={{ marginTop: '0.5rem' }}>
-                                            {insight.supporting_quotes.filter(quote => quote && quote.trim()).map((quote, qIndex) => (
-                                                <li key={qIndex} style={{ pageBreakInside: 'avoid', marginBottom: '0.25rem' }}>"{quote}"</li>
+                        {(() => {
+                            // Group insights by category
+                            const insightsByCategory = {};
+                            content.key_insights.forEach((insight, index) => {
+                                const category = insight.category || 'Other';
+                                if (!insightsByCategory[category]) {
+                                    insightsByCategory[category] = [];
+                                }
+                                insightsByCategory[category].push(insight);
+                            });
+                            
+                            // Render each category with its insights grouped together
+                            return Object.keys(insightsByCategory).map(category => {
+                                const categoryInsights = insightsByCategory[category];
+                                
+                                return (
+                                    <div key={category} style={{ marginBottom: '2rem' }}>
+                                        <div style={{ marginBottom: '1rem' }}>
+                                            <h6 style={{ fontSize: '1.2rem', fontWeight: '600', color: '#000000', marginBottom: '0.5rem', paddingBottom: '0.3rem', borderBottom: '1px solid #ddd' }}>
+                                                <strong>{translateCategory(category)}</strong>
+                                            </h6>
+                                        </div>
+                                        <div style={{ marginLeft: isRTL ? '0' : '1rem', marginRight: isRTL ? '1rem' : '0' }}>
+                                            {categoryInsights.map((insight, categoryIndex) => (
+                                                <div key={categoryIndex} style={{ pageBreakInside: 'avoid', marginBottom: '1rem' }}>
+                                                    <div style={{ marginBottom: '0.5rem' }}>
+                                                        <p style={{ pageBreakInside: 'avoid', lineHeight: '1.6' }}>• {insight.content}</p>
+                                                    </div>
+                                                </div>
                                             ))}
-                                        </ul>
+                                        </div>
                                     </div>
-                                )} */}
-                            </div>
-                        ))}
+                                );
+                            });
+                        })()}
                     </div>
                 )}
 
