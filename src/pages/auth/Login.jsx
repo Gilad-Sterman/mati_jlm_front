@@ -15,6 +15,7 @@ export function Login() {
     
     // Get the page user was trying to access before being redirected to login
     const from = location.state?.from?.pathname || null;
+    const fromSearch = location.state?.from?.search || null;
 
     const [formData, setFormData] = useState({
         email: '',
@@ -38,8 +39,9 @@ export function Login() {
                     // Non-admin trying to access admin route, redirect to their default page
                     navigate(user.role === 'adviser' ? '/upload' : '/');
                 } else {
-                    // User has access, redirect to requested page
-                    navigate(from);
+                    // User has access, redirect to requested page with search parameters
+                    const fullPath = from + (fromSearch || '');
+                    navigate(fullPath);
                 }
             } else {
                 // Default role-based navigation

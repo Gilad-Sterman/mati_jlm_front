@@ -27,7 +27,7 @@ import {
 } from '../../store/sessionSlice';
 import { fetchClientsForSelection, quickCreateClient, selectSelectionClients, selectIsCreating, selectError as selectClientError, clearError as clearClientError } from '../../store/clientSlice';
 import { selectUser } from '../../store/authSlice';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 // Custom hooks
 import { useUploadSocket } from '../../hooks/useUploadSocket';
 
@@ -42,6 +42,7 @@ export function UploadPage() {
     const { t } = useTranslation();
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
     const fileInputRef = useRef(null);
 
     // Redux state
@@ -85,6 +86,8 @@ export function UploadPage() {
     const [validationErrors, setValidationErrors] = useState({});
     const [isFetchingSalesforce, setIsFetchingSalesforce] = useState(false);
     const [salesforceError, setSalesforceError] = useState('');
+    const [isAutoFillingFromUrl, setIsAutoFillingFromUrl] = useState(false);
+    const [urlAutoFillProcessed, setUrlAutoFillProcessed] = useState(false);
 
     // Email validation function
     const isValidEmail = (email) => {
@@ -129,12 +132,75 @@ export function UploadPage() {
             setClientMode('existing');
             setNewClient({ name: '', email: '', phone: '', business_domain: '', business_number: '' });
             setValidationErrors({}); // Clear validation errors
+            setUrlAutoFillProcessed(false); // Reset URL auto-fill state
+            setIsAutoFillingFromUrl(false);
             if (fileInputRef.current) {
                 fileInputRef.current.value = '';
             }
         }
     }, [uiState, uploadStatus]);
 
+    // URL parameter auto-fill for client_number
+    useEffect(() => {
+        const clientNumberParam = searchParams.get('client_number');
+        
+        // Only process if we have a client number param, haven't processed it yet, and we're in upload state
+        if (clientNumberParam && !urlAutoFillProcessed && uiState === 'upload' && !isUploading) {
+            console.log('🔗 Detected client_number URL parameter:', clientNumberParam);
+            
+            // Switch to new client mode and set business number
+            setClientMode('new');
+            setNewClient(prev => ({
+                ...prev,
+                business_number: clientNumberParam.trim()
+            }));
+            
+            // Mark as processed to prevent duplicate processing
+            setUrlAutoFillProcessed(true);
+            
+            // Trigger Salesforce lookup automatically
+            handleAutoFillFromUrl(clientNumberParam.trim());
+        }
+    }, [searchParams, urlAutoFillProcessed, uiState, isUploading]);
+
+    // Auto-fill function for URL parameter
+    const handleAutoFillFromUrl = async (businessNumber) => {
+        setIsAutoFillingFromUrl(true);
+        setSalesforceError('');
+
+        try {
+            const result = await salesforceService.lookupClientData(businessNumber);
+
+            if (result.success && result.data) {
+                // Auto-fill form fields with Salesforce data
+                setNewClient(prev => ({
+                    ...prev,
+                    name: result.data.contact_name || prev.name,
+                    email: result.data.email || prev.email,
+                    phone: result.data.phone || prev.phone,
+                    business_domain: result.data.company_name || prev.business_domain
+                }));
+
+                // Clear any validation errors for auto-filled fields
+                setValidationErrors({});
+                setSalesforceError('');
+                
+                // Clean up URL parameter after successful auto-fill
+                const newSearchParams = new URLSearchParams(searchParams);
+                newSearchParams.delete('client_number');
+                setSearchParams(newSearchParams, { replace: true });
+                
+            } else {
+                setSalesforceError(result.error || 'No client data found for this business number');
+                console.log('❌ Auto-fill from URL failed:', result.error);
+            }
+        } catch (error) {
+            console.error('Auto-fill from URL error:', error);
+            setSalesforceError('Failed to fetch client data. Please try again.');
+        } finally {
+            setIsAutoFillingFromUrl(false);
+        }
+    };
 
     // File handling
     const handleFileSelect = (files) => {
@@ -907,16 +973,21 @@ export function UploadPage() {
                                                     type="button"
                                                     className="fetch-salesforce-btn"
                                                     onClick={handleFetchFromSalesforce}
-                                                    disabled={isUploading || isFetchingSalesforce || !newClient.business_number.trim()}
+                                                    disabled={isUploading || isFetchingSalesforce || isAutoFillingFromUrl || !newClient.business_number.trim()}
                                                     title="Fetch client data from Salesforce"
                                                 >
-                                                    {isFetchingSalesforce ? (
+                                                    {(isFetchingSalesforce || isAutoFillingFromUrl) ? (
                                                         <div className="loading-spinner"></div>
                                                     ) : (
                                                         <Search size={16} />
                                                     )}
                                                 </button>
                                             </div>
+                                            {isAutoFillingFromUrl && (
+                                                <div className="info-message">
+                                                    {t('upload.autoFillingFromUrl')}
+                                                </div>
+                                            )}
                                             {salesforceError && (
                                                 <div className="error-message">{salesforceError}</div>
                                             )}

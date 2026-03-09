@@ -161,6 +161,7 @@
         "fileUpload": "File Upload",
         "sessionDetails": "Session Details",
         "sessionPrefix": "Session",
+        "autoFillingFromUrl": "Auto-filling client data...",
         "clientSelection": "Entrepreneur Selection",
         "existingClient": "Existing Entrepreneur",
         "selectClient": "Select Entrepreneur",
