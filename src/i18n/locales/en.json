@@ -373,6 +373,7 @@
         "advisorPerformance": "Advisor Score",
         "entrepreneurReadiness": "Entrepreneur Readiness",
         "scoreGood": "Good",
+        "scoreExcellent": "Excellent",
         "scorePoor": "Poor",
         "scoreVeryPoor": "Very Poor",
         "scoreAverage": "Average",
